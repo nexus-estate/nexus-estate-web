@@ -20,7 +20,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@nexus-estate/typescript-sdk": "lastest",
+    "@nexus-estate/typescript-sdk": "latest",
     "@tanstack/react-query": "^5",
     "axios": "^1",
     "clsx": "^2",
