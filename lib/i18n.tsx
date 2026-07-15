@@ -1,0 +1,587 @@
+'use client';
+
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  type ReactNode,
+} from 'react';
+
+type Locale = 'vi' | 'en';
+
+interface Translations {
+  [key: string]: string | Translations;
+}
+
+const messages: Record<Locale, Translations> = {
+  vi: {
+    common: {
+      loading: 'Đang tải...',
+      error: 'Đã xảy ra lỗi',
+      save: 'Lưu',
+      saving: 'Đang lưu...',
+      cancel: 'Hủy',
+      search: 'Tìm kiếm',
+      noResults: 'Không tìm thấy kết quả',
+      back: 'Quay lại',
+      submit: 'Gửi',
+      submitting: 'Đang gửi...',
+    },
+    nav: {
+      home: 'Trang chủ',
+      properties: 'Nhà đất',
+      forRent: 'Cho thuê',
+      dashboard: 'Dashboard',
+      admin: 'Quản trị',
+      profile: 'Thông tin cá nhân',
+      signin: 'Đăng nhập',
+      signup: 'Đăng ký',
+      signout: 'Đăng xuất',
+    },
+    home: {
+      heroTitle: 'Tìm kiếm bất động sản',
+      heroTitleHighlight: 'thông minh hơn',
+      heroSubtitle:
+        'Kết nối người mua, người bán và môi giới trên nền tảng bất động sản hàng đầu Việt Nam. Hỗ trợ bởi AI Recommendation.',
+      searchPlaceholder: 'Nhập địa điểm, dự án...',
+      searchButton: 'Tìm kiếm',
+      hotProperties: 'Bất động sản nổi bật',
+      hotPropertiesSub: 'Được nhiều người quan tâm nhất',
+      viewAll: 'Xem tất cả',
+      allProperties: 'Danh sách bất động sản',
+      allPropertiesSub: 'Cập nhật mới nhất',
+      noProperties: 'Chưa có bất động sản nào.',
+      featuresTitle: 'Tại sao chọn Nexus Estate?',
+      feature1Title: 'AI Recommendation',
+      feature1Desc:
+        'Gợi ý bất động sản phù hợp nhất dựa trên hành vi và sở thích của bạn.',
+      feature2Title: 'Tìm kiếm thông minh',
+      feature2Desc:
+        'Tìm kiếm nhanh chóng với nhiều bộ lọc và hỗ trợ ngôn ngữ tự nhiên.',
+      feature3Title: 'An toàn & Tin cậy',
+      feature3Desc: 'Xác thực thông tin người dùng, bảo vệ giao dịch của bạn.',
+      ctaTitle: 'Bạn là môi giới bất động sản?',
+      ctaSubtitle: 'Đăng tin và tiếp cận hàng ngàn khách hàng tiềm năng.',
+      ctaButton: 'Đăng ký ngay',
+    },
+    auth: {
+      signinTitle: 'Đăng nhập',
+      signinSubtitle: 'Chưa có tài khoản?',
+      signinLink: 'Đăng ký ngay',
+      signinButton: 'Đăng nhập',
+      signinLoading: 'Đang đăng nhập...',
+      signinError:
+        'Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.',
+      signupTitle: 'Tạo tài khoản',
+      signupSubtitle: 'Đã có tài khoản?',
+      signupLink: 'Đăng nhập',
+      signupButton: 'Đăng ký',
+      signupLoading: 'Đang đăng ký...',
+      signupSuccess: 'Đăng ký thành công!',
+      signupRedirect: 'Đang chuyển đến trang đăng nhập...',
+      email: 'Email',
+      emailPlaceholder: 'you@example.com',
+      password: 'Mật khẩu',
+      passwordPlaceholder: '••••••••',
+      confirmPassword: 'Xác nhận mật khẩu',
+      confirmPasswordPlaceholder: 'Nhập lại mật khẩu',
+      fullName: 'Họ và tên',
+      fullNamePlaceholder: 'Nguyễn Văn A',
+      phoneNumber: 'Số điện thoại',
+      phoneNumberPlaceholder: '090 123 4567',
+      passwordMinLength: 'Mật khẩu phải có ít nhất 8 ký tự.',
+      passwordMismatch: 'Mật khẩu xác nhận không khớp.',
+      identifier: 'Email hoặc tên đăng nhập',
+      identifierPlaceholder: 'you@example.com',
+      termsPrefix: 'Bằng cách đăng ký, bạn đồng ý với',
+      termsLink: 'Điều khoản dịch vụ',
+      privacyLink: 'Chính sách bảo mật',
+    },
+    footer: {
+      description:
+        'Nền tảng bất động sản thông minh, kết nối người mua, người bán và môi giới.',
+      explore: 'Khám phá',
+      forSale: 'Nhà đất bán',
+      forRent: 'Nhà đất cho thuê',
+      apartment: 'Căn hộ',
+      house: 'Nhà phố',
+      land: 'Đất nền',
+      forBroker: 'Dành cho môi giới',
+      register: 'Đăng ký tài khoản',
+      manageListings: 'Quản lý tin đăng',
+      newListing: 'Đăng tin mới',
+      support: 'Hỗ trợ',
+      copyright: 'Tất cả quyền được bảo lưu.',
+    },
+    property: {
+      forSale: 'Bán',
+      forRent: 'Cho thuê',
+      contact: 'Liên hệ',
+      sqm: 'm²',
+      bedrooms: 'Phòng ngủ',
+      bathrooms: 'Phòng tắm',
+      description: 'Mô tả',
+      address: 'Địa chỉ',
+      brokerInfo: 'Thông tin môi giới',
+      contactTitle: 'Liên hệ ngay',
+      contactSubtitle: 'Quan tâm đến bất động sản này?',
+      contactName: 'Họ và tên *',
+      contactPhone: 'Số điện thoại *',
+      contactMessage: 'Lời nhắn (không bắt buộc)',
+      contactButton: 'Gửi liên hệ',
+      contactSending: 'Đang gửi...',
+      contactSuccess: 'Gửi liên hệ thành công!',
+      contactSuccessSub: 'Môi giới sẽ liên hệ với bạn sớm nhất.',
+      contactFail: 'Gửi liên hệ thất bại. Vui lòng thử lại.',
+      similar: 'Bất động sản tương tự',
+      notFound: 'Không tìm thấy bất động sản.',
+      allTypes: 'Tất cả loại',
+      allPurposes: 'Tất cả',
+      searchPlaceholder: 'Địa điểm, dự án...',
+      cityPlaceholder: 'Hồ Chí Minh...',
+      results: 'kết quả',
+    },
+    dashboard: {
+      welcome: 'Xin chào',
+      welcomeSub: 'Chào mừng bạn đến với Nexus Estate.',
+      newListing: '+ Đăng tin mới',
+      explore: 'Khám phá bất động sản',
+      myListings: 'Tin đăng của tôi',
+      add: '+ Thêm',
+      noListings: 'Bạn chưa có tin đăng nào.',
+      postNow: 'Đăng tin ngay',
+      packages: 'Gói dịch vụ',
+      noPackages: 'Chưa có gói dịch vụ nào.',
+      days: 'ngày',
+      maxListings: 'Tối đa',
+      posts: 'tin',
+      views: 'lượt xem',
+      role: 'Vai trò',
+      statsListings: 'Tin đăng',
+      statsViews: 'Lượt xem',
+      statsRole: 'Vai trò',
+      statusPublished: 'Đã đăng',
+      statusDraft: 'Nháp',
+      statusPending: 'Chờ duyệt',
+    },
+    admin: {
+      title: 'Quản trị hệ thống',
+      subtitle: 'Tổng quan hệ thống Nexus Estate',
+      totalUsers: 'Tổng người dùng',
+      totalBrokers: 'Môi giới',
+      totalListings: 'Tin đăng',
+      usersTitle: 'Người dùng',
+      noUsers: 'Chưa có người dùng nào.',
+      name: 'Họ tên',
+      email: 'Email',
+      role: 'Vai trò',
+      status: 'Trạng thái',
+      active: 'Hoạt động',
+      locked: 'Khóa',
+    },
+    profile: {
+      title: 'Thông tin cá nhân',
+      edit: 'Chỉnh sửa',
+      editTitle: 'Chỉnh sửa thông tin',
+      saveSuccess: 'Thông tin cá nhân đã được cập nhật thành công!',
+      loadError: 'Không thể tải thông tin người dùng',
+      stats: 'Thống kê',
+      followers: 'Người theo dõi',
+      following: 'Đang theo dõi',
+      security: 'Bảo mật',
+      changePassword: 'Đổi mật khẩu',
+      oldPassword: 'Mật khẩu cũ',
+      newPassword: 'Mật khẩu mới',
+      confirmNewPassword: 'Xác nhận mật khẩu mới',
+      updatePassword: 'Cập nhật',
+      passwordSuccess: 'Đổi mật khẩu thành công!',
+      passwordMismatch: 'Mật khẩu xác nhận không khớp',
+      passwordMinLength: 'Mật khẩu mới phải có ít nhất 6 ký tự',
+      quickLinks: 'Liên kết nhanh',
+      findProperties: 'Tìm kiếm nhà đất',
+      joinedAt: 'Tham gia từ',
+      updatedAt: 'Cập nhật lần cuối',
+      notUpdated: 'Chưa cập nhật',
+      firstName: 'Họ',
+      firstNamePlaceholder: 'Nguyễn',
+      lastName: 'Tên',
+      lastNamePlaceholder: 'Văn A',
+      phone: 'Số điện thoại',
+      phonePlaceholder: '+84 123 456 789',
+      bio: 'Tiểu sử',
+      bioPlaceholder: 'Giới thiệu ngắn về bản thân...',
+      addressPlaceholder: 'Số nhà, tên đường',
+      cityPlaceholder: 'Hồ Chí Minh',
+      countryPlaceholder: 'Việt Nam',
+      dateOfBirth: 'Ngày sinh',
+      avatarUrl: 'URL Avatar',
+      avatarPlaceholder: 'https://example.com/avatar.jpg',
+    },
+    newListing: {
+      title: 'Đăng tin mới',
+      subtitle: 'Nhập thông tin bất động sản cần đăng',
+      backToDashboard: 'Quay lại Dashboard',
+      basicInfo: 'Thông tin cơ bản',
+      propertyTitle: 'Tiêu đề',
+      propertyTitlePlaceholder: 'Ví dụ: Căn hộ chung cư The Sun Avenue',
+      type: 'Loại',
+      purpose: 'Mục đích',
+      price: 'Giá',
+      pricePlaceholder: 'Giá tính bằng VND',
+      area: 'Diện tích (m²)',
+      bedrooms: 'Phòng ngủ',
+      bathrooms: 'Phòng tắm',
+      description: 'Mô tả',
+      descriptionPlaceholder: 'Mô tả chi tiết về bất động sản...',
+      address: 'Địa chỉ',
+      city: 'Thành phố',
+      cityPlaceholder: 'Hồ Chí Minh',
+      district: 'Quận/Huyện',
+      districtPlaceholder: 'Quận 2',
+      streetAddress: 'Địa chỉ cụ thể',
+      streetAddressPlaceholder: '12 Mai Chí Thọ',
+      submit: 'Đăng tin',
+      submitting: 'Đang đăng...',
+      cancel: 'Hủy',
+      success: 'Đăng tin thành công!',
+      successRedirect: 'Đang chuyển về Dashboard...',
+      fail: 'Đăng tin thất bại.',
+    },
+    propertyType: {
+      apartment: 'Căn hộ',
+      house: 'Nhà phố',
+      villa: 'Biệt thự',
+      land: 'Đất nền',
+      office: 'Văn phòng',
+    },
+    role: {
+      ADMIN: 'Quản trị',
+      BROKER: 'Môi giới',
+      BUYER: 'Người mua',
+    },
+  },
+  en: {
+    common: {
+      loading: 'Loading...',
+      error: 'An error occurred',
+      save: 'Save',
+      saving: 'Saving...',
+      cancel: 'Cancel',
+      search: 'Search',
+      noResults: 'No results found',
+      back: 'Back',
+      submit: 'Submit',
+      submitting: 'Submitting...',
+    },
+    nav: {
+      home: 'Home',
+      properties: 'Properties',
+      forRent: 'For Rent',
+      dashboard: 'Dashboard',
+      admin: 'Admin',
+      profile: 'Profile',
+      signin: 'Sign In',
+      signup: 'Sign Up',
+      signout: 'Sign Out',
+    },
+    home: {
+      heroTitle: 'Find properties',
+      heroTitleHighlight: 'smarter',
+      heroSubtitle:
+        "Connect buyers, sellers and agents on Vietnam's leading real estate platform. Powered by AI Recommendation.",
+      searchPlaceholder: 'Enter location, project...',
+      searchButton: 'Search',
+      hotProperties: 'Hot Properties',
+      hotPropertiesSub: 'Most viewed properties',
+      viewAll: 'View All',
+      allProperties: 'All Properties',
+      allPropertiesSub: 'Latest updates',
+      noProperties: 'No properties yet.',
+      featuresTitle: 'Why choose Nexus Estate?',
+      feature1Title: 'AI Recommendation',
+      feature1Desc:
+        'Get personalized property recommendations based on your behavior and preferences.',
+      feature2Title: 'Smart Search',
+      feature2Desc:
+        'Quick search with multiple filters and natural language support.',
+      feature3Title: 'Safe & Trusted',
+      feature3Desc: 'Verified user information, secure transactions.',
+      ctaTitle: 'Are you a real estate agent?',
+      ctaSubtitle: 'Post listings and reach thousands of potential customers.',
+      ctaButton: 'Register Now',
+    },
+    auth: {
+      signinTitle: 'Sign In',
+      signinSubtitle: "Don't have an account?",
+      signinLink: 'Sign Up',
+      signinButton: 'Sign In',
+      signinLoading: 'Signing in...',
+      signinError: 'Sign in failed. Please check your email and password.',
+      signupTitle: 'Create Account',
+      signupSubtitle: 'Already have an account?',
+      signupLink: 'Sign In',
+      signupButton: 'Sign Up',
+      signupLoading: 'Signing up...',
+      signupSuccess: 'Registration successful!',
+      signupRedirect: 'Redirecting to sign in...',
+      email: 'Email',
+      emailPlaceholder: 'you@example.com',
+      password: 'Password',
+      passwordPlaceholder: '••••••••',
+      confirmPassword: 'Confirm Password',
+      confirmPasswordPlaceholder: 'Re-enter password',
+      fullName: 'Full Name',
+      fullNamePlaceholder: 'John Doe',
+      phoneNumber: 'Phone Number',
+      phoneNumberPlaceholder: '+84 123 456 789',
+      passwordMinLength: 'Password must be at least 8 characters.',
+      passwordMismatch: 'Passwords do not match.',
+      identifier: 'Email or Username',
+      identifierPlaceholder: 'you@example.com',
+      termsPrefix: 'By signing up, you agree to our',
+      termsLink: 'Terms of Service',
+      privacyLink: 'Privacy Policy',
+    },
+    footer: {
+      description:
+        'Smart real estate platform connecting buyers, sellers and agents.',
+      explore: 'Explore',
+      forSale: 'For Sale',
+      forRent: 'For Rent',
+      apartment: 'Apartment',
+      house: 'House',
+      land: 'Land',
+      forBroker: 'For Brokers',
+      register: 'Register',
+      manageListings: 'Manage Listings',
+      newListing: 'New Listing',
+      support: 'Support',
+      copyright: 'All rights reserved.',
+    },
+    property: {
+      forSale: 'For Sale',
+      forRent: 'For Rent',
+      contact: 'Contact',
+      sqm: 'm²',
+      bedrooms: 'Bedrooms',
+      bathrooms: 'Bathrooms',
+      description: 'Description',
+      address: 'Address',
+      brokerInfo: 'Broker Info',
+      contactTitle: 'Contact Now',
+      contactSubtitle: 'Interested in this property?',
+      contactName: 'Full Name *',
+      contactPhone: 'Phone Number *',
+      contactMessage: 'Message (optional)',
+      contactButton: 'Send Inquiry',
+      contactSending: 'Sending...',
+      contactSuccess: 'Inquiry sent successfully!',
+      contactSuccessSub: 'The agent will contact you soon.',
+      contactFail: 'Failed to send inquiry. Please try again.',
+      similar: 'Similar Properties',
+      notFound: 'Property not found.',
+      allTypes: 'All Types',
+      allPurposes: 'All',
+      searchPlaceholder: 'Location, project...',
+      cityPlaceholder: 'Ho Chi Minh...',
+      results: 'results',
+    },
+    dashboard: {
+      welcome: 'Welcome',
+      welcomeSub: 'Welcome to Nexus Estate.',
+      newListing: '+ New Listing',
+      explore: 'Explore Properties',
+      myListings: 'My Listings',
+      add: '+ Add',
+      noListings: 'You have no listings yet.',
+      postNow: 'Post Now',
+      packages: 'Packages',
+      noPackages: 'No packages available.',
+      days: 'days',
+      maxListings: 'Max listings',
+      posts: 'posts',
+      views: 'views',
+      role: 'Role',
+      statsListings: 'Listings',
+      statsViews: 'Views',
+      statsRole: 'Role',
+      statusPublished: 'Published',
+      statusDraft: 'Draft',
+      statusPending: 'Pending',
+    },
+    admin: {
+      title: 'Admin Panel',
+      subtitle: 'Nexus Estate System Overview',
+      totalUsers: 'Total Users',
+      totalBrokers: 'Brokers',
+      totalListings: 'Listings',
+      usersTitle: 'Users',
+      noUsers: 'No users yet.',
+      name: 'Name',
+      email: 'Email',
+      role: 'Role',
+      status: 'Status',
+      active: 'Active',
+      locked: 'Locked',
+    },
+    profile: {
+      title: 'Profile',
+      edit: 'Edit',
+      editTitle: 'Edit Profile',
+      saveSuccess: 'Profile updated successfully!',
+      loadError: 'Failed to load user information',
+      stats: 'Stats',
+      followers: 'Followers',
+      following: 'Following',
+      security: 'Security',
+      changePassword: 'Change Password',
+      oldPassword: 'Current Password',
+      newPassword: 'New Password',
+      confirmNewPassword: 'Confirm New Password',
+      updatePassword: 'Update',
+      passwordSuccess: 'Password changed successfully!',
+      passwordMismatch: 'Passwords do not match',
+      passwordMinLength: 'New password must be at least 6 characters',
+      quickLinks: 'Quick Links',
+      findProperties: 'Find Properties',
+      joinedAt: 'Joined',
+      updatedAt: 'Last Updated',
+      notUpdated: 'Not updated',
+      firstName: 'First Name',
+      firstNamePlaceholder: 'John',
+      lastName: 'Last Name',
+      lastNamePlaceholder: 'Doe',
+      phone: 'Phone',
+      phonePlaceholder: '+84 123 456 789',
+      bio: 'Bio',
+      bioPlaceholder: 'Short introduction...',
+      addressPlaceholder: 'Street address',
+      cityPlaceholder: 'Ho Chi Minh',
+      countryPlaceholder: 'Vietnam',
+      dateOfBirth: 'Date of Birth',
+      avatarUrl: 'Avatar URL',
+      avatarPlaceholder: 'https://example.com/avatar.jpg',
+    },
+    newListing: {
+      title: 'New Listing',
+      subtitle: 'Enter property information',
+      backToDashboard: 'Back to Dashboard',
+      basicInfo: 'Basic Information',
+      propertyTitle: 'Title',
+      propertyTitlePlaceholder: 'e.g. The Sun Avenue Apartment',
+      type: 'Type',
+      purpose: 'Purpose',
+      price: 'Price',
+      pricePlaceholder: 'Price in VND',
+      area: 'Area (m²)',
+      bedrooms: 'Bedrooms',
+      bathrooms: 'Bathrooms',
+      description: 'Description',
+      descriptionPlaceholder: 'Detailed description...',
+      address: 'Address',
+      city: 'City',
+      cityPlaceholder: 'Ho Chi Minh',
+      district: 'District',
+      districtPlaceholder: 'District 2',
+      streetAddress: 'Street Address',
+      streetAddressPlaceholder: '12 Mai Chi Tho',
+      submit: 'Submit',
+      submitting: 'Submitting...',
+      cancel: 'Cancel',
+      success: 'Listing created successfully!',
+      successRedirect: 'Redirecting to Dashboard...',
+      fail: 'Failed to create listing.',
+    },
+    propertyType: {
+      apartment: 'Apartment',
+      house: 'House',
+      villa: 'Villa',
+      land: 'Land',
+      office: 'Office',
+    },
+    role: {
+      ADMIN: 'Admin',
+      BROKER: 'Broker',
+      BUYER: 'Buyer',
+    },
+  },
+};
+
+interface I18nContextType {
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}
+
+const I18nContext = createContext<I18nContextType | undefined>(undefined);
+
+function flattenTranslations(
+  obj: Translations,
+  prefix = '',
+): Record<string, string> {
+  return Object.keys(obj).reduce<Record<string, string>>((acc, key) => {
+    const value = obj[key];
+    const prefixedKey = prefix ? `${prefix}.${key}` : key;
+    if (typeof value === 'string') {
+      acc[prefixedKey] = value;
+    } else {
+      Object.assign(acc, flattenTranslations(value, prefixedKey));
+    }
+    return acc;
+  }, {});
+}
+
+const flattened: Record<Locale, Record<string, string>> = {
+  vi: flattenTranslations(messages.vi),
+  en: flattenTranslations(messages.en),
+};
+
+function interpolate(
+  template: string,
+  params?: Record<string, string | number>,
+): string {
+  if (!params) return template;
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+    const value = params[key];
+    return value != null ? String(value) : `\{\{${key}\}\}`;
+  });
+}
+
+export function I18nProvider({
+  children,
+  defaultLocale = 'vi',
+}: {
+  children: ReactNode;
+  defaultLocale?: Locale;
+}) {
+  const [locale, setLocale] = useState<Locale>(defaultLocale);
+
+  const t = useCallback(
+    (key: string, params?: Record<string, string | number>): string => {
+      const translation = flattened[locale]?.[key];
+      if (!translation) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`Missing translation key: ${key} for locale: ${locale}`);
+        }
+        return key;
+      }
+      return interpolate(translation, params);
+    },
+    [locale],
+  );
+
+  return (
+    <I18nContext.Provider value={{ locale, setLocale, t }}>
+      {children}
+    </I18nContext.Provider>
+  );
+}
+
+export function useTranslations() {
+  const context = useContext(I18nContext);
+  if (!context) {
+    throw new Error('useTranslations must be used within an I18nProvider');
+  }
+  return context;
+}
