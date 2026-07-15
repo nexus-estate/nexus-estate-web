@@ -8,7 +8,7 @@ RUN addgroup --gid 1001 -S nodejs && \
 
 WORKDIR /app
 
-# Chỉ copy file package*.json (Bỏ việc COPY .npmrc thủ công)
+# Only copy package constraints initially to optimize caching
 COPY package*.json ./
 
 # ================================================================
@@ -18,8 +18,8 @@ FROM base AS development
 
 ENV NODE_ENV=development
 
-# Mount .npmrc tạm thời khi chạy npm install ở môi trường local
-RUN --mount=type=secret,id=npmrc,target=.npmrc npm install
+# Mount .npmrc temporarily during local installations
+RUN --mount=type=secret,id=npmrc,target=/app/.npmrc npm install
 
 COPY . .
 
@@ -32,10 +32,10 @@ CMD ["npm", "run", "dev"]
 # ================================================================
 FROM base AS deps
 
-# Mount file .npmrc từ Action truyền xuống thông qua Buildx để chạy npm ci
-RUN --mount=type=secret,id=npmrc,target=.npmrc npm ci
+# Absolute target path is used to ensure npm safely picks up the auth token
+RUN --mount=type=secret,id=npmrc,target=/app/.npmrc npm ci
 
-RUN rm -f .npmrc
+# No manual cleanup required; secret mounts are automatically unmounted and kept out of final layers
 
 # ================================================================
 # Stage 3: Builder
