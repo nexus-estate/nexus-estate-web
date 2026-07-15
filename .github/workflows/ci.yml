@@ -28,6 +28,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@nexus-estate'
 
       - name: Install dependencies
         run: npm ci
@@ -67,6 +69,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@nexus-estate'
 
       - name: Install dependencies
         run: npm ci
