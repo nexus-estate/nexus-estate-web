@@ -29,7 +29,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
-          scope: '@nexus-estate'
 
       - name: Install dependencies
         run: npm ci
@@ -70,7 +69,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
-          scope: '@nexus-estate'
 
       - name: Install dependencies
         run: npm ci
@@ -137,7 +135,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NEXT_PUBLIC_API_URL=https://api.nexus-estate.dev/api
-          secrets: |
-            npmrc=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          secret-files: |
+            npmrc=${{ env.HOME }}/.npmrc
