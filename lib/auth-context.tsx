@@ -1,8 +1,14 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+} from 'react';
 import { api } from './api';
-import type { User, SigninRequest, SignupRequest } from './types';
+import type { User, SignupRequest } from './types';
 
 interface AuthContextType {
   user: User | null;
@@ -16,23 +22,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('nexus_user');
-    const token = localStorage.getItem('nexus_access_token');
-    if (stored && token) {
-      try {
-        setUser(JSON.parse(stored) as User);
-      } catch {
-        localStorage.removeItem('nexus_user');
-        localStorage.removeItem('nexus_access_token');
-      }
+function initializeUser(): User | null {
+  if (typeof window === 'undefined') return null;
+  const stored = localStorage.getItem('nexus_user');
+  const token = localStorage.getItem('nexus_access_token');
+  if (stored && token) {
+    try {
+      return JSON.parse(stored) as User;
+    } catch {
+      localStorage.removeItem('nexus_user');
+      localStorage.removeItem('nexus_access_token');
     }
-    setIsLoading(false);
-  }, []);
+  }
+  return null;
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(initializeUser);
+  const isLoading = false;
 
   const signin = useCallback(async (email: string, password: string) => {
     const data = await api.signin({ email, password });

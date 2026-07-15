@@ -33,7 +33,10 @@ class ApiClient {
    * Raw request — NestJS backend returns data directly,
    * NOT wrapped in { success: true, data: ... }
    */
-  private async requestRaw<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async requestRaw<T>(
+    endpoint: string,
+    options: RequestInit = {},
+  ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const config: RequestInit = {
       ...options,
@@ -119,10 +122,13 @@ class ApiClient {
    * Returns { message: string }
    */
   async changePassword(id: number, oldPassword: string, newPassword: string) {
-    return this.requestRaw<{ message: string }>(`/users/${id}/change-password`, {
-      method: 'POST',
-      body: JSON.stringify({ oldPassword, newPassword }),
-    });
+    return this.requestRaw<{ message: string }>(
+      `/users/${id}/change-password`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ oldPassword, newPassword }),
+      },
+    );
   }
 
   // ─── Properties / Listings (placeholder — no controller yet) ──
@@ -144,15 +150,18 @@ class ApiClient {
     if (params?.purpose) searchParams.set('purpose', params.purpose);
     if (params?.city) searchParams.set('city', params.city);
     if (params?.district) searchParams.set('district', params.district);
-    if (params?.minPrice) searchParams.set('minPrice', params.minPrice.toString());
-    if (params?.maxPrice) searchParams.set('maxPrice', params.maxPrice.toString());
-    if (params?.bedrooms) searchParams.set('bedrooms', params.bedrooms.toString());
+    if (params?.minPrice)
+      searchParams.set('minPrice', params.minPrice.toString());
+    if (params?.maxPrice)
+      searchParams.set('maxPrice', params.maxPrice.toString());
+    if (params?.bedrooms)
+      searchParams.set('bedrooms', params.bedrooms.toString());
 
-    return this.requestRaw<any[]>('/properties?' + searchParams.toString());
+    return this.requestRaw<unknown[]>('/properties?' + searchParams.toString());
   }
 
   async getProperty(id: string) {
-    return this.requestRaw<any>('/properties/' + id);
+    return this.requestRaw<unknown>('/properties/' + id);
   }
 
   async search(query: string, page?: number, limit?: number) {
@@ -160,59 +169,76 @@ class ApiClient {
     searchParams.set('query', query);
     if (page) searchParams.set('page', page.toString());
     if (limit) searchParams.set('limit', limit.toString());
-    return this.requestRaw<any[]>('/search?' + searchParams.toString());
+    return this.requestRaw<unknown[]>('/search?' + searchParams.toString());
   }
 
   async getSimilarProperties(id: string, limit?: number) {
     const params = limit ? '?limit=' + limit : '';
-    return this.requestRaw<any[]>('/recommendations/properties/' + id + '/similar' + params);
+    return this.requestRaw<unknown[]>(
+      '/recommendations/properties/' + id + '/similar' + params,
+    );
   }
 
   async getHotProperties(limit?: number) {
     const params = limit ? '?limit=' + limit : '';
-    return this.requestRaw<any[]>('/recommendations/properties/hot' + params);
+    return this.requestRaw<unknown[]>(
+      '/recommendations/properties/hot' + params,
+    );
   }
 
   async getListings(page?: number, limit?: number) {
     const params = new URLSearchParams();
     if (page) params.set('page', page.toString());
     if (limit) params.set('limit', limit.toString());
-    return this.requestRaw<any[]>('/listings?' + params.toString());
+    return this.requestRaw<unknown[]>('/listings?' + params.toString());
   }
 
-  async createListing(data: any) {
-    return this.requestRaw<any>('/listings', {
+  async createListing(data: Record<string, unknown>) {
+    return this.requestRaw<unknown>('/listings', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
   async publishListing(id: string) {
-    return this.requestRaw<any>('/listings/' + id + '/publish', {
+    return this.requestRaw<unknown>('/listings/' + id + '/publish', {
       method: 'POST',
     });
   }
 
-  async createLead(data: { listingId: string; name: string; phone: string; message?: string }) {
-    return this.requestRaw<any>('/leads', {
+  async createLead(data: {
+    listingId: string;
+    name: string;
+    phone: string;
+    message?: string;
+  }) {
+    return this.requestRaw<unknown>('/leads', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
   async getPackages() {
-    return this.requestRaw<any[]>('/payments/packages');
+    return this.requestRaw<unknown[]>('/payments/packages');
   }
 
-  async createPayment(data: { listingId: string; packageId: string; provider?: string }) {
-    return this.requestRaw<any>('/payments/create', {
+  async createPayment(data: {
+    listingId: string;
+    packageId: string;
+    provider?: string;
+  }) {
+    return this.requestRaw<unknown>('/payments/create', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
   async getPresignedUrl(fileName: string) {
-    return this.requestRaw<{ uploadUrl: string; mediaId: string; expiresIn: number }>('/media/presigned-url', {
+    return this.requestRaw<{
+      uploadUrl: string;
+      mediaId: string;
+      expiresIn: number;
+    }>('/media/presigned-url', {
       method: 'POST',
       body: JSON.stringify({ fileName }),
     });
@@ -222,24 +248,28 @@ class ApiClient {
     const params = new URLSearchParams();
     if (page) params.set('page', page.toString());
     if (limit) params.set('limit', limit.toString());
-    return this.requestRaw<any[]>('/admin/users?' + params.toString());
+    return this.requestRaw<unknown[]>('/admin/users?' + params.toString());
   }
 
   async approveListing(id: string) {
-    return this.requestRaw<any>('/admin/listings/' + id + '/approve', { method: 'POST' });
+    return this.requestRaw<unknown>('/admin/listings/' + id + '/approve', {
+      method: 'POST',
+    });
   }
 
   async rejectListing(id: string, reason: string) {
-    return this.requestRaw<any>('/admin/listings/' + id + '/reject', {
+    return this.requestRaw<unknown>('/admin/listings/' + id + '/reject', {
       method: 'POST',
       body: JSON.stringify({ reason }),
     });
   }
 
   async getAdminOverview() {
-    return this.requestRaw<{ totalUsers: number; totalBrokers: number; totalListings: number }>(
-      '/admin/reports/overview',
-    );
+    return this.requestRaw<{
+      totalUsers: number;
+      totalBrokers: number;
+      totalListings: number;
+    }>('/admin/reports/overview');
   }
 }
 

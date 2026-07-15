@@ -1,0 +1,55 @@
+# ─── Dependencies (installed inside container) ───
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.yarn/
+
+# ─── Build output (built inside container) ──────
+.next/
+out/
+build/
+.temp
+.tmp
+
+# ─── Git & CI ────────────────────────────────────
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# ─── Environment files ───────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── IDE / Editor ────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ─── Test & Coverage ─────────────────────────────
+coverage/
+.nyc_output/
+*.spec.ts
+*.spec.js
+*.test.ts
+*.test.js
+e2e/
+playwright-report/
+test-results/
+
+# ─── Documentation (not needed at runtime) ───────
+README.md
+docs/
+AGENTS.md
+CLAUDE.md
+
+# ─── Docker files ────────────────────────────────
+Dockerfile
+docker-compose*.yml
+
+# ─── Reports ─────────────────────────────────────
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

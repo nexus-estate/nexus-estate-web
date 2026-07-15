@@ -1,0 +1,486 @@
+Nexus Estate Web (.clinerules)
+Overview
+
+This repository contains the Next.js Web Application for the Nexus Estate platform.
+
+The Web application is responsible only for:
+
+User Interface (UI)
+User Experience (UX)
+Authentication integration
+API consumption
+State management
+SEO
+Accessibility
+Client-side interactions
+
+The Web application must never contain business logic.
+
+All business rules belong to backend microservices.
+
+The AI Agent must strictly follow every rule defined below.
+
+1. Technology Stack
+
+Always assume the project uses:
+
+Next.js (App Router)
+TypeScript (Strict Mode)
+React 19+
+Tailwind CSS
+shadcn/ui
+TanStack Query
+React Hook Form
+Zod
+ESLint
+Prettier
+
+Never introduce alternative libraries without explicit instruction.
+
+2. Contract-First Development
+Single Source of Truth
+
+All API contracts are defined inside:
+
+shared-contracts/openapi/
+
+The generated SDK:
+
+@nexus-estate/typescript-sdk
+
+is the only source of truth.
+
+Never redefine:
+
+DTOs
+Interfaces
+Response models
+Request models
+Enums
+
+Never duplicate SDK types.
+
+Missing Contract
+
+If an API endpoint does not exist inside the SDK:
+
+DO NOT:
+
+create temporary interfaces
+mock API structures
+invent request bodies
+
+Instead:
+
+Update shared-contracts
+Publish a new SDK version
+Upgrade the SDK
+Continue implementation
+
+Contract-First development is mandatory.
+
+3. Project Architecture
+
+Use Feature-Based Architecture.
+
+src/
+│
+├── app/
+├── features/
+│     ├── auth/
+│     ├── property/
+│     ├── booking/
+│     └── profile/
+│
+├── components/
+│
+├── services/
+│
+├── hooks/
+│
+├── providers/
+│
+├── lib/
+│
+├── constants/
+│
+├── utils/
+│
+├── types/
+│
+└── styles/
+
+Never organize code by file type inside features.
+
+Each feature should own:
+
+components
+hooks
+services
+schemas
+utils
+
+when necessary.
+
+4. App Router Standards
+
+Always use App Router.
+
+Prefer:
+
+layout.tsx
+loading.tsx
+error.tsx
+not-found.tsx
+route.ts
+template.tsx
+
+Do not use the Pages Router unless explicitly required.
+
+5. Server Components
+
+Server Components are the default.
+
+Only use Client Components when required for:
+
+event handlers
+browser APIs
+state
+effects
+animations
+
+Never add "use client" unnecessarily.
+
+Prefer rendering on the server.
+
+6. Data Fetching
+
+Prefer:
+
+Server Components
+fetch()
+Server Actions (when appropriate)
+
+Use TanStack Query only for:
+
+client state synchronization
+mutations
+cache management
+polling
+optimistic updates
+
+Never fetch identical data twice.
+
+Avoid unnecessary client-side requests.
+
+7. API Layer
+
+Never call APIs directly inside UI components.
+
+Always use:
+
+services/
+
+Example:
+
+features/property/services/property.service.ts
+
+Components should never know API URLs.
+
+8. SDK Usage
+
+Always import request and response types from:
+
+@nexus-estate/typescript-sdk
+
+Never recreate:
+
+interface Property
+
+interface User
+
+interface LoginRequest
+
+interface LoginResponse
+
+If a type exists in the SDK, reuse it.
+
+9. State Management
+
+Use:
+
+TanStack Query → Server State
+
+Use:
+
+Zustand
+or
+React Context
+
+for lightweight client state.
+
+Never store server state inside Zustand.
+
+Separate:
+
+UI State
+Server State
+10. Forms
+
+Always use:
+
+React Hook Form
+Zod
+
+Validation inside the frontend exists only to improve UX.
+
+Backend validation is always authoritative.
+
+11. Authentication
+
+Authentication is handled by backend services.
+
+Frontend responsibilities:
+
+login flow
+logout flow
+session persistence
+token storage
+refresh flow
+route protection
+
+Never:
+
+verify JWT manually
+trust user roles stored in localStorage
+implement authorization rules belonging to backend
+12. UI Components
+
+Use:
+
+shadcn/ui
+
+Prefer:
+
+reusable components
+composition
+accessibility
+strongly typed props
+
+Avoid:
+
+huge components
+duplicated UI
+
+A component should have one responsibility.
+
+13. Styling
+
+Use Tailwind CSS.
+
+Prefer:
+
+utility classes
+design tokens
+CSS variables
+
+Avoid:
+
+inline styles
+duplicated class strings
+arbitrary values without reason
+14. Performance
+
+Always optimize:
+
+bundle size
+hydration
+rendering
+caching
+
+Prefer:
+
+next/image
+next/font
+dynamic imports
+lazy loading
+
+Memoization should only be added after identifying unnecessary renders.
+
+Never optimize prematurely.
+
+15. SEO
+
+Every public page should define:
+
+metadata
+title
+description
+Open Graph
+Twitter Card
+
+Prefer server rendering for SEO-critical pages.
+
+16. Accessibility
+
+Every UI must support:
+
+semantic HTML
+keyboard navigation
+screen readers
+ARIA labels when required
+
+Never sacrifice accessibility for appearance.
+
+17. Error Handling
+
+Every async page must handle:
+
+Loading
+Empty
+Error
+Success
+
+Never swallow API errors.
+
+Never expose backend stack traces.
+
+Display meaningful messages.
+
+18. Logging
+
+Never use:
+
+console.log
+console.error
+console.warn
+
+for production code.
+
+Use the project's logging utilities if available.
+
+Remove debug logs before completion.
+
+19. TypeScript
+
+Strict Mode is mandatory.
+
+Never use:
+
+any
+
+unless absolutely unavoidable.
+
+Prefer:
+
+unknown
+generics
+utility types
+discriminated unions
+
+Explicit typing is preferred over implicit assumptions.
+
+20. Environment Variables
+
+Never hardcode:
+
+API URLs
+Secrets
+Keys
+
+Always use environment variables.
+
+Example:
+
+NEXT_PUBLIC_API_URL
+21. Code Quality
+
+Prefer:
+
+SOLID
+DRY
+KISS
+Composition
+Small functions
+Pure functions
+
+Avoid:
+
+duplicated logic
+deeply nested conditions
+magic strings
+hardcoded values
+22. Naming Conventions
+
+Components:
+
+PropertyCard.tsx
+
+Hooks:
+
+useProperties.ts
+
+Services:
+
+property.service.ts
+
+Schemas:
+
+property.schema.ts
+
+Types:
+
+Use SDK types whenever possible.
+
+23. Testing Mindset
+
+Generate code that is:
+
+testable
+modular
+dependency-light
+
+Avoid tightly coupled implementations.
+
+24. AI Agent Responsibilities
+
+The AI Agent must:
+
+Follow existing project architecture.
+Reuse SDK types.
+Respect Contract-First development.
+Prefer Server Components.
+Keep Client Components minimal.
+Generate production-ready code.
+Optimize for readability and maintainability.
+Follow Next.js best practices.
+Keep components small and reusable.
+Separate UI, business flow, and API communication.
+Write clean, strongly typed TypeScript.
+Produce scalable and consistent code.
+25. AI Agent Must Never
+
+Never:
+
+invent API contracts
+redefine SDK interfaces
+duplicate request/response models
+hardcode API responses
+implement backend business logic
+fetch data inside presentation components
+use any
+abuse useEffect
+convert every component into "use client"
+ignore loading/error states
+bypass the service layer
+hardcode URLs
+introduce new libraries without approval
+break the existing architecture
+generate placeholder implementations that violate the shared contracts
+Golden Rule
+
+If the SDK already defines it, reuse it.
+
+If the contract does not exist, update shared-contracts first.
+
+The frontend is responsible for presentation and user interaction—not business logic.
