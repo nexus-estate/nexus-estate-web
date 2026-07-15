@@ -108,8 +108,8 @@ jobs:
 
       - name: Create temporary .npmrc for Docker build
         run: |
-          echo "@nexus-estate:registry=https://npm.pkg.github.com" > $HOME/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> $HOME/.npmrc
+          echo "@nexus-estate:registry=https://npm.pkg.github.com" > ${{ runner.temp }}/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> ${{ runner.temp }}/.npmrc
         env:
           NODE_AUTH_TOKEN: ${{ secrets.DEPENDENCY_TOKEN }}
 
@@ -145,4 +145,4 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           secret-files: |
-            npmrc=${{ env.HOME }}/.npmrc
+            npmrc=${{ runner.temp }}/.npmrc
