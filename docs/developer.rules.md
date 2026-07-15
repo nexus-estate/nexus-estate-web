@@ -583,7 +583,7 @@ npm run format        # Prettier format
 npm run format:check  # Check formatting
 npm test              # Unit tests
 npm run test:e2e      # Playwright E2E
-npm run test:all      # Full precommit: type-check + lint + format:check + test + e2e
+npm run test:precommit # Precommit: type-check + lint + format:check + test
 ```
 
 ### SDK Commands
