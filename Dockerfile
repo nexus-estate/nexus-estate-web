@@ -1,5 +1,5 @@
 # ================================================================
-# Stage 0: Base — shared configuration
+# Stage 0: Builder image – base configuration
 # ================================================================
 FROM node:24-alpine AS base
 
@@ -8,6 +8,7 @@ RUN addgroup --gid 1001 -S nodejs && \
 
 WORKDIR /app
 
+# Chỉ copy file package*.json (Bỏ việc COPY .npmrc thủ công)
 COPY package*.json ./
 
 # ================================================================
@@ -17,6 +18,7 @@ FROM base AS development
 
 ENV NODE_ENV=development
 
+# Mount .npmrc tạm thời khi chạy npm install ở môi trường local
 RUN --mount=type=secret,id=npmrc,target=.npmrc npm install
 
 COPY . .
@@ -26,16 +28,17 @@ EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
 # ================================================================
-# Stage 2: Dependencies — install all deps (including devDependencies)
+# Stage 2: Dependencies
 # ================================================================
 FROM base AS deps
 
+# Mount file .npmrc từ Action truyền xuống thông qua Buildx để chạy npm ci
 RUN --mount=type=secret,id=npmrc,target=.npmrc npm ci
 
 RUN rm -f .npmrc
 
 # ================================================================
-# Stage 3: Builder — compile TypeScript and build Next.js app
+# Stage 3: Builder
 # ================================================================
 FROM node:24-alpine AS builder
 
@@ -53,7 +56,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # ================================================================
-# Stage 4: Runner — minimal runtime image with standalone output
+# Stage 4: Runner – minimal runtime image with standalone output
 # ================================================================
 FROM node:24-alpine AS runner
 
