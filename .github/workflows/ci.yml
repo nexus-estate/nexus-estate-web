@@ -12,7 +12,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/tiesn/nexus-estate-web
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   ci:
@@ -127,7 +127,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch,prefix=develop-
             type=raw,value=${{ github.sha }},enable=${{ github.ref == 'refs/heads/main' }}
