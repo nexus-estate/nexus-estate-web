@@ -1,318 +1,356 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
-
-interface Property {
+type CuratedProperty = {
   id: string;
   title: string;
-  price: number;
-  type: string;
-  purpose: string;
+  location: string;
+  price: string;
+  image: string;
   area: number;
   bedrooms: number;
   bathrooms: number;
-  city: string;
-  district: string;
-}
+  badge: string;
+};
 
-const PROPERTY_TYPES = [
-  { key: 'apartment', label: 'Căn hộ', icon: '🏢' },
-  { key: 'house', label: 'Nhà phố', icon: '🏠' },
-  { key: 'villa', label: 'Biệt thự', icon: '🏡' },
-  { key: 'land', label: 'Đất nền', icon: '🗺️' },
-  { key: 'office', label: 'Văn phòng', icon: '🏢' },
+const properties: CuratedProperty[] = [
+  {
+    id: 'penthouse-river-view',
+    title: 'The Riverfront Penthouse',
+    location: 'Thảo Điền, TP. Hồ Chí Minh',
+    price: '48 tỷ',
+    image: '/images/properties/penthouse-saigon.webp',
+    area: 286,
+    bedrooms: 4,
+    bathrooms: 4,
+    badge: 'Độc quyền',
+  },
+  {
+    id: 'pine-villa-dalat',
+    title: 'Pine House Private Estate',
+    location: 'Phường 3, Đà Lạt',
+    price: '32 tỷ',
+    image: '/images/properties/villa-dalat.webp',
+    area: 420,
+    bedrooms: 5,
+    bathrooms: 5,
+    badge: 'Mới ra mắt',
+  },
+  {
+    id: 'ocean-residence-danang',
+    title: 'The Azure Ocean Residence',
+    location: 'Sơn Trà, Đà Nẵng',
+    price: 'Từ 39 tỷ',
+    image: '/images/properties/residence-danang.webp',
+    area: 368,
+    bedrooms: 4,
+    bathrooms: 5,
+    badge: 'Tuyển chọn',
+  },
 ];
 
-const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Đà Lạt', 'Bình Dương'];
-
-function formatPrice(price: number): string {
-  if (price >= 1000000000) return `${(price / 1000000000).toFixed(1)} tỷ`;
-  if (price >= 1000000) return `${(price / 1000000).toFixed(0)}tr`;
-  return price.toLocaleString('vi-VN');
-}
-
-const THUMBNAIL_GRADIENTS = [
-  'from-blue-400 to-blue-600',
-  'from-emerald-400 to-emerald-600',
-  'from-purple-400 to-purple-600',
-  'from-amber-400 to-amber-600',
+const collections = [
+  { label: 'Căn hộ hạng sang', count: '128 bất động sản', type: 'apartment' },
+  { label: 'Biệt thự nghỉ dưỡng', count: '84 bất động sản', type: 'villa' },
+  { label: 'Nhà phố trung tâm', count: '96 bất động sản', type: 'house' },
+  { label: 'Bất động sản ven biển', count: '52 bất động sản', type: 'resort' },
 ];
 
-function getThumbnailGradient(id: string): string {
-  const index =
-    id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) %
-    THUMBNAIL_GRADIENTS.length;
-  return THUMBNAIL_GRADIENTS[index];
+function ArrowIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-4 w-4">
+      <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
 }
 
-function PropertyCard({ property }: { property: Property }) {
-  const colorClass = getThumbnailGradient(property.id);
-
+function PropertyCard({ property }: { property: CuratedProperty }) {
   return (
     <Link
       href={`/properties/${property.id}`}
-      className="group overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:shadow-lg"
+      className="property-card group block"
     >
-      <div className={`relative h-48 bg-gradient-to-br ${colorClass}`}>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-5xl opacity-30">
-            {property.type === 'apartment'
-              ? '🏢'
-              : property.type === 'house'
-                ? '🏠'
-                : property.type === 'villa'
-                  ? '🏡'
-                  : '🗺️'}
-          </span>
-        </div>
-        <div className="absolute bottom-3 left-3">
-          <span className="rounded-lg bg-white/90 px-2.5 py-1 text-xs font-semibold text-gray-900 capitalize">
-            {property.purpose === 'buy' ? 'Bán' : 'Cho thuê'}
-          </span>
+      <div className="relative aspect-[4/3] overflow-hidden bg-[#d8d3c8]">
+        <Image
+          src={property.image}
+          alt={property.title}
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
+          className="object-cover transition duration-700 ease-out group-hover:scale-[1.035]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#071b1b]/60 via-transparent to-transparent" />
+        <span className="absolute left-5 top-5 rounded-full border border-white/40 bg-[#071b1b]/60 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-md">
+          {property.badge}
+        </span>
+        <button
+          type="button"
+          aria-label={`Lưu ${property.title}`}
+          className="absolute right-5 top-5 grid h-10 w-10 place-items-center rounded-full border border-white/40 bg-[#071b1b]/45 text-white backdrop-blur-md transition hover:bg-white hover:text-[#0b2625]"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className="h-4 w-4"
+            aria-hidden="true"
+          >
+            <path
+              d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 00-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 00-.1-7.8z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+          </svg>
+        </button>
+        <div className="absolute bottom-5 left-5 text-white">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-white/70">
+            Giá chào bán
+          </p>
+          <p className="mt-1 font-display text-2xl">{property.price}</p>
         </div>
       </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 line-clamp-1">
+      <div className="border-x border-b border-[#ddd8cd] bg-white px-5 py-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9a7b4f]">
+          {property.location}
+        </p>
+        <h3 className="mt-2 font-display text-2xl text-[#102f2d] transition-colors group-hover:text-[#9a7b4f]">
           {property.title}
         </h3>
-        <p className="mt-1 text-lg font-bold text-blue-600">
-          {property.price ? formatPrice(property.price) : 'Liên hệ'}
-        </p>
-        <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
-          {property.area > 0 && <span>{property.area} m²</span>}
-          {property.bedrooms > 0 && <span>{property.bedrooms} PN</span>}
-          {property.bathrooms > 0 && <span>{property.bathrooms} WC</span>}
+        <div className="mt-5 flex items-center gap-5 border-t border-[#ece8df] pt-4 text-xs text-[#596967]">
+          <span>{property.area} m²</span>
+          <span>{property.bedrooms} phòng ngủ</span>
+          <span>{property.bathrooms} phòng tắm</span>
         </div>
-        <p className="mt-1.5 text-xs text-gray-400">
-          {property.city}
-          {property.district ? `, ${property.district}` : ''}
-        </p>
       </div>
     </Link>
   );
 }
 
-async function fetchFromApi<T>(path: string): Promise<T | null> {
-  try {
-    const res = await fetch(`${API_BASE}${path}`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.data ?? json;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchProperties(): Promise<{
-  hotProperties: Property[];
-  properties: Property[];
-}> {
-  const [hotData, propsData] = await Promise.all([
-    fetchFromApi<Property[]>('/properties?sort=views&limit=4'),
-    fetchFromApi<Property[]>('/properties?limit=8'),
-  ]);
-  return {
-    hotProperties: Array.isArray(hotData) ? hotData : [],
-    properties: Array.isArray(propsData) ? propsData : [],
-  };
-}
-
-export default async function HomePage() {
-  const { hotProperties, properties } = await fetchProperties();
-
+export default function HomePage() {
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 text-white">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Tìm kiếm bất động sản
-              <span className="block text-yellow-300">thông minh hơn</span>
-            </h1>
-            <p className="mt-4 text-lg text-blue-100">
-              Kết nối người mua, người bán và môi giới trên nền tảng bất động
-              sản hàng đầu Việt Nam. Hỗ trợ bởi AI Recommendation.
-            </p>
-
-            {/* Search Form */}
-            <form action="/properties" method="GET" className="mt-8">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <div className="flex-1 rounded-xl bg-white p-1.5 shadow-lg sm:flex sm:items-center">
-                  <select
-                    name="type"
-                    defaultValue=""
-                    className="w-full rounded-lg border-0 bg-gray-50 px-4 py-3 text-sm text-gray-900 sm:w-auto sm:rounded-r-none sm:bg-transparent"
-                  >
-                    <option value="">Tất cả</option>
-                    <option value="apartment">Căn hộ</option>
-                    <option value="house">Nhà phố</option>
-                    <option value="villa">Biệt thự</option>
-                    <option value="land">Đất nền</option>
-                  </select>
-                  <div className="hidden sm:block sm:h-8 sm:w-px sm:bg-gray-300" />
-                  <input
-                    type="text"
-                    name="query"
-                    placeholder="Nhập địa điểm, dự án..."
-                    className="w-full rounded-lg border-0 px-4 py-3 text-sm text-gray-900 placeholder-gray-500 sm:flex-1"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="rounded-xl bg-yellow-400 px-8 py-3.5 text-sm font-semibold text-gray-900 transition-all hover:bg-yellow-300 shadow-lg"
-                >
-                  Tìm kiếm
-                </button>
-              </div>
-            </form>
-
-            {/* Quick Filters */}
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {CITIES.map((city) => (
-                <Link
-                  key={city}
-                  href={`/properties?city=${encodeURIComponent(city)}`}
-                  className="rounded-full bg-white/15 px-4 py-1.5 text-sm text-white hover:bg-white/25 transition-colors"
-                >
-                  {city}
-                </Link>
-              ))}
+    <div className="overflow-hidden bg-[#f7f5ef] text-[#102f2d]">
+      <section className="relative min-h-[760px] bg-[#071b1b] text-white lg:min-h-[820px]">
+        <Image
+          src="/images/hero-villa.webp"
+          alt="Biệt thự hiện đại cao cấp bên hồ bơi"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,22,22,.94)_0%,rgba(4,22,22,.72)_35%,rgba(4,22,22,.15)_72%,rgba(4,22,22,.1)_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#071b1b]/70 via-transparent to-[#071b1b]/20" />
+        <div className="relative mx-auto flex min-h-[760px] max-w-[1440px] items-center px-5 pb-28 pt-28 sm:px-8 lg:min-h-[820px] lg:px-14">
+          <div className="max-w-3xl animate-fade-up">
+            <div className="mb-7 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#d6b982]">
+              <span className="h-px w-10 bg-[#d6b982]" />
+              Tuyển chọn bất động sản tinh hoa
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Property Types */}
-      <section className="border-b border-gray-100 bg-white py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-            {PROPERTY_TYPES.map((type) => (
-              <Link
-                key={type.key}
-                href={`/properties?type=${type.key}`}
-                className="group flex flex-col items-center rounded-xl border border-gray-200 bg-white p-6 transition-all hover:border-blue-200 hover:shadow-md"
-              >
-                <span className="text-3xl">{type.icon}</span>
-                <span className="mt-2 text-sm font-medium text-gray-700 group-hover:text-blue-600">
-                  {type.label}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Hot Properties */}
-      {hotProperties.length > 0 && (
-        <section className="py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Bất động sản nổi bật
-                </h2>
-                <p className="mt-1 text-sm text-gray-500">
-                  Được nhiều người quan tâm nhất
-                </p>
-              </div>
+            <h1 className="font-display text-[clamp(3.5rem,7vw,7.2rem)] leading-[0.9] tracking-[-0.045em]">
+              Nơi không gian
+              <span className="block italic text-[#dbc08e]">
+                trở thành di sản.
+              </span>
+            </h1>
+            <p className="mt-7 max-w-xl text-sm leading-7 text-white/70 sm:text-base">
+              Khám phá bộ sưu tập những không gian sống đặc tuyển, nơi kiến
+              trúc, vị trí và giá trị trường tồn gặp nhau.
+            </p>
+            <div className="mt-10 flex flex-wrap items-center gap-4">
               <Link
                 href="/properties"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                className="inline-flex items-center gap-4 bg-[#c7a66b] px-7 py-4 text-xs font-bold uppercase tracking-[0.15em] text-[#071b1b] transition hover:bg-[#dfc48f]"
               >
-                Xem tất cả &rarr;
+                Khám phá bộ sưu tập <ArrowIcon />
+              </Link>
+              <Link
+                href="#featured"
+                className="inline-flex items-center gap-3 px-4 py-4 text-xs font-semibold uppercase tracking-[0.15em] text-white/80 transition hover:text-white"
+              >
+                Xem tuyệt tác nổi bật
               </Link>
             </div>
-            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {hotProperties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))}
-            </div>
           </div>
-        </section>
-      )}
+        </div>
 
-      {/* All Properties */}
-      <section className="bg-gray-50 py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Danh sách bất động sản
-              </h2>
-              <p className="mt-1 text-sm text-gray-500">Cập nhật mới nhất</p>
-            </div>
+        <form
+          action="/properties"
+          className="absolute bottom-0 left-1/2 z-10 w-[calc(100%-2.5rem)] max-w-[1328px] -translate-x-1/2 translate-y-1/2 bg-white p-3 text-[#102f2d] shadow-[0_24px_70px_rgba(0,0,0,.2)] lg:flex lg:items-stretch lg:p-0"
+        >
+          <label className="block flex-1 border-b border-[#e4dfd5] px-5 py-4 lg:border-b-0 lg:border-r lg:px-7 lg:py-5">
+            <span className="block text-[10px] font-bold uppercase tracking-[0.18em] text-[#9a7b4f]">
+              Khu vực
+            </span>
+            <select
+              name="city"
+              defaultValue=""
+              className="mt-2 w-full appearance-none bg-transparent text-sm outline-none"
+            >
+              <option value="">Tất cả vị trí</option>
+              <option>TP. Hồ Chí Minh</option>
+              <option>Hà Nội</option>
+              <option>Đà Nẵng</option>
+              <option>Đà Lạt</option>
+            </select>
+          </label>
+          <label className="block flex-1 border-b border-[#e4dfd5] px-5 py-4 lg:border-b-0 lg:border-r lg:px-7 lg:py-5">
+            <span className="block text-[10px] font-bold uppercase tracking-[0.18em] text-[#9a7b4f]">
+              Loại hình
+            </span>
+            <select
+              name="type"
+              defaultValue=""
+              className="mt-2 w-full appearance-none bg-transparent text-sm outline-none"
+            >
+              <option value="">Mọi loại hình</option>
+              <option value="apartment">Căn hộ</option>
+              <option value="villa">Biệt thự</option>
+              <option value="house">Nhà phố</option>
+            </select>
+          </label>
+          <label className="block flex-1 px-5 py-4 lg:px-7 lg:py-5">
+            <span className="block text-[10px] font-bold uppercase tracking-[0.18em] text-[#9a7b4f]">
+              Khoảng giá
+            </span>
+            <select
+              name="price"
+              defaultValue=""
+              className="mt-2 w-full appearance-none bg-transparent text-sm outline-none"
+            >
+              <option value="">Không giới hạn</option>
+              <option value="10-20">10 – 20 tỷ</option>
+              <option value="20-50">20 – 50 tỷ</option>
+              <option value="50+">Trên 50 tỷ</option>
+            </select>
+          </label>
+          <button className="flex min-h-16 items-center justify-center gap-3 bg-[#0c302e] px-9 text-xs font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#17423f] lg:min-w-52">
+            Tìm kiếm <ArrowIcon />
+          </button>
+        </form>
+      </section>
+
+      <section className="mx-auto max-w-[1440px] px-5 pb-20 pt-44 sm:px-8 lg:px-14 lg:pb-28 lg:pt-36">
+        <div className="grid gap-10 lg:grid-cols-[.75fr_1.25fr] lg:items-end">
+          <div>
+            <p className="eyebrow">Bộ sưu tập riêng</p>
+            <h2 className="mt-5 font-display text-5xl leading-[1.05] tracking-tight sm:text-6xl">
+              Sống theo cách
+              <br />
+              <span className="italic text-[#9a7b4f]">chỉ riêng bạn.</span>
+            </h2>
           </div>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {properties.length === 0 ? (
-              <div className="col-span-full py-20 text-center">
-                <p className="text-gray-500">Chưa có bất động sản nào.</p>
+          <p className="max-w-xl text-sm leading-7 text-[#66726f] lg:justify-self-end">
+            Mỗi ngôi nhà là một câu chuyện. Chúng tôi tuyển chọn những bất động
+            sản có ngôn ngữ kiến trúc riêng, pháp lý minh bạch và tiềm năng giá
+            trị bền vững.
+          </p>
+        </div>
+        <div className="mt-14 grid gap-px bg-[#d8d2c6] sm:grid-cols-2 lg:grid-cols-4">
+          {collections.map((item, index) => (
+            <Link
+              key={item.type}
+              href={`/properties?type=${item.type}`}
+              className="group bg-[#f7f5ef] px-7 py-8 transition hover:bg-[#0c302e] hover:text-white"
+            >
+              <span className="font-display text-3xl text-[#b69760]">
+                0{index + 1}
+              </span>
+              <h3 className="mt-10 font-display text-2xl">{item.label}</h3>
+              <div className="mt-4 flex items-center justify-between text-xs text-[#7d8784] group-hover:text-white/60">
+                <span>{item.count}</span>
+                <ArrowIcon />
               </div>
-            ) : (
-              properties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))
-            )}
-          </div>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center text-2xl font-bold text-gray-900">
-            Tại sao chọn Nexus Estate?
-          </h2>
-          <div className="mt-10 grid gap-8 sm:grid-cols-3">
+      <section id="featured" className="bg-white py-20 lg:py-28">
+        <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-14">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="eyebrow">Đặc tuyển tháng này</p>
+              <h2 className="mt-5 font-display text-5xl tracking-tight sm:text-6xl">
+                Những tuyệt tác{' '}
+                <span className="italic text-[#9a7b4f]">đang chờ.</span>
+              </h2>
+            </div>
+            <Link
+              href="/properties"
+              className="inline-flex items-center gap-3 text-xs font-bold uppercase tracking-[0.15em] text-[#173b38]"
+            >
+              Xem tất cả <ArrowIcon />
+            </Link>
+          </div>
+          <div className="mt-12 grid gap-8 lg:grid-cols-3">
+            {properties.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+          <p className="mt-8 text-center text-xs leading-5 text-[#8a918f]">
+            Danh sách trên là dữ liệu minh họa tuyển chọn. Thông tin API bất
+            động sản sẽ được kết nối khi backend cung cấp controller chính thức.
+          </p>
+        </div>
+      </section>
+
+      <section className="bg-[#0a2928] text-white">
+        <div className="mx-auto grid max-w-[1440px] lg:grid-cols-2">
+          <div className="px-5 py-20 sm:px-8 lg:px-14 lg:py-28">
+            <p className="eyebrow !text-[#d0b277]">Dịch vụ chuyên biệt</p>
+            <h2 className="mt-6 max-w-xl font-display text-5xl leading-[1.02] sm:text-6xl">
+              Am hiểu thị trường.
+              <br />
+              <span className="italic text-[#d0b277]">Tận tâm với bạn.</span>
+            </h2>
+            <p className="mt-7 max-w-lg text-sm leading-7 text-white/60">
+              Từ định giá, pháp lý đến thương lượng và quản lý tài sản, đội ngũ
+              chuyên gia đồng hành xuyên suốt để mỗi quyết định của bạn đều vững
+              vàng.
+            </p>
+            <Link
+              href="/signup"
+              className="mt-10 inline-flex items-center gap-4 border-b border-[#d0b277] pb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#e1c996]"
+            >
+              Kết nối chuyên gia <ArrowIcon />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 border-l border-white/10">
             {[
-              {
-                icon: '🤖',
-                title: 'AI Recommendation',
-                desc: 'Gợi ý bất động sản phù hợp nhất dựa trên hành vi và sở thích của bạn.',
-              },
-              {
-                icon: '🔍',
-                title: 'Tìm kiếm thông minh',
-                desc: 'Tìm kiếm nhanh chóng với nhiều bộ lọc và hỗ trợ ngôn ngữ tự nhiên.',
-              },
-              {
-                icon: '🛡️',
-                title: 'An toàn & Tin cậy',
-                desc: 'Xác thực thông tin người dùng, bảo vệ giao dịch của bạn.',
-              },
-            ].map((feature) => (
+              ['15+', 'Năm kinh nghiệm'],
+              ['1.200+', 'Giao dịch thành công'],
+              ['98%', 'Khách hàng hài lòng'],
+              ['24/7', 'Đồng hành riêng tư'],
+            ].map(([value, label]) => (
               <div
-                key={feature.title}
-                className="rounded-xl border border-gray-200 p-6 text-center"
+                key={label}
+                className="flex min-h-48 flex-col justify-end border-b border-r border-white/10 p-7 sm:min-h-60 lg:p-10"
               >
-                <span className="text-4xl">{feature.icon}</span>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">
-                  {feature.title}
-                </h3>
-                <p className="mt-2 text-sm text-gray-500">{feature.desc}</p>
+                <strong className="font-display text-4xl font-normal text-[#dec58f] sm:text-5xl">
+                  {value}
+                </strong>
+                <span className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/50">
+                  {label}
+                </span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="bg-blue-600 py-16">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-white">
-            Bạn là môi giới bất động sản?
-          </h2>
-          <p className="mt-2 text-blue-100">
-            Đăng tin và tiếp cận hàng ngàn khách hàng tiềm năng.
-          </p>
+      <section className="bg-[#c7a66b] px-5 py-16 text-[#092725] sm:px-8 lg:py-20">
+        <div className="mx-auto flex max-w-[1328px] flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em]">
+              Dành cho chủ sở hữu
+            </p>
+            <h2 className="mt-3 font-display text-4xl sm:text-5xl">
+              Tài sản của bạn xứng đáng được kể đúng cách.
+            </h2>
+          </div>
           <Link
-            href="/signup"
-            className="mt-6 inline-block rounded-xl bg-white px-8 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
+            href="/dashboard/listings/new"
+            className="inline-flex shrink-0 items-center justify-center gap-4 bg-[#092725] px-7 py-4 text-xs font-bold uppercase tracking-[0.15em] text-white"
           >
-            Đăng ký ngay
+            Đăng tài sản <ArrowIcon />
           </Link>
         </div>
       </section>

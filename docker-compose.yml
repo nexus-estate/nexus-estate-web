@@ -1,0 +1,38 @@
+name: nexus-estate
+
+services:
+  web:
+    image: nexus-estate-web:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
+      secrets:
+        - npmrc
+    ports:
+      - '${WEB_PORT:-3000}:3000'
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: '1'
+    init: true
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          require('http').get('http://127.0.0.1:3000', (response) =>
+          process.exit(response.statusCode < 500 ? 0 : 1)).on('error', () =>
+          process.exit(1))
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+secrets:
+  npmrc:
+    # Mounted only while npm installs the private GitHub package.
+    file: ${NPMRC_PATH:-.npmrc}
