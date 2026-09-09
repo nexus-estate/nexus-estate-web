@@ -1,14 +1,14 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --primary: #2563eb;
-  --primary-dark: #1d4ed8;
-  --secondary: #f59e0b;
-  --accent: #10b981;
-  --muted: #6b7280;
-  --border: #e5e7eb;
+  --background: #f7f5ef;
+  --foreground: #102f2d;
+  --primary: #0c302e;
+  --primary-dark: #071b1b;
+  --secondary: #c7a66b;
+  --accent: #d9bf8d;
+  --muted: #697572;
+  --border: #ded9cf;
 }
 
 @theme inline {
@@ -19,8 +19,17 @@
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
   --color-muted: var(--muted);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans:
+    Inter, Avenir, 'Helvetica Neue', Arial, ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -29,25 +38,138 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Custom scrollbar */
+button,
+select,
+input {
+  font: inherit;
+}
+
+button,
+select {
+  cursor: pointer;
+}
+
+.font-display {
+  font-family:
+    Iowan Old Style,
+    Baskerville,
+    'Times New Roman',
+    serif;
+}
+
+.eyebrow {
+  color: #9a7b4f;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  background: currentColor;
+  content: '';
+  display: inline-block;
+  height: 1px;
+  margin-right: 0.75rem;
+  vertical-align: middle;
+  width: 2rem;
+}
+
+.auth-label {
+  color: #314846;
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.auth-input {
+  background: rgb(255 255 255 / 0.66);
+  border: 1px solid #d9d5cb;
+  border-radius: 0;
+  color: #102f2d;
+  display: block;
+  font-size: 0.875rem;
+  height: 3.25rem;
+  outline: none;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+  width: 100%;
+}
+
+.auth-input::placeholder {
+  color: #a4aaa8;
+}
+
+.auth-input:focus {
+  background: white;
+  border-color: #9a7b4f;
+  box-shadow: 0 0 0 3px rgb(154 123 79 / 0.1);
+}
+
+.auth-field-icon {
+  color: #89918f;
+  height: 1.15rem;
+  left: 0.9rem;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.15rem;
+}
+
+.auth-submit {
+  align-items: center;
+  background: #0c302e;
+  color: white;
+  display: flex;
+  font-size: 0.7rem;
+  font-weight: 700;
+  height: 3.5rem;
+  justify-content: space-between;
+  letter-spacing: 0.16em;
+  padding: 0 1.4rem;
+  text-transform: uppercase;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease;
+  width: 100%;
+}
+
+.auth-submit:hover:not(:disabled) {
+  background: #17423f;
+  transform: translateY(-1px);
+}
+
+.auth-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+::selection {
+  background: #c7a66b;
+  color: #071b1b;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f0ede6;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: #9d9079;
 }
 
-/* Animations */
-@keyframes fadeIn {
+@keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(22px);
   }
   to {
     opacity: 1;
@@ -55,15 +177,18 @@ body {
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+.animate-fade-up {
+  animation: fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Skeleton loading */
+.animate-fade-in {
+  animation: fade-up 0.35s ease-out both;
+}
+
 .skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
   animation: skeleton-loading 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #ece9e2 25%, #ddd8cf 50%, #ece9e2 75%);
+  background-size: 200% 100%;
 }
 
 @keyframes skeleton-loading {
@@ -72,5 +197,15 @@ body {
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
