@@ -1,4 +1,5 @@
 import { useCallback, useState, useRef } from 'react';
+import Image from 'next/image';
 import clsx from 'clsx';
 
 interface UploadedFile {
@@ -151,9 +152,12 @@ export function Upload({
               className="flex items-center rounded-md border bg-white px-3 py-2"
             >
               {file.preview ? (
-                <img
+                <Image
                   src={file.preview}
                   alt={file.file.name}
+                  width={40}
+                  height={40}
+                  unoptimized
                   className="mr-3 h-10 w-10 rounded object-cover"
                 />
               ) : (
