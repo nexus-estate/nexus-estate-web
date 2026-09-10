@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useSyncExternalStore } from 'react';
+import axios from 'axios';
 import { apiClient, setAccessToken } from '@/lib/api-client';
 import type { User } from '@/lib/sdk';
 
@@ -79,6 +80,26 @@ function getServerSnapshot() {
   return null;
 }
 
+function getAuthError(error: unknown, fallback: string): Error {
+  if (!axios.isAxiosError(error)) {
+    return error instanceof Error ? error : new Error(fallback);
+  }
+
+  const payload: unknown = error.response?.data;
+  if (typeof payload === 'object' && payload !== null) {
+    if ('message' in payload) {
+      const message = payload.message;
+      if (typeof message === 'string') return new Error(message);
+      if (Array.isArray(message)) return new Error(message.join(', '));
+    }
+    if ('error' in payload && typeof payload.error === 'string') {
+      return new Error(payload.error);
+    }
+  }
+
+  return new Error(fallback);
+}
+
 function normalizePrincipal(principal: AuthenticatedPrincipal): User {
   return {
     id: principal.id,
@@ -93,26 +114,48 @@ export function useAuth() {
   const user = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const getProfile = useCallback(async () => {
-    const response =
-      await apiClient.get<AuthenticatedPrincipal>('/auth/profile');
-    const freshUser = normalizePrincipal(response.data);
-    localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
-    publish(freshUser);
+    try {
+      const response =
+        await apiClient.get<AuthenticatedPrincipal>('/auth/profile');
+      const freshUser = normalizePrincipal(response.data);
+      localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
+      publish(freshUser);
+      return freshUser;
+    } catch (error: unknown) {
+      throw getAuthError(error, 'Không thể tải thông tin tài khoản.');
+    }
   }, []);
 
   const login = useCallback(
     async (data: LoginRequest) => {
-      const response = await apiClient.post<TokenPair>('/auth/login', data);
-      localStorage.setItem(ACCESS_TOKEN_KEY, response.data.accessToken);
-      localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refreshToken);
-      setAccessToken(response.data.accessToken);
-      await getProfile();
+      try {
+        const response = await apiClient.post<TokenPair>('/auth/login', {
+          email: data.email.trim(),
+          password: data.password,
+        });
+        localStorage.setItem(ACCESS_TOKEN_KEY, response.data.accessToken);
+        localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refreshToken);
+        setAccessToken(response.data.accessToken);
+        await getProfile();
+      } catch (error: unknown) {
+        throw getAuthError(
+          error,
+          'Không thể đăng nhập. Vui lòng kiểm tra lại thông tin.',
+        );
+      }
     },
     [getProfile],
   );
 
   const register = useCallback(async (data: RegisterRequest) => {
-    await apiClient.post('/auth/register', data);
+    try {
+      await apiClient.post('/auth/register', {
+        email: data.email.trim(),
+        password: data.password,
+      });
+    } catch (error: unknown) {
+      throw getAuthError(error, 'Không thể tạo tài khoản. Vui lòng thử lại.');
+    }
   }, []);
 
   const logout = useCallback(() => {

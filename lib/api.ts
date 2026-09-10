@@ -1,5 +1,6 @@
 import type {
   User,
+  AuthenticatedPrincipal,
   SigninRequest,
   SigninResponse,
   SignupRequest,
@@ -89,11 +90,14 @@ class ApiClient {
 
   // ─── Users ────────────────────────────────────────────────
   /**
-   * GET /api/users/me
-   * Returns the currently authenticated user
+   * GET /api/v1/auth/profile
+   * Returns the authenticated principal inside the API success envelope.
    */
-  async getMe() {
-    return this.requestRaw<User>('/users/me');
+  async getProfile() {
+    const response = await this.requestRaw<{
+      data: AuthenticatedPrincipal;
+    }>('/auth/profile');
+    return response.data;
   }
 
   /**

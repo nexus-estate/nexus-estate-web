@@ -35,6 +35,13 @@ export interface User {
   profile: UserProfile;
 }
 
+export interface AuthenticatedPrincipal {
+  id: string;
+  email: string;
+  roleId: string;
+  role: string;
+}
+
 // ─── Auth DTOs ─────────────────────────────────────────────────
 export interface SignupRequest {
   email: string;

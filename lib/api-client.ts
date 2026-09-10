@@ -23,7 +23,7 @@ export function getAccessToken(): string | null {
 }
 
 const config = new Configuration({
-  basePath: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:50001/api/v1',
+  basePath: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1',
   accessToken: () => getAccessToken(),
 });
 
