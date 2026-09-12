@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context';
+import { useAuth } from '@/hooks/use-auth';
+import { listingApi } from '@/lib/api/listing/listing.api';
 
 export default function NewListingPage() {
   const router = useRouter();
@@ -47,7 +47,7 @@ export default function NewListingPage() {
     setError('');
 
     try {
-      await api.createListing({
+      await listingApi.create({
         property: {
           title: form.title,
           description: form.description,
