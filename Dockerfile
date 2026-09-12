@@ -18,8 +18,7 @@ FROM base AS development
 
 ENV NODE_ENV=development
 
-# Mount .npmrc temporarily during local installations
-RUN --mount=type=secret,id=npmrc,target=/app/.npmrc npm install
+RUN npm ci
 
 COPY . .
 
@@ -32,10 +31,7 @@ CMD ["npm", "run", "dev"]
 # ================================================================
 FROM base AS deps
 
-# Absolute target path is used to ensure npm safely picks up the auth token
-RUN --mount=type=secret,id=npmrc,target=/app/.npmrc npm ci
-
-# No manual cleanup required; secret mounts are automatically unmounted and kept out of final layers
+RUN npm ci
 
 # ================================================================
 # Stage 3: Builder

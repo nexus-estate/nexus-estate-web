@@ -22,25 +22,9 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Run with Docker Compose
 
-The project depends on the private `@nexus-estate/typescript-sdk` package from
-GitHub Packages. Create a local `.npmrc` before the first image build:
-
-```bash
-cp .npmrc.example .npmrc
-```
-
-Then replace the placeholder with a token that can read packages:
-
-```ini
-@nexus-estate:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=YOUR_GITHUB_PACKAGES_TOKEN
-```
-
-The token needs permission to read packages. Both `.npmrc` and `.env` are
-ignored by Git, and `.npmrc` is not copied into the Docker build context.
-
 Copy the environment template, adjust the API URL if needed, then start the
-production container:
+production container. Frontend dependencies use the public npm registry; no
+package token is required:
 
 ```bash
 cp .env.example .env
@@ -55,8 +39,19 @@ docker compose down
 ```
 
 `NEXT_PUBLIC_API_URL` is embedded into the browser bundle during image build.
-Rebuild the image after changing it. If your npm config is stored elsewhere,
-set `NPMRC_PATH` in `.env` to that file path.
+Rebuild the image after changing it.
+
+## API architecture
+
+The web app owns a small local API boundary under `lib/api/`. Feature modules
+define their request and response types beside their API functions, while
+`lib/api/client.ts` owns the base URL, bearer token, JSON handling, timeout,
+and normalized `ApiError` behavior. Pages and components use feature APIs
+through React Query or a feature hook; they do not call `fetch` directly.
+
+The backend remains the owner of the HTTP contract. If contract drift becomes
+recurring, OpenAPI generation can be added as a build step without introducing
+a separately published frontend SDK.
 
 ## Learn More
 

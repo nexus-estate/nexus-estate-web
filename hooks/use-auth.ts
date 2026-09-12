@@ -1,22 +1,18 @@
 'use client';
 
 import { useCallback, useSyncExternalStore } from 'react';
-import { apiClient, setAccessToken } from '@/lib/api-client';
-import type { User } from '@/lib/sdk';
+import { authApi } from '@/lib/api/auth/auth.api';
+import type {
+  AuthenticatedPrincipal,
+  LoginRequest,
+  RegisterRequest,
+  User,
+} from '@/lib/api/auth/auth.types';
+import { setAccessToken } from '@/lib/api/client';
 
 const ACCESS_TOKEN_KEY = 'nexus_access_token';
 const REFRESH_TOKEN_KEY = 'nexus_refresh_token';
 const USER_KEY = 'nexus_user';
-
-type LoginRequest = { email: string; password: string };
-type RegisterRequest = LoginRequest;
-type TokenPair = { accessToken: string; refreshToken: string };
-type AuthenticatedPrincipal = {
-  id: string;
-  email: string;
-  roleId: string;
-  role: string;
-};
 
 type AuthListener = () => void;
 const listeners = new Set<AuthListener>();
@@ -80,12 +76,20 @@ function getServerSnapshot() {
 }
 
 function normalizePrincipal(principal: AuthenticatedPrincipal): User {
+  const role = principal.role;
   return {
     id: principal.id,
     email: principal.email,
-    fullName: principal.email.split('@')[0],
+    fullName: principal.fullName || principal.email.split('@')[0],
+    username: principal.username,
     roleId: principal.roleId,
-    role: { id: principal.roleId, name: principal.role },
+    role:
+      typeof role === 'object'
+        ? role
+        : role && principal.roleId
+          ? { id: principal.roleId, name: role }
+          : undefined,
+    profile: principal.profile,
   };
 }
 
@@ -93,26 +97,27 @@ export function useAuth() {
   const user = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const getProfile = useCallback(async () => {
-    const response =
-      await apiClient.get<AuthenticatedPrincipal>('/auth/profile');
-    const freshUser = normalizePrincipal(response.data);
+    const response = await authApi.getProfile();
+    const freshUser = normalizePrincipal(response);
     localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
     publish(freshUser);
   }, []);
 
   const login = useCallback(
     async (data: LoginRequest) => {
-      const response = await apiClient.post<TokenPair>('/auth/login', data);
-      localStorage.setItem(ACCESS_TOKEN_KEY, response.data.accessToken);
-      localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refreshToken);
-      setAccessToken(response.data.accessToken);
+      const response = await authApi.login(data);
+      localStorage.setItem(ACCESS_TOKEN_KEY, response.accessToken);
+      if (response.refreshToken) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+      }
+      setAccessToken(response.accessToken);
       await getProfile();
     },
     [getProfile],
   );
 
   const register = useCallback(async (data: RegisterRequest) => {
-    await apiClient.post('/auth/register', data);
+    await authApi.register(data);
   }, []);
 
   const logout = useCallback(() => {
@@ -131,5 +136,6 @@ export function useAuth() {
     register,
     logout,
     getProfile,
+    refreshUser: getProfile,
   };
 }

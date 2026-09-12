@@ -7,18 +7,16 @@ on:
   pull_request:
     branches: [main, develop]
 
-permissions:
-  contents: read
-  packages: write
-
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: nexus-estate/nexus-estate-web
 
 jobs:
   ci:
     name: Build, Lint & Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -29,12 +27,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          registry-url: 'https://npm.pkg.github.com'
 
       - name: Install dependencies
         run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.DEPENDENCY_TOKEN }}
 
       - name: Prettier check
         run: npm run format:check
@@ -59,6 +54,8 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     needs: ci
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -69,12 +66,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          registry-url: 'https://npm.pkg.github.com'
 
       - name: Install dependencies
         run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.DEPENDENCY_TOKEN }}
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -97,10 +91,37 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
+  docker-validate:
+    name: Validate Docker Image
+    runs-on: ubuntu-latest
+    needs: ci
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://localhost:3001/api
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
     needs: ci
+    permissions:
+      contents: read
+      packages: write
     if: |
       github.event_name == 'push' && (
         github.ref == 'refs/heads/develop' ||
@@ -111,13 +132,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Create temporary .npmrc for Docker build
-        run: |
-          echo "@nexus-estate:registry=https://npm.pkg.github.com" > ${{ runner.temp }}/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> ${{ runner.temp }}/.npmrc
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.DEPENDENCY_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -152,5 +166,3 @@ jobs:
             NEXT_PUBLIC_API_URL=https://api.nexus-estate.dev/api
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          secret-files: |
-            npmrc=${{ runner.temp }}/.npmrc

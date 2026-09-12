@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider } from '@/lib/auth-context';
 import { I18nProvider } from '@/lib/i18n';
 import { QueryProvider } from '@/lib/query-client';
 
@@ -21,9 +20,7 @@ export default function RootLayout({
     <html lang="vi" className="h-full">
       <body className="flex min-h-full flex-col bg-[#f7f5ef] font-sans antialiased">
         <QueryProvider>
-          <I18nProvider>
-            <AuthProvider>{children}</AuthProvider>
-          </I18nProvider>
+          <I18nProvider>{children}</I18nProvider>
         </QueryProvider>
         <Toaster position="top-right" />
       </body>

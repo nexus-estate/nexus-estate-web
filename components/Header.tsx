@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
-import type { User } from '@/lib/sdk';
+import type { User } from '@/lib/api/auth/auth.types';
 
 function userName(user: User | null) {
   if (!user) return '';

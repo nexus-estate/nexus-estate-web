@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context';
-import type { User } from '@/lib/types';
+import { useAuth } from '@/hooks/use-auth';
+import type { User } from '@/lib/api/auth/auth.types';
+import { userApi } from '@/lib/api/user/user.api';
 
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '---';
@@ -82,7 +82,7 @@ export default function ProfilePage() {
       return;
     }
     if (isAuthenticated) {
-      api
+      userApi
         .getMe()
         .then((freshUser) => {
           setUser(freshUser);
@@ -107,7 +107,7 @@ export default function ProfilePage() {
     setError('');
 
     try {
-      const updated = await api.updateUser(user.id, {
+      const updated = await userApi.update(user.id, {
         firstName: editFirstName || undefined,
         lastName: editLastName || undefined,
         phone: editPhone || undefined,
@@ -152,7 +152,7 @@ export default function ProfilePage() {
 
     setChangingPassword(true);
     try {
-      const result = await api.changePassword(
+      const result = await userApi.changePassword(
         user.id,
         oldPassword,
         newPassword,
@@ -274,7 +274,7 @@ export default function ProfilePage() {
                   <p className="text-gray-500">{user.email}</p>
                   <div className="mt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3">
                     <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 capitalize">
-                      {user.role?.toLowerCase()}
+                      {user.role?.name.toLowerCase()}
                     </span>
                     {user.profile?.phone && (
                       <span className="inline-flex items-center gap-1 text-sm text-gray-500">
@@ -528,7 +528,7 @@ export default function ProfilePage() {
                           Vai trò
                         </dt>
                         <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 capitalize">
-                          {user.role?.toLowerCase()}
+                          {user.role?.name.toLowerCase()}
                         </dd>
                       </div>
                       <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
