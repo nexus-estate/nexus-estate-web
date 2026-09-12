@@ -37,10 +37,9 @@ export interface User {
   profile?: UserProfile | null;
 }
 
-export interface LoginRequest {
-  identifier: string;
-  password: string;
-}
+export type LoginRequest =
+  | { email: string; identifier?: never; password: string }
+  | { identifier: string; email?: never; password: string };
 
 export interface RegisterRequest {
   email: string;
