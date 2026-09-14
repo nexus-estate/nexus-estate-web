@@ -14,7 +14,7 @@ export function useProviderAuthorization() {
   const query = useQuery({
     queryKey: ['provider', providerId, 'authorization'],
     queryFn: providerApi.authorization,
-    enabled: providerId !== null,
+    enabled: true,
   });
   const value = query.data;
   let state: ProviderLifecycleState = providerId

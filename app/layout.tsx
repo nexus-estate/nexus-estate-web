@@ -1,7 +1,8 @@
+import { cookies } from 'next/headers';
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
-import { I18nProvider } from '@/lib/i18n';
+import { AppProviders } from '@/app/providers';
 import { QueryProvider } from '@/lib/query-client';
 
 export const metadata: Metadata = {
@@ -11,16 +12,19 @@ export const metadata: Metadata = {
   keywords: 'bất động sản, nhà đất, mua bán, cho thuê, nexus estate',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const localeCookie = (await cookies()).get('nexus.locale')?.value;
+  const locale =
+    localeCookie === 'vi' || localeCookie === 'en' ? localeCookie : 'en';
   return (
-    <html lang="vi" className="h-full">
+    <html lang={locale} className="h-full">
       <body className="flex min-h-full flex-col bg-[#f7f5ef] font-sans antialiased">
         <QueryProvider>
-          <I18nProvider>{children}</I18nProvider>
+          <AppProviders locale={locale}>{children}</AppProviders>
         </QueryProvider>
         <Toaster position="top-right" />
       </body>

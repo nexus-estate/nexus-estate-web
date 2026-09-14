@@ -1,0 +1,29 @@
+{
+  "actions": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "close": "Đóng",
+    "switchLanguage": "Chuyển ngôn ngữ"
+  },
+  "status": {
+    "loading": "Đang tải…",
+    "saving": "Đang lưu…",
+    "empty": "Chưa có dữ liệu.",
+    "error": "Đã xảy ra lỗi.",
+    "overview": "Tổng quan",
+    "signedInWorkspace": "Không gian đã đăng nhập"
+  },
+  "language": { "vietnamese": "Tiếng Việt", "english": "English" },
+  "errors": {
+    "unexpected": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "requestId": "Mã yêu cầu: {requestId}",
+    "roleVersionConflict": "Role đã thay đổi. Hãy tải phiên bản mới nhất rồi lưu lại.",
+    "roleInUse": "Role đang được sử dụng và không thể xóa.",
+    "systemRoleImmutable": "Role hệ thống không thể thay đổi.",
+    "lastAdminProtection": "Không thể xóa quản trị viên cuối cùng.",
+    "lastOwnerProtection": "Không thể xóa Owner cuối cùng.",
+    "providerContextRequired": "Cần chọn Provider context trước khi tiếp tục.",
+    "providerAccountNotFound": "Không tìm thấy Provider account."
+  }
+}

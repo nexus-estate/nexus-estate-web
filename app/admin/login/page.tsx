@@ -1,8 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
 export default function AdminLoginPage() {
+  const t = useTranslations('auth.admin');
   const { login } = useAdministrationSession();
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -11,10 +13,8 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   return (
     <div className="mx-auto mt-20 max-w-md rounded-xl bg-white p-8 shadow">
-      <p className="eyebrow">Internal access</p>
-      <h1 className="mt-3 text-3xl font-bold text-[#102f2d]">
-        Administration login
-      </h1>
+      <p className="eyebrow">{t('title')}</p>
+      <h1 className="mt-3 text-3xl font-bold text-[#102f2d]">{t('title')}</h1>
       <form
         className="mt-8 space-y-4"
         onSubmit={async (e) => {
@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
             await login(email, password);
             router.replace('/admin');
           } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unable to sign in');
+            setError(err instanceof Error ? err.message : t('invalid'));
           } finally {
             setLoading(false);
           }
@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
           className="auth-input"
           type="email"
           required
-          placeholder="Email"
+          placeholder={t('email')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
           className="auth-input"
           type="password"
           required
-          placeholder="Password"
+          placeholder={t('password')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
           </p>
         )}
         <button disabled={loading} className="auth-submit" type="submit">
-          {loading ? 'Signing in…' : 'Sign in'} <span>→</span>
+          {loading ? t('signingIn') : t('submit')} <span>→</span>
         </button>
       </form>
     </div>

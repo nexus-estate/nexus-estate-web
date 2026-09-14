@@ -1,0 +1,11 @@
+{
+  "nav": {
+    "overview": "Tổng quan",
+    "account": "Tài khoản",
+    "profile": "Hồ sơ"
+  },
+  "account": {
+    "title": "Tài khoản khách hàng",
+    "description": "Quản lý thông tin và quyền truy cập của bạn."
+  }
+}

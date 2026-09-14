@@ -1,12 +1,10 @@
 'use client';
-
+import type { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  type ReactNode,
-} from 'react';
+  useLocale,
+  useTranslations as useNextIntlTranslations,
+} from 'next-intl';
 
 type Locale = 'vi' | 'en';
 
@@ -14,7 +12,7 @@ interface Translations {
   [key: string]: string | Translations;
 }
 
-const messages: Record<Locale, Translations> = {
+export const messages: Record<Locale, Translations> = {
   vi: {
     common: {
       loading: 'Đang tải...',
@@ -508,80 +506,24 @@ const messages: Record<Locale, Translations> = {
   },
 };
 
-interface I18nContextType {
-  locale: Locale;
-  setLocale: (locale: Locale) => void;
-  t: (key: string, params?: Record<string, string | number>) => string;
-}
-
-const I18nContext = createContext<I18nContextType | undefined>(undefined);
-
-function flattenTranslations(
-  obj: Translations,
-  prefix = '',
-): Record<string, string> {
-  return Object.keys(obj).reduce<Record<string, string>>((acc, key) => {
-    const value = obj[key];
-    const prefixedKey = prefix ? `${prefix}.${key}` : key;
-    if (typeof value === 'string') {
-      acc[prefixedKey] = value;
-    } else {
-      Object.assign(acc, flattenTranslations(value, prefixedKey));
-    }
-    return acc;
-  }, {});
-}
-
-const flattened: Record<Locale, Record<string, string>> = {
-  vi: flattenTranslations(messages.vi),
-  en: flattenTranslations(messages.en),
-};
-
-function interpolate(
-  template: string,
-  params?: Record<string, string | number>,
-): string {
-  if (!params) return template;
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
-    const value = params[key];
-    return value != null ? String(value) : `\{\{${key}\}\}`;
-  });
-}
-
 export function I18nProvider({
   children,
-  defaultLocale = 'vi',
+  defaultLocale: _defaultLocale = 'en',
 }: {
   children: ReactNode;
   defaultLocale?: Locale;
 }) {
-  const [locale, setLocale] = useState<Locale>(defaultLocale);
-
-  const t = useCallback(
-    (key: string, params?: Record<string, string | number>): string => {
-      const translation = flattened[locale]?.[key];
-      if (!translation) {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn(`Missing translation key: ${key} for locale: ${locale}`);
-        }
-        return key;
-      }
-      return interpolate(translation, params);
-    },
-    [locale],
-  );
-
-  return (
-    <I18nContext.Provider value={{ locale, setLocale, t }}>
-      {children}
-    </I18nContext.Provider>
-  );
+  return <>{children}</>;
 }
 
 export function useTranslations() {
-  const context = useContext(I18nContext);
-  if (!context) {
-    throw new Error('useTranslations must be used within an I18nProvider');
-  }
-  return context;
+  const t = useNextIntlTranslations();
+  const locale = useLocale() as Locale;
+  const router = useRouter();
+  const setLocale = (nextLocale: Locale) => {
+    document.cookie = `nexus.locale=${nextLocale}; Path=/; Max-Age=31536000; SameSite=Lax`;
+    localStorage.setItem('nexus.locale', nextLocale);
+    router.refresh();
+  };
+  return { locale, setLocale, t };
 }

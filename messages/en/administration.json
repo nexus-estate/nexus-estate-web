@@ -1,0 +1,33 @@
+{
+  "nav": {
+    "overview": "Overview",
+    "providerReview": "Provider review",
+    "authorization": "Roles & permissions",
+    "subjects": "Subjects",
+    "audit": "Audit"
+  },
+  "overview": {
+    "title": "Administration",
+    "description": "Access is determined by effective permissions."
+  },
+  "login": {
+    "title": "Administration login",
+    "description": "Internal operations workspace."
+  },
+  "authorization": {
+    "title": "Authorization workspace",
+    "description": "Manage roles, permissions, subjects and audit.",
+    "roles": "Roles",
+    "permissions": "Permission catalogue",
+    "matrix": "Permission matrix",
+    "subjects": "Authorization subjects",
+    "audit": "Authorization audit",
+    "create": "Create role",
+    "save": "Save changes",
+    "search": "Search",
+    "noRoles": "No roles found.",
+    "noSubjects": "No subjects found.",
+    "noAudit": "No audit events found.",
+    "versionConflict": "This role changed while you were editing. Reload the latest version before saving again."
+  }
+}

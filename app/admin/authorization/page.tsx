@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 import type {
   Platform,
@@ -8,10 +9,15 @@ import type {
 } from '@/lib/api/administration/types';
 const platforms: Platform[] = ['MARKETPLACE', 'PROVIDER', 'ADMINISTRATION'];
 export default function AuthorizationPage() {
+  const t = useTranslations('administration.authorization');
   const [platform, setPlatform] = useState<Platform>('MARKETPLACE');
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ code: '', name: '', description: '' });
   const qc = useQueryClient();
+  const platformQuery = useQuery({
+    queryKey: ['administration', 'authorization', 'platforms'],
+    queryFn: administrationAuthorizationApi.platforms,
+  });
   const roles = useQuery({
     queryKey: ['administration', 'authorization', platform, 'roles'],
     queryFn: () => administrationAuthorizationApi.roles(platform),
@@ -45,7 +51,7 @@ export default function AuthorizationPage() {
         <div>
           <p className="eyebrow">Access control</p>
           <h1 className="mt-2 text-3xl font-bold text-[#102f2d]">
-            Authorization workspace
+            {t('title')}
           </h1>
         </div>
         <select
@@ -53,20 +59,22 @@ export default function AuthorizationPage() {
           value={platform}
           onChange={(e) => setPlatform(e.target.value as Platform)}
         >
-          {platforms.map((p) => (
-            <option key={p}>{p}</option>
-          ))}
+          {(platformQuery.data?.length ? platformQuery.data : platforms).map(
+            (p) => (
+              <option key={p}>{p}</option>
+            ),
+          )}
         </select>
       </div>
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section className="rounded-xl bg-white p-6 shadow">
           <div className="flex justify-between">
-            <h2 className="text-lg font-semibold">Roles</h2>
+            <h2 className="text-lg font-semibold">{t('roles')}</h2>
             <button
               className="rounded bg-[#173b38] px-3 py-2 text-sm text-white"
               onClick={() => setCreating(true)}
             >
-              Create role
+              {t('create')}
             </button>
           </div>
           {creating && (
@@ -148,7 +156,7 @@ export default function AuthorizationPage() {
           </div>
         </section>
         <section className="rounded-xl bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold">Permission catalogue</h2>
+          <h2 className="text-lg font-semibold">{t('permissions')}</h2>
           <p className="mt-1 text-sm text-gray-500">
             Code-owned permissions grouped by category.
           </p>

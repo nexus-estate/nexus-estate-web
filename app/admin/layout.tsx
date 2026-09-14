@@ -1,43 +1,38 @@
 'use client';
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import {
+  PortalShell,
+  type PortalNavItem,
+} from '@/components/portal/portal-shell';
 import {
   AdministrationSessionProvider,
   useAdministrationSession,
 } from '@/features/auth/administration/administration-session.provider';
 function Guard({ children }: { children: React.ReactNode }) {
   const session = useAdministrationSession();
+  const t = useTranslations('administration');
   const pathname = usePathname();
   const router = useRouter();
   if (!session.isAuthenticated && pathname !== '/admin/login') {
     router.replace('/admin/login');
     return null;
   }
+  if (pathname === '/admin/login') return <>{children}</>;
+  const items: PortalNavItem[] = [{ label: t('nav.overview'), href: '/admin' }];
+  if (session.hasPermission('authorization:role:read'))
+    items.push({ label: t('nav.authorization'), href: '/admin/authorization' });
+  if (session.hasPermission('authorization:assignment:read'))
+    items.push({
+      label: t('nav.subjects'),
+      href: '/admin/authorization/subjects',
+    });
+  if (session.hasPermission('authorization:audit:read'))
+    items.push({ label: t('nav.audit'), href: '/admin/authorization/audit' });
   return (
-    <div className="min-h-screen bg-gray-50">
-      <aside className="fixed inset-y-0 left-0 w-64 border-r bg-[#102f2d] p-6 text-white">
-        <Link href="/admin" className="font-display text-2xl">
-          Nexus Estate
-        </Link>
-        <nav className="mt-10 space-y-2 text-sm">
-          <Link
-            className="block rounded px-3 py-2 hover:bg-white/10"
-            href="/admin"
-          >
-            Dashboard
-          </Link>
-          {session.hasPermission('authorization:role:read') && (
-            <Link
-              className="block rounded px-3 py-2 hover:bg-white/10"
-              href="/admin/authorization"
-            >
-              Authorization
-            </Link>
-          )}
-        </nav>
-      </aside>
-      <main className="ml-64 p-8">{children}</main>
-    </div>
+    <PortalShell platform="Administration / ERP" items={items}>
+      {children}
+    </PortalShell>
   );
 }
 export default function AdminLayout({

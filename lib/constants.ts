@@ -8,7 +8,7 @@ export const ADMINISTRATION_ACCESS_TOKEN_KEY =
 export const ADMINISTRATION_REFRESH_TOKEN_KEY =
   'nexus.administration.refresh_token';
 export const PROVIDER_ACTIVE_ID_KEY = 'nexus.provider.active_id';
-export const LOCALE_KEY = 'nexus_locale';
+export const LOCALE_KEY = 'nexus.locale';
 
 export const LOCALES = ['en', 'vi'] as const;
 export const DEFAULT_LOCALE = 'vi';

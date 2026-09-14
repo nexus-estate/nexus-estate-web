@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "overview": "Overview",
+    "account": "Account",
+    "authorization": "Authorization"
+  },
+  "labels": {
+    "provider": "Provider",
+    "providerStatus": "Provider status",
+    "verification": "Verification",
+    "permissions": "Permissions",
+    "supplyAccess": "Supply access",
+    "activeVerified": "Active and verified. Supply actions can be enabled by permission.",
+    "currentState": "Current state: {state}",
+    "noAccount": "No provider account is available for this Customer session. Start onboarding from your Customer account."
+  },
+  "title": "Provider portal",
+  "overview": {
+    "title": "Provider overview",
+    "description": "Operational status for the selected Provider."
+  },
+  "onboarding": {
+    "title": "Provider onboarding",
+    "description": "Submit your business context for review.",
+    "type": "Provider type",
+    "displayName": "Display name",
+    "submit": "Submit for review",
+    "submitting": "Submitting…",
+    "error": "Unable to submit onboarding."
+  },
+  "status": {
+    "noProvider": "No Provider",
+    "pending": "Pending review",
+    "rejected": "Rejected",
+    "suspended": "Suspended",
+    "verified": "Verified",
+    "contextRequired": "Provider context required"
+  },
+  "authorization": {
+    "title": "Provider authorization",
+    "description": "Effective permissions for the current membership and business context.",
+    "permissions": "Effective permissions"
+  }
+}

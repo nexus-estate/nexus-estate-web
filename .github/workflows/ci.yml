@@ -43,12 +43,12 @@ jobs:
       - name: Unit tests
         run: npm test -- --ci --no-cache
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:3001/api
+          NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
 
       - name: Build
         run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:3001/api
+          NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
 
   e2e:
     name: E2E Tests
@@ -76,12 +76,12 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:3001/api
+          NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
 
       - name: Run E2E tests
         run: npm run test:e2e
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:3001/api
+          NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
@@ -111,7 +111,7 @@ jobs:
           context: .
           push: false
           build-args: |
-            NEXT_PUBLIC_API_URL=http://localhost:3001/api
+            NEXT_PUBLIC_API_URL=http://localhost:50001/api/v1
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

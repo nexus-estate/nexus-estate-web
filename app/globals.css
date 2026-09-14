@@ -2,13 +2,18 @@
 
 :root {
   --background: #f7f5ef;
+  --surface: #ffffff;
+  --surface-subtle: #f4f6f5;
+  --border: #ded9cf;
+  --text: #102f2d;
+  --text-muted: #697572;
+  --primary-soft: #e8f0ee;
   --foreground: #102f2d;
   --primary: #0c302e;
   --primary-dark: #071b1b;
   --secondary: #c7a66b;
   --accent: #d9bf8d;
-  --muted: #697572;
-  --border: #ded9cf;
+  --muted: var(--text-muted);
 }
 
 @theme inline {

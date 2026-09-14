@@ -1,0 +1,33 @@
+{
+  "nav": {
+    "overview": "Tổng quan",
+    "providerReview": "Duyệt Provider",
+    "authorization": "Vai trò & quyền",
+    "subjects": "Đối tượng",
+    "audit": "Audit"
+  },
+  "overview": {
+    "title": "Administration",
+    "description": "Truy cập hiệu lực được quyết định bằng permission."
+  },
+  "login": {
+    "title": "Đăng nhập Administration",
+    "description": "Khu vực vận hành nội bộ."
+  },
+  "authorization": {
+    "title": "Không gian phân quyền",
+    "description": "Quản lý role, permission, subject và audit.",
+    "roles": "Vai trò",
+    "permissions": "Danh mục permission",
+    "matrix": "Ma trận permission",
+    "subjects": "Đối tượng phân quyền",
+    "audit": "Audit phân quyền",
+    "create": "Tạo role",
+    "save": "Lưu thay đổi",
+    "search": "Tìm kiếm",
+    "noRoles": "Chưa có role.",
+    "noSubjects": "Chưa có subject.",
+    "noAudit": "Chưa có audit event.",
+    "versionConflict": "Role đã thay đổi trong lúc bạn chỉnh sửa. Hãy tải phiên bản mới nhất rồi lưu lại."
+  }
+}

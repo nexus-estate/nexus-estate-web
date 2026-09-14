@@ -1,0 +1,7 @@
+{
+  "nav": { "overview": "Overview", "account": "Account", "profile": "Profile" },
+  "account": {
+    "title": "Customer account",
+    "description": "Manage your profile and access."
+  }
+}

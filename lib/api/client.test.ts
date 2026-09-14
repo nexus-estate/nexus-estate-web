@@ -1,4 +1,10 @@
-import { publicApiClient } from './client';
+import {
+  administrationApiClient,
+  customerApiClient,
+  providerApiClient,
+  publicApiClient,
+  setRealmAccessToken,
+} from './client';
 import { ApiError } from './errors';
 
 const fetchMock = jest.fn();
@@ -22,7 +28,11 @@ describe('apiClient', () => {
     jest.restoreAllMocks();
     fetchMock.mockReset();
     globalThis.fetch = fetchMock as typeof fetch;
+    process.env.NEXT_PUBLIC_API_URL = 'http://localhost:50001/api/v1';
     localStorage.clear();
+    document.cookie = 'nexus.locale=; Max-Age=0; Path=/';
+    setRealmAccessToken('customer', null);
+    setRealmAccessToken('administration', null);
   });
 
   it('serializes JSON and keeps the public client unauthenticated', async () => {
@@ -47,6 +57,31 @@ describe('apiClient', () => {
     expect(headers.get('Accept')).toBe('application/json');
     expect(headers.get('Content-Type')).toBe('application/json');
     expect(headers.get('Authorization')).toBeNull();
+    expect(headers.get('x-lang')).toBe('en');
+  });
+
+  it('propagates the shared locale independently across realm clients', async () => {
+    document.cookie = 'nexus.locale=vi; Path=/';
+    setRealmAccessToken('customer', 'customer-token');
+    setRealmAccessToken('administration', 'admin-token');
+    localStorage.setItem('nexus.provider.active_id', 'provider-1');
+    fetchMock.mockResolvedValue(mockResponse({}, 200));
+
+    await customerApiClient.get('/customers/me');
+    await providerApiClient.get('/providers/me');
+    await administrationApiClient.get('/administration/me/authorization');
+
+    const customerHeaders = new Headers(fetchMock.mock.calls[0][1].headers);
+    const providerHeaders = new Headers(fetchMock.mock.calls[1][1].headers);
+    const adminHeaders = new Headers(fetchMock.mock.calls[2][1].headers);
+    expect(customerHeaders.get('Authorization')).toBe('Bearer customer-token');
+    expect(customerHeaders.get('x-lang')).toBe('vi');
+    expect(providerHeaders.get('Authorization')).toBe('Bearer customer-token');
+    expect(providerHeaders.get('X-Provider-Id')).toBe('provider-1');
+    expect(providerHeaders.get('x-lang')).toBe('vi');
+    expect(adminHeaders.get('Authorization')).toBe('Bearer admin-token');
+    expect(adminHeaders.get('X-Provider-Id')).toBeNull();
+    expect(adminHeaders.get('x-lang')).toBe('vi');
   });
 
   it('unwraps the current API envelope and handles no-content responses', async () => {

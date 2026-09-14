@@ -1,0 +1,29 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close",
+    "switchLanguage": "Switch language"
+  },
+  "status": {
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "empty": "No data yet.",
+    "error": "Something went wrong.",
+    "overview": "Overview",
+    "signedInWorkspace": "Signed-in workspace"
+  },
+  "language": { "vietnamese": "Tiếng Việt", "english": "English" },
+  "errors": {
+    "unexpected": "Something went wrong. Please try again.",
+    "requestId": "Request ID: {requestId}",
+    "roleVersionConflict": "This role changed while you were editing. Reload the latest version before saving again.",
+    "roleInUse": "This role is in use and cannot be deleted.",
+    "systemRoleImmutable": "System roles cannot be changed.",
+    "lastAdminProtection": "The last administrator cannot be removed.",
+    "lastOwnerProtection": "The last Owner cannot be removed.",
+    "providerContextRequired": "Select a Provider context before continuing.",
+    "providerAccountNotFound": "Provider account was not found."
+  }
+}

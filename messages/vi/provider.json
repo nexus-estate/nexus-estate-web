@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "overview": "Tổng quan",
+    "account": "Tài khoản",
+    "authorization": "Phân quyền"
+  },
+  "labels": {
+    "provider": "Provider",
+    "providerStatus": "Trạng thái Provider",
+    "verification": "Xác minh",
+    "permissions": "Quyền",
+    "supplyAccess": "Quyền Supply",
+    "activeVerified": "Đã active và xác minh. Có thể bật thao tác theo permission.",
+    "currentState": "Trạng thái hiện tại: {state}",
+    "noAccount": "Chưa có Provider account cho Customer này. Hãy bắt đầu onboarding từ tài khoản Customer."
+  },
+  "title": "Cổng Provider",
+  "overview": {
+    "title": "Tổng quan Provider",
+    "description": "Trạng thái vận hành của Provider đang chọn."
+  },
+  "onboarding": {
+    "title": "Đăng ký Provider",
+    "description": "Gửi thông tin business để xét duyệt.",
+    "type": "Loại Provider",
+    "displayName": "Tên hiển thị",
+    "submit": "Gửi xét duyệt",
+    "submitting": "Đang gửi…",
+    "error": "Không thể gửi đăng ký."
+  },
+  "status": {
+    "noProvider": "Chưa có Provider",
+    "pending": "Đang chờ duyệt",
+    "rejected": "Bị từ chối",
+    "suspended": "Tạm ngưng",
+    "verified": "Đã xác minh",
+    "contextRequired": "Cần chọn Provider"
+  },
+  "authorization": {
+    "title": "Phân quyền Provider",
+    "description": "Quyền hiệu lực của membership và business context hiện tại.",
+    "permissions": "Quyền hiệu lực"
+  }
+}
