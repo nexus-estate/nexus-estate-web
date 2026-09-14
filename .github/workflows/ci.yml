@@ -130,6 +130,11 @@ jobs:
         working-directory: api
         run: |
           cp .env.example .env
+          {
+            echo 'POSTGRES_USER=postgres'
+            echo 'POSTGRES_PASSWORD=postgres'
+            echo 'POSTGRES_DB=nexus_estate_dev'
+          } >> .env
           docker compose up -d postgres
           for attempt in {1..30}; do
             if docker compose exec -T postgres pg_isready -U postgres -d nexus_estate_dev; then exit 0; fi
