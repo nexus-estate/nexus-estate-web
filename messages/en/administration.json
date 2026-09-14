@@ -4,7 +4,15 @@
     "providerReview": "Provider review",
     "authorization": "Roles & permissions",
     "subjects": "Subjects",
-    "audit": "Audit"
+    "audit": "Audit",
+    "providerReview": "Provider review"
+  },
+  "providerReview": {
+    "title": "Provider requests",
+    "description": "Review and approve pending Provider registrations.",
+    "approve": "Approve",
+    "loading": "Loading requests…",
+    "empty": "No pending requests."
   },
   "overview": {
     "title": "Administration",

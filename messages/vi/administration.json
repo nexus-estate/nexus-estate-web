@@ -4,7 +4,15 @@
     "providerReview": "Duyệt Provider",
     "authorization": "Vai trò & quyền",
     "subjects": "Đối tượng",
-    "audit": "Audit"
+    "audit": "Audit",
+    "providerReview": "Duyệt Provider"
+  },
+  "providerReview": {
+    "title": "Yêu cầu Provider",
+    "description": "Xem xét và phê duyệt các yêu cầu đăng ký Provider đang chờ.",
+    "approve": "Phê duyệt",
+    "loading": "Đang tải yêu cầu…",
+    "empty": "Không có yêu cầu đang chờ."
   },
   "overview": {
     "title": "Administration",

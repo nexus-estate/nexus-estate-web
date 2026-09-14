@@ -52,7 +52,7 @@ export default function DashboardPage() {
     0,
   );
 
-  const roleLabel = t(`role.${user?.role?.name || 'BUYER'}`);
+  const accountLabel = user?.email || '—';
 
   const loadingData = listingsLoading || packagesLoading;
 
@@ -98,7 +98,7 @@ export default function DashboardPage() {
             },
             {
               label: t('dashboard.statsRole'),
-              value: roleLabel,
+              value: accountLabel,
               icon: '👤',
               color: 'bg-purple-50 text-purple-700',
             },

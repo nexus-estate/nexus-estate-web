@@ -14,7 +14,6 @@ export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const isAdmin = user?.role?.name?.toLowerCase() === 'admin';
 
   const nav = [
     ['Mua', '/properties?purpose=buy'],
@@ -97,14 +96,6 @@ export default function Header() {
                   >
                     Bảng điều khiển
                   </Link>
-                  {isAdmin && (
-                    <Link
-                      href="/admin"
-                      className="block px-4 py-2.5 text-sm hover:bg-[#f4f1ea]"
-                    >
-                      Quản trị
-                    </Link>
-                  )}
                   <Link
                     href="/profile"
                     className="block px-4 py-2.5 text-sm hover:bg-[#f4f1ea]"

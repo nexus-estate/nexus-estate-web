@@ -4,10 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
 import { providerApi } from '@/lib/api/provider/provider.api';
+import type { ProviderAccount } from '@/lib/api/provider/types';
 export default function ProviderOnboardingPage() {
   const t = useTranslations('provider.onboarding');
   const router = useRouter();
-  const [type, setType] = useState('INDIVIDUAL');
+  const [type, setType] = useState<ProviderAccount['type']>('INDIVIDUAL');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -39,10 +40,11 @@ export default function ProviderOnboardingPage() {
           <select
             className="w-full rounded-md border border-[var(--border)] px-3 py-2"
             value={type}
-            onChange={(e) => setType(e.target.value)}
+            onChange={(e) => setType(e.target.value as ProviderAccount['type'])}
           >
             <option value="INDIVIDUAL">Individual</option>
-            <option value="COMPANY">Company</option>
+            <option value="BROKER">Broker</option>
+            <option value="AGENCY">Agency</option>
           </select>
         </label>
         <label className="mb-4 block text-sm">

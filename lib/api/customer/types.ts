@@ -5,6 +5,10 @@ export interface TokenPair {
 export interface CustomerProfile {
   id: string;
   email: string;
+  isEmailVerified: boolean;
+  lastLogin: string | null;
+  createdAt: string;
+  updatedAt: string;
   [key: string]: unknown;
 }
 export interface EffectiveAuthorization {

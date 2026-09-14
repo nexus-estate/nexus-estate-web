@@ -1,5 +1,6 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
+import { ApiError } from '@/lib/api/core/error';
 import { providerApi } from '@/lib/api/provider/provider.api';
 import { useProviderContext } from './provider-context.provider';
 export type ProviderLifecycleState =
@@ -17,10 +18,18 @@ export function useProviderAuthorization() {
     enabled: true,
   });
   const value = query.data;
-  let state: ProviderLifecycleState = providerId
-    ? 'PENDING_VERIFICATION'
-    : 'CONTEXT_REQUIRED';
-  if (!providerId && !query.isFetching) state = 'NO_PROVIDER';
+  const errorCode =
+    query.error instanceof ApiError ? query.error.errorCode : undefined;
+  let state: ProviderLifecycleState =
+    errorCode === 'PROVIDER_CONTEXT_REQUIRED'
+      ? 'CONTEXT_REQUIRED'
+      : errorCode === 'PROVIDER_ACCOUNT_NOT_FOUND'
+        ? 'NO_PROVIDER'
+        : value
+          ? 'PENDING_VERIFICATION'
+          : providerId
+            ? 'PENDING_VERIFICATION'
+            : 'CONTEXT_REQUIRED';
   if (value?.providerStatus === 'SUSPENDED') state = 'SUSPENDED';
   else if (
     value?.verificationStatus === 'VERIFIED' &&

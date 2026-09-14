@@ -1,15 +1,69 @@
 'use client';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
+import { useProviderContext } from '@/features/provider/context/provider-context.provider';
+import { providerApi } from '@/lib/api/provider/provider.api';
 export default function ProviderAccountPage() {
+  const t = useTranslations('provider');
+  const { providerId } = useProviderContext();
+  const queryClient = useQueryClient();
+  const account = useQuery({
+    queryKey: ['provider', providerId, 'account'],
+    queryFn: providerApi.account,
+  });
+  const [displayName, setDisplayName] = useState('');
+  const update = useMutation({
+    mutationFn: () =>
+      providerApi.updateAccount({
+        displayName: displayName || account.data?.displayName || '',
+      }),
+    onSuccess: () =>
+      void queryClient.invalidateQueries({
+        queryKey: ['provider', providerId],
+      }),
+  });
   return (
     <>
       <PageHeader
-        title="Provider account"
-        description="Manage provider business identity and status."
+        title={t('nav.account')}
+        description={t('overview.description')}
       />
-      <div className="border border-[var(--border)] bg-[var(--surface)] p-6 text-sm text-[var(--text-muted)]">
-        Provider account data is loaded from the selected provider context.
-      </div>
+      <form
+        className="max-w-xl border border-[var(--border)] bg-[var(--surface)] p-6"
+        onSubmit={(event) => {
+          event.preventDefault();
+          update.mutate();
+        }}
+      >
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium">
+            {t('onboarding.displayName')}
+          </span>
+          <input
+            className="w-full rounded-md border border-[var(--border)] px-3 py-2"
+            required
+            maxLength={255}
+            value={displayName || account.data?.displayName || ''}
+            onChange={(event) => setDisplayName(event.target.value)}
+          />
+        </label>
+        {account.error && (
+          <p className="mt-3 text-sm text-red-700">{account.error.message}</p>
+        )}
+        {update.isError && (
+          <p className="mt-3 text-sm text-red-700">{update.error.message}</p>
+        )}
+        <button
+          className="mt-5 rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
+          disabled={update.isPending || account.isLoading}
+        >
+          {update.isPending
+            ? t('onboarding.submitting')
+            : t('onboarding.submit')}
+        </button>
+      </form>
     </>
   );
 }

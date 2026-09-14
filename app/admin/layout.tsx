@@ -20,6 +20,11 @@ function Guard({ children }: { children: React.ReactNode }) {
   }
   if (pathname === '/admin/login') return <>{children}</>;
   const items: PortalNavItem[] = [{ label: t('nav.overview'), href: '/admin' }];
+  if (session.hasPermission('provider-account:approve'))
+    items.push({
+      label: t('nav.providerReview'),
+      href: '/admin/providers/requests',
+    });
   if (session.hasPermission('authorization:role:read'))
     items.push({ label: t('nav.authorization'), href: '/admin/authorization' });
   if (session.hasPermission('authorization:assignment:read'))
