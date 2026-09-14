@@ -101,7 +101,9 @@ export function Modal({
             </button>
           </div>
         )}
-        <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
+        <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+          {children}
+        </div>
         {footer && (
           <div className="flex items-center justify-end gap-3 border-t border-[var(--border-muted)] bg-[var(--surface-subtle)] px-5 py-4 sm:px-6">
             {footer}

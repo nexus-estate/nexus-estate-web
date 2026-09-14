@@ -51,7 +51,10 @@ export function PortalSidebar({
             {identity && <div className="mt-4">{identity}</div>}
           </div>
 
-          <nav className="mt-4 space-y-0.5" aria-label={`${platform} navigation`}>
+          <nav
+            className="mt-4 space-y-0.5"
+            aria-label={`${platform} navigation`}
+          >
             {items.map((item, index) => {
               const active =
                 pathname === item.href || pathname.startsWith(`${item.href}/`);

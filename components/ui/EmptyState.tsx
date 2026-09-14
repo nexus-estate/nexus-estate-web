@@ -45,7 +45,9 @@ export function EmptyState({
       <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--border-muted)] bg-[var(--surface)] p-3 shadow-[var(--shadow-xs)]">
         {icon || defaultIcon}
       </div>
-      <h3 className="mb-1 text-base font-semibold text-[var(--text)]">{title}</h3>
+      <h3 className="mb-1 text-base font-semibold text-[var(--text)]">
+        {title}
+      </h3>
       {description && (
         <p className="mb-5 max-w-sm text-sm leading-6 text-[var(--text-muted)]">
           {description}

@@ -120,7 +120,10 @@ export function Table<T>({
                   <div className="flex items-center gap-1.5">
                     <span>{col.header}</span>
                     {col.sortable && sortKey === col.key && (
-                      <span className="text-[var(--primary)]" aria-hidden="true">
+                      <span
+                        className="text-[var(--primary)]"
+                        aria-hidden="true"
+                      >
                         {sortDirection === 'asc' ? '↑' : '↓'}
                       </span>
                     )}

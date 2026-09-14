@@ -31,27 +31,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Format diagnostics
-        run: |
-          npx prettier --write \
-            app/globals.css \
-            components/portal/page-header.tsx \
-            components/portal/portal-sidebar.tsx \
-            components/ui/EmptyState.tsx \
-            components/ui/Form.tsx \
-            components/ui/Modal.tsx \
-            components/ui/Table.tsx \
-            components/ui/Upload.tsx
-          git diff -- \
-            app/globals.css \
-            components/portal/page-header.tsx \
-            components/portal/portal-sidebar.tsx \
-            components/ui/EmptyState.tsx \
-            components/ui/Form.tsx \
-            components/ui/Modal.tsx \
-            components/ui/Table.tsx \
-            components/ui/Upload.tsx
-
       - name: Prettier check
         run: npm run format:check
 

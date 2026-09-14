@@ -122,7 +122,9 @@ export function Upload({
           />
         </svg>
         <p className="mb-1 text-sm text-[var(--text-muted)]">
-          <span className="font-semibold text-[var(--primary)]">Click to upload</span>{' '}
+          <span className="font-semibold text-[var(--primary)]">
+            Click to upload
+          </span>{' '}
           or drag and drop
         </p>
         <p className="text-xs text-[var(--text-subtle)]">
@@ -140,7 +142,10 @@ export function Upload({
       </div>
 
       {error && (
-        <p role="alert" className="mt-2 text-xs font-medium text-[var(--danger)]">
+        <p
+          role="alert"
+          className="mt-2 text-xs font-medium text-[var(--danger)]"
+        >
           {error}
         </p>
       )}
