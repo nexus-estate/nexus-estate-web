@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { api } from '@/lib/api';
+import { leadApi } from '@/lib/api/lead/lead.api';
+import { propertyApi } from '@/lib/api/property/property.api';
+import type { Property } from '@/lib/api/property/property.types';
+import { searchApi } from '@/lib/api/search/search.api';
 
 const formatPrice = (price: number) => {
   if (price >= 1000000000) return `${(price / 1000000000).toFixed(2)} tỷ`;
@@ -13,10 +16,8 @@ const formatPrice = (price: number) => {
 
 export default function PropertyDetailPage() {
   const params = useParams();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [property, setProperty] = useState<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [similar, setSimilar] = useState<any[]>([]);
+  const [property, setProperty] = useState<Property | null>(null);
+  const [similar, setSimilar] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [leadForm, setLeadForm] = useState({
     name: '',
@@ -30,8 +31,8 @@ export default function PropertyDetailPage() {
     async function fetch() {
       try {
         const [propData, simData] = await Promise.all([
-          api.getProperty(params.id as string),
-          api.getSimilarProperties(params.id as string, 3).catch(() => []),
+          propertyApi.getById(params.id as string),
+          searchApi.similarProperties(params.id as string, 3).catch(() => []),
         ]);
         setProperty(propData);
         setSimilar(Array.isArray(simData) ? simData : []);
@@ -48,7 +49,7 @@ export default function PropertyDetailPage() {
     e.preventDefault();
     setLeadLoading(true);
     try {
-      await api.createLead({
+      await leadApi.create({
         listingId: params.id as string,
         name: leadForm.name,
         phone: leadForm.phone,
@@ -92,7 +93,7 @@ export default function PropertyDetailPage() {
     );
   }
 
-  const p = property.property || property;
+  const p = property;
 
   return (
     <div className="min-h-screen bg-gray-50">

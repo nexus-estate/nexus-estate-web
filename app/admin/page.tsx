@@ -5,9 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { useAuth } from '@/hooks/use-auth';
-import { apiClient } from '@/lib/api-client';
+import { adminApi } from '@/lib/api/admin/admin.api';
+import type { User } from '@/lib/api/auth/auth.types';
 import { useTranslations } from '@/lib/i18n';
-import type { User } from '@/lib/sdk';
 
 interface AdminOverview {
   totalUsers: number;
@@ -28,23 +28,13 @@ export default function AdminPage() {
 
   const { data: overview } = useQuery<AdminOverview>({
     queryKey: ['admin-overview'],
-    queryFn: async () => {
-      const response = await apiClient.get<AdminOverview>(
-        '/admin/reports/overview',
-      );
-      return response.data;
-    },
+    queryFn: () => adminApi.getOverview(),
     enabled: isAuthenticated && user?.role?.name === 'ADMIN',
   });
 
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['admin-users'],
-    queryFn: async () => {
-      const response = await apiClient.get<User[]>(
-        '/admin/users?page=1&limit=20',
-      );
-      return response.data ?? [];
-    },
+    queryFn: () => adminApi.listUsers(),
     enabled: isAuthenticated && user?.role?.name === 'ADMIN',
   });
 

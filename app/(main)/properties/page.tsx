@@ -3,22 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { apiClient } from '@/lib/api-client';
-
-interface Property {
-  id: string;
-  title: string;
-  price: number;
-  type: string;
-  purpose: string;
-  area: number;
-  bedrooms: number;
-  bathrooms: number;
-  city: string;
-  district: string;
-  description?: string;
-  images?: string[];
-}
+import { propertyApi } from '@/lib/api/property/property.api';
+import type {
+  Property,
+  PropertyListResponse,
+} from '@/lib/api/property/property.types';
 
 const PROPERTY_TYPES = [
   { value: '', label: 'Tất cả loại' },
@@ -108,13 +97,6 @@ function PropertyCard({ property }: { property: Property }) {
   );
 }
 
-interface PropertyResponse {
-  data?: Property[];
-  properties?: Property[];
-  total?: number;
-  items?: Property[];
-}
-
 export default function PropertiesPage() {
   const searchParams = useSearchParams();
   const [properties, setProperties] = useState<Property[]>([]);
@@ -132,22 +114,27 @@ export default function PropertiesPage() {
     async function fetchData() {
       setLoading(true);
       try {
-        const params = new URLSearchParams();
-        params.set('page', String(filters.page));
-        params.set('limit', '12');
-        if (filters.type) params.set('type', filters.type);
-        if (filters.purpose) params.set('purpose', filters.purpose);
-        if (filters.city) params.set('city', filters.city);
-        if (filters.query) params.set('q', filters.query);
-
-        const response = await apiClient.get<PropertyResponse>(
-          `/properties?${params.toString()}`,
-        );
-        const data = response.data;
-        const items = data?.data ?? data?.properties ?? data?.items ?? [];
+        const response = await propertyApi.list({
+          page: filters.page,
+          limit: 12,
+          type: filters.type,
+          purpose: filters.purpose,
+          city: filters.city,
+          q: filters.query,
+        });
+        const items = Array.isArray(response)
+          ? response
+          : ((response as PropertyListResponse).data ??
+            (response as PropertyListResponse).properties ??
+            (response as PropertyListResponse).items ??
+            []);
         const itemsArray = Array.isArray(items) ? items : [];
         setProperties(itemsArray);
-        setTotal(data?.total ?? itemsArray.length);
+        setTotal(
+          !Array.isArray(response) && 'total' in response
+            ? (response.total ?? itemsArray.length)
+            : itemsArray.length,
+        );
       } catch {
         setProperties([]);
         setTotal(0);

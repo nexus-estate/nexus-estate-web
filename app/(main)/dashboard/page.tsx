@@ -5,25 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { useAuth } from '@/hooks/use-auth';
-import { apiClient } from '@/lib/api-client';
+import type { User } from '@/lib/api/auth/auth.types';
+import { listingApi } from '@/lib/api/listing/listing.api';
+import type { Listing } from '@/lib/api/listing/listing.types';
+import { paymentApi } from '@/lib/api/payment/payment.api';
+import type { PostingPackage as Package } from '@/lib/api/payment/payment.types';
 import { useTranslations } from '@/lib/i18n';
-import type { User } from '@/lib/sdk';
-
-interface Listing {
-  id: string;
-  propertyId: string;
-  status: string;
-  viewCount: number;
-  createdAt: string;
-}
-
-interface Package {
-  id: string;
-  name: string;
-  price: number;
-  durationDays: number;
-  maxListings: number;
-}
 
 function getUserFullName(user: User | null): string {
   if (!user) return '';
@@ -40,12 +27,7 @@ export default function DashboardPage() {
     Listing[]
   >({
     queryKey: ['my-listings'],
-    queryFn: async () => {
-      const response = await apiClient.get<Listing[]>(
-        '/listings?page=1&limit=10',
-      );
-      return response.data ?? [];
-    },
+    queryFn: () => listingApi.list(1, 10),
     enabled: isAuthenticated,
   });
 
@@ -53,10 +35,7 @@ export default function DashboardPage() {
     Package[]
   >({
     queryKey: ['packages'],
-    queryFn: async () => {
-      const response = await apiClient.get<Package[]>('/payments/packages');
-      return response.data ?? [];
-    },
+    queryFn: () => paymentApi.getPackages(),
     enabled: isAuthenticated,
   });
 
