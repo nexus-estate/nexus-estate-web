@@ -149,4 +149,40 @@ describe('apiClient', () => {
       message: 'email must be an email, password is too short',
     });
   });
+
+  it('emits one realm-specific expiry signal after refresh failure', async () => {
+    const expired: string[] = [];
+    const listener = (event: Event) => {
+      expired.push((event as CustomEvent<{ realm: string }>).detail.realm);
+    };
+    window.addEventListener('nexus:realm-session-expired', listener);
+    setRealmAccessToken('customer', 'expired-customer-token');
+    setRealmAccessToken('administration', 'expired-admin-token');
+    localStorage.setItem(
+      'nexus.customer.refresh_token',
+      'bad-customer-refresh',
+    );
+    localStorage.setItem(
+      'nexus.administration.refresh_token',
+      'bad-admin-refresh',
+    );
+    fetchMock
+      .mockResolvedValueOnce(mockResponse({ error_code: 'EXPIRED' }, 401))
+      .mockResolvedValueOnce(mockResponse({ error_code: 'EXPIRED' }, 401))
+      .mockResolvedValueOnce(mockResponse({ error_code: 'EXPIRED' }, 401))
+      .mockResolvedValueOnce(mockResponse({ error_code: 'EXPIRED' }, 401));
+
+    await expect(customerApiClient.get('/customers/me')).rejects.toBeInstanceOf(
+      ApiError,
+    );
+    await expect(
+      administrationApiClient.get('/administration/me/authorization'),
+    ).rejects.toBeInstanceOf(ApiError);
+    window.removeEventListener('nexus:realm-session-expired', listener);
+    expect(expired).toEqual(['customer', 'administration']);
+    expect(localStorage.getItem('nexus.customer.access_token')).toBeNull();
+    expect(
+      localStorage.getItem('nexus.administration.access_token'),
+    ).toBeNull();
+  });
 });

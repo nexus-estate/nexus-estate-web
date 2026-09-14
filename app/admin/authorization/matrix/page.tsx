@@ -43,7 +43,7 @@ export default function MatrixPage() {
     hasPermission('authorization:role:write') &&
     Boolean(activeRole?.allowedActions.updatePermissions);
   useEffect(() => {
-    if (!roleId && data?.roles[0]) {
+    if (data?.roles && !data.roles.some((role) => role.id === roleId)) {
       // Synchronize the draft with the first server-provided role once.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setRoleId(data.roles[0].id);
@@ -53,6 +53,13 @@ export default function MatrixPage() {
       setDirty(false);
     }
   }, [data, roleId]);
+  useEffect(() => {
+    // Platform changes are an external navigation event; reset the local draft.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRoleId('');
+    setSelected([]);
+    setDirty(false);
+  }, [platform]);
   const save = useMutation({
     mutationFn: () =>
       administrationAuthorizationApi.replaceRolePermissions(
@@ -77,13 +84,26 @@ export default function MatrixPage() {
         title="Permission matrix"
         description="Edit one role at a time and save its complete permission set atomically."
         actions={
-          <button
-            disabled={!activeRoleId || save.isPending || !dirty || !canEdit}
-            onClick={() => save.mutate()}
-            className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
-          >
-            {save.isPending ? 'Saving…' : 'Save changes'}
-          </button>
+          <>
+            <button
+              disabled={!activeRoleId || save.isPending || !dirty || !canEdit}
+              onClick={() => save.mutate()}
+              className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
+            >
+              {save.isPending ? 'Saving…' : 'Save changes'}
+            </button>
+            <button
+              type="button"
+              disabled={!dirty || save.isPending}
+              onClick={() => {
+                setSelected(data?.assignments?.[activeRoleId] ?? []);
+                setDirty(false);
+              }}
+              className="ml-2 rounded-md border border-[var(--border)] px-4 py-2 text-sm disabled:opacity-50"
+            >
+              Reset
+            </button>
+          </>
         }
       />
       <div className="mb-5">

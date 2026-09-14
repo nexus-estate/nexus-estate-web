@@ -1,7 +1,8 @@
 'use client';
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getRealmAccessToken, setRealmAccessToken } from '@/lib/api/client';
+import { subscribeRealmSessionExpired } from '@/lib/api/core/session-events';
 import { customerAuthenticationApi } from '@/lib/api/customer/authentication.api';
 import { customerAuthorizationApi } from '@/lib/api/customer/authorization.api';
 import type {
@@ -49,6 +50,22 @@ export function useAuth() {
     () => null,
   );
   const queryClient = useQueryClient();
+  useEffect(() => {
+    return subscribeRealmSessionExpired('customer', () => {
+      ['nexus.customer.access_token', REFRESH_KEY, USER_KEY].forEach((key) =>
+        localStorage.removeItem(key),
+      );
+      localStorage.removeItem('nexus.provider.active_id');
+      window.dispatchEvent(new CustomEvent('nexus:provider-context-cleared'));
+      setRealmAccessToken('customer', null);
+      queryClient.removeQueries({ queryKey: ['customer'] });
+      queryClient.removeQueries({ queryKey: ['marketplace'] });
+      queryClient.removeQueries({ queryKey: ['provider'] });
+      queryClient.removeQueries({ queryKey: ['provider-workspace'] });
+      currentUser = null;
+      listeners.forEach((fn) => fn());
+    });
+  }, [queryClient]);
   const authorization = useQuery({
     queryKey: ['marketplace', 'me', 'authorization'],
     queryFn: customerAuthorizationApi.effective,

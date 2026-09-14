@@ -66,6 +66,8 @@
     "version": "Phiên bản",
     "assignments": "Gán quyền",
     "updated": "Cập nhật",
-    "edit": "Sửa thông tin"
+    "edit": "Sửa thông tin",
+    "readOnly": "Bạn không có quyền thay đổi mục này.",
+    "assignedSubjects": "Các subject được gán"
   }
 }

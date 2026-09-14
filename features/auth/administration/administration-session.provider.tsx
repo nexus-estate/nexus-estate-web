@@ -13,6 +13,7 @@ import { administrationAuthenticationApi } from '@/lib/api/administration/authen
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 import type { AdminAuthorization } from '@/lib/api/administration/types';
 import { getRealmAccessToken, setRealmAccessToken } from '@/lib/api/client';
+import { subscribeRealmSessionExpired } from '@/lib/api/core/session-events';
 type Session = {
   status: 'restoring' | 'authenticated' | 'anonymous';
   isAuthenticated: boolean;
@@ -56,6 +57,16 @@ export function AdministrationSessionProvider({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void restore();
   }, [restore]);
+  useEffect(() => {
+    return subscribeRealmSessionExpired('administration', () => {
+      localStorage.removeItem(tokenKey);
+      localStorage.removeItem(refreshKey);
+      setRealmAccessToken('administration', null);
+      setAuthorization(null);
+      setAuthenticated(false);
+      queryClient.removeQueries({ queryKey: ['administration'] });
+    });
+  }, [queryClient]);
   const login = useCallback(async (email: string, password: string) => {
     const pair = await administrationAuthenticationApi.login({
       email,

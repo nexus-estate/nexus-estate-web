@@ -66,6 +66,8 @@
     "version": "Version",
     "assignments": "Assignments",
     "updated": "Updated",
-    "edit": "Edit metadata"
+    "edit": "Edit metadata",
+    "readOnly": "You do not have permission to change this item.",
+    "assignedSubjects": "Assigned subjects"
   }
 }

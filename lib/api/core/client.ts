@@ -1,5 +1,9 @@
 import { ApiError, createApiError, isRecord } from './error';
 import { coordinateRefresh } from './refresh-coordinator';
+import {
+  dispatchRealmSessionExpired,
+  markRealmSessionActive,
+} from './session-events';
 export type Realm = 'customer' | 'administration';
 export interface ApiClientConfig {
   realmKey?: Realm | 'default';
@@ -19,6 +23,7 @@ export type Locale = (typeof SUPPORTED_LOCALES)[number];
 const tokenMemory = new Map<string, string | null>();
 export function setRealmAccessToken(realm: Realm, token: string | null) {
   tokenMemory.set(realm, token);
+  if (token) markRealmSessionActive(realm);
 }
 export function getRealmAccessToken(realm: Realm) {
   const memory = tokenMemory.get(realm);
@@ -164,6 +169,7 @@ const customerConfig: ApiClientConfig = {
       return null;
     }
   },
+  onUnauthorized: () => dispatchRealmSessionExpired('customer'),
 };
 const adminConfig: ApiClientConfig = {
   realmKey: 'administration',
@@ -194,6 +200,7 @@ const adminConfig: ApiClientConfig = {
       return null;
     }
   },
+  onUnauthorized: () => dispatchRealmSessionExpired('administration'),
 };
 export const publicApiClient = new ApiClient();
 export const customerApiClient = new ApiClient(customerConfig);
