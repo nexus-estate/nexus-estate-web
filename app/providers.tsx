@@ -1,5 +1,6 @@
 'use client';
 import { NextIntlClientProvider } from 'next-intl';
+import { ProviderContextProvider } from '@/features/provider/context/provider-context.provider';
 import administrationEn from '@/messages/en/administration.json';
 import authEn from '@/messages/en/auth.json';
 import commonEn from '@/messages/en/common.json';
@@ -35,7 +36,7 @@ export function AppProviders({
 }) {
   return (
     <NextIntlClientProvider locale={locale} messages={localeMessages[locale]}>
-      {children}
+      <ProviderContextProvider>{children}</ProviderContextProvider>
     </NextIntlClientProvider>
   );
 }

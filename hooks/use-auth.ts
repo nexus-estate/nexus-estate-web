@@ -89,10 +89,14 @@ export function useAuth() {
     ['nexus.customer.access_token', REFRESH_KEY, USER_KEY].forEach((key) =>
       localStorage.removeItem(key),
     );
+    localStorage.removeItem('nexus.provider.active_id');
+    window.dispatchEvent(new CustomEvent('nexus:provider-context-cleared'));
+    queryClient.removeQueries({ queryKey: ['customer'] });
     setRealmAccessToken('customer', null);
     publish(null);
     queryClient.removeQueries({ queryKey: ['marketplace'] });
     queryClient.removeQueries({ queryKey: ['provider'] });
+    queryClient.removeQueries({ queryKey: ['provider-workspace'] });
   }, [queryClient]);
   return {
     user,

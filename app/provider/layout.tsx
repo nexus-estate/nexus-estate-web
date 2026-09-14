@@ -1,9 +1,9 @@
 'use client';
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PortalShell } from '@/components/portal/portal-shell';
-import { ProviderContextProvider } from '@/features/provider/context/provider-context.provider';
 import { useProviderEntryState } from '@/features/provider/use-provider-entry-state';
 import { useAuth } from '@/hooks/use-auth';
 export default function ProviderLayout({
@@ -13,7 +13,7 @@ export default function ProviderLayout({
 }) {
   const t = useTranslations('provider');
   const router = useRouter();
-  const { status } = useAuth();
+  const { status, logout } = useAuth();
   const workspace = useProviderEntryState(status === 'authenticated');
   useEffect(() => {
     if (status === 'anonymous') router.replace('/signin?next=/provider');
@@ -45,18 +45,26 @@ export default function ProviderLayout({
     </div>
   );
   return (
-    <ProviderContextProvider>
-      <PortalShell
-        platform={t('title')}
-        items={[
-          { label: t('nav.overview'), href: '/provider' },
-          { label: t('nav.account'), href: '/provider/account' },
-          { label: t('nav.authorization'), href: '/provider/authorization' },
-        ]}
-        identity={identity}
-      >
-        {children}
-      </PortalShell>
-    </ProviderContextProvider>
+    <PortalShell
+      platform={t('title')}
+      items={[
+        { label: t('nav.overview'), href: '/provider' },
+        { label: t('nav.account'), href: '/provider/account' },
+        { label: t('nav.authorization'), href: '/provider/authorization' },
+      ]}
+      identity={identity}
+      footer={
+        <div className="mb-3 space-y-2 px-3 text-xs">
+          <Link className="block text-[var(--text-muted)]" href="/">
+            {t('footer.back')}
+          </Link>
+          <button className="text-red-700" onClick={() => void logout()}>
+            {t('footer.signOut')}
+          </button>
+        </div>
+      }
+    >
+      {children}
+    </PortalShell>
   );
 }

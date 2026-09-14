@@ -1,5 +1,6 @@
 {
   "title": "Cổng Provider",
+  "footer": { "back": "Về Marketplace", "signOut": "Đăng xuất" },
   "loading": "Đang tải Provider workspace…",
   "identity": {
     "providerPlatform": "Nền tảng Provider",

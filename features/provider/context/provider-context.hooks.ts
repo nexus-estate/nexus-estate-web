@@ -14,7 +14,7 @@ export type ProviderLifecycleState =
 export function useProviderAuthorization() {
   const { providerId } = useProviderContext();
   const query = useQuery({
-    queryKey: ['provider', providerId, 'authorization'],
+    queryKey: ['provider-workspace', providerId ?? 'implicit', 'authorization'],
     queryFn: providerApi.authorization,
     enabled: true,
   });

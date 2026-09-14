@@ -1,5 +1,6 @@
 {
   "title": "Provider portal",
+  "footer": { "back": "Back to Marketplace", "signOut": "Sign out" },
   "loading": "Loading Provider workspace…",
   "identity": {
     "providerPlatform": "Provider Platform",

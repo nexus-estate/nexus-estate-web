@@ -1,20 +1,22 @@
 'use client';
-import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
-import { useProviderContext } from '@/features/provider/context/provider-context.provider';
+import { useProviderEntryState } from '@/features/provider/use-provider-entry-state';
 import { providerApi } from '@/lib/api/provider/provider.api';
 export default function ProviderAccountPage() {
   const t = useTranslations('provider');
-  const { providerId } = useProviderContext();
   const queryClient = useQueryClient();
-  const account = useQuery({
-    queryKey: ['provider', providerId, 'account'],
-    queryFn: providerApi.account,
-  });
+  const workspace = useProviderEntryState();
+  const account = workspace.account;
   const [displayName, setDisplayName] = useState('');
   const currentName = account.data?.displayName ?? '';
+  useEffect(() => {
+    // Initialize the editable draft when the canonical account arrives.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (account.data) setDisplayName(account.data.displayName);
+  }, [account.data]);
   const update = useMutation({
     mutationFn: () =>
       providerApi.updateAccount({
@@ -22,7 +24,7 @@ export default function ProviderAccountPage() {
       }),
     onSuccess: () =>
       void queryClient.invalidateQueries({
-        queryKey: ['provider', providerId],
+        queryKey: ['provider-workspace'],
       }),
   });
   return (
@@ -46,7 +48,7 @@ export default function ProviderAccountPage() {
             className="w-full rounded-md border border-[var(--border)] px-3 py-2"
             required
             maxLength={255}
-            value={displayName || currentName}
+            value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
           />
         </label>

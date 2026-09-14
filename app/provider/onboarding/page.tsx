@@ -1,8 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
+import { useProviderContext } from '@/features/provider/context/provider-context.provider';
 import { providerApi } from '@/lib/api/provider/provider.api';
 import type { ProviderAccount } from '@/lib/api/provider/types';
 export default function ProviderOnboardingPage() {
@@ -12,6 +14,8 @@ export default function ProviderOnboardingPage() {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
+  const { setProviderId } = useProviderContext();
   return (
     <>
       <PageHeader title={t('title')} description={t('description')} />
@@ -27,10 +31,10 @@ export default function ProviderOnboardingPage() {
               displayName: displayName.trim(),
             });
             if (result.providerAccount.id)
-              localStorage.setItem(
-                'nexus.provider.active_id',
-                result.providerAccount.id,
-              );
+              setProviderId(result.providerAccount.id);
+            await queryClient.invalidateQueries({
+              queryKey: ['provider-workspace'],
+            });
             router.push('/provider');
           } catch (cause) {
             setError(

@@ -15,12 +15,14 @@ export function PortalSidebar({
   open,
   onClose,
   identity,
+  footer,
 }: {
   platform: string;
   items: PortalNavItem[];
   open: boolean;
   onClose: () => void;
   identity?: React.ReactNode;
+  footer?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const t = useTranslations('common');
@@ -65,6 +67,7 @@ export function PortalSidebar({
             ))}
           </nav>
           <div className="mt-auto border-t border-[var(--border)] pt-4">
+            {footer}
             <div className="px-3 text-xs text-[var(--text-muted)]">
               <span className="sr-only">Portal</span>
               {t('status.signedInWorkspace')}

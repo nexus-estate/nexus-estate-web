@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import {
@@ -7,6 +7,7 @@ import {
   useAuthorizationPlatform,
 } from '@/components/administration/platform-selector';
 import { PageHeader } from '@/components/portal/page-header';
+import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 import type { MatrixResponse } from '@/lib/api/administration/types';
 import { getApiErrorMessage } from '@/lib/api/error-message';
@@ -23,6 +24,7 @@ export default function MatrixPage() {
   const t = useTranslations('common');
   const { platform, setPlatform } = useAuthorizationPlatform();
   const qc = useQueryClient();
+  const { hasPermission } = useAdministrationSession();
   const query = useQuery({
     queryKey: ['administration', 'authorization', platform, 'matrix'],
     queryFn: () => administrationAuthorizationApi.matrix(platform),
@@ -31,10 +33,26 @@ export default function MatrixPage() {
     (MatrixResponse & { permissionGroups?: Group[] }) | undefined;
   const [roleId, setRoleId] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
+  const [dirty, setDirty] = useState(false);
   const activeRoleId = roleId || data?.roles?.[0]?.id || '';
   const activeSelected = roleId
     ? selected
     : (data?.assignments?.[activeRoleId] ?? []);
+  const activeRole = data?.roles.find((role) => role.id === activeRoleId);
+  const canEdit =
+    hasPermission('authorization:role:write') &&
+    Boolean(activeRole?.allowedActions.updatePermissions);
+  useEffect(() => {
+    if (!roleId && data?.roles[0]) {
+      // Synchronize the draft with the first server-provided role once.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRoleId(data.roles[0].id);
+
+      setSelected(data.assignments[data.roles[0].id] ?? []);
+
+      setDirty(false);
+    }
+  }, [data, roleId]);
   const save = useMutation({
     mutationFn: () =>
       administrationAuthorizationApi.replaceRolePermissions(
@@ -46,10 +64,12 @@ export default function MatrixPage() {
             data?.roles?.find((role) => role.id === activeRoleId)?.version ?? 1,
         },
       ),
-    onSuccess: () =>
+    onSuccess: () => {
+      setDirty(false);
       void qc.invalidateQueries({
         queryKey: ['administration', 'authorization', platform],
-      }),
+      });
+    },
   });
   return (
     <>
@@ -58,7 +78,7 @@ export default function MatrixPage() {
         description="Edit one role at a time and save its complete permission set atomically."
         actions={
           <button
-            disabled={!activeRoleId || save.isPending}
+            disabled={!activeRoleId || save.isPending || !dirty || !canEdit}
             onClick={() => save.mutate()}
             className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
           >
@@ -83,6 +103,7 @@ export default function MatrixPage() {
           onChange={(e) => {
             setRoleId(e.target.value);
             setSelected(data?.assignments?.[e.target.value] ?? []);
+            setDirty(false);
           }}
         >
           {(data?.roles ?? []).map((role) => (
@@ -110,13 +131,15 @@ export default function MatrixPage() {
                   <input
                     type="checkbox"
                     checked={activeSelected.includes(permission.id)}
-                    onChange={(e) =>
+                    disabled={!canEdit}
+                    onChange={(e) => {
+                      setDirty(true);
                       setSelected((current) =>
                         e.target.checked
                           ? [...current, permission.id]
                           : current.filter((id) => id !== permission.id),
-                      )
-                    }
+                      );
+                    }}
                   />
                   <span>
                     <span className="block font-medium">

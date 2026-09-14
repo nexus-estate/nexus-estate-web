@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
+import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 import type {
   Platform,
@@ -14,6 +15,8 @@ export default function AuthorizationPage() {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ code: '', name: '', description: '' });
   const qc = useQueryClient();
+  const { hasPermission } = useAdministrationSession();
+  const canWrite = hasPermission('authorization:role:write');
   const platformQuery = useQuery({
     queryKey: ['administration', 'authorization', 'platforms'],
     queryFn: administrationAuthorizationApi.platforms,
@@ -71,12 +74,14 @@ export default function AuthorizationPage() {
         <section className="rounded-xl bg-white p-6 shadow">
           <div className="flex justify-between">
             <h2 className="text-lg font-semibold">{t('roles')}</h2>
-            <button
-              className="rounded bg-[#173b38] px-3 py-2 text-sm text-white"
-              onClick={() => setCreating(true)}
-            >
-              {t('create')}
-            </button>
+            {canWrite && (
+              <button
+                className="rounded bg-[#173b38] px-3 py-2 text-sm text-white"
+                onClick={() => setCreating(true)}
+              >
+                {t('create')}
+              </button>
+            )}
           </div>
           {creating && (
             <form
@@ -130,12 +135,19 @@ export default function AuthorizationPage() {
               <tbody>
                 {items.map((role: AuthorizationRole) => (
                   <tr className="border-b" key={role.id}>
-                    <td className="py-3 font-medium">{role.name}</td>
+                    <td className="py-3 font-medium">
+                      <a
+                        className="hover:underline"
+                        href={`/admin/authorization/roles/${role.id}?platform=${platform}`}
+                      >
+                        {role.name}
+                      </a>
+                    </td>
                     <td>{role.code}</td>
                     <td>{role.status ?? 'ACTIVE'}</td>
                     <td>{role.permissionCount ?? 0}</td>
                     <td>
-                      {role.isDeletable && (
+                      {canWrite && role.allowedActions.delete && (
                         <button
                           className="text-red-700"
                           onClick={() => remove.mutate(role.id)}

@@ -7,14 +7,14 @@ export default function ProviderRequestsPage() {
   const t = useTranslations('administration');
   const queryClient = useQueryClient();
   const requests = useQuery({
-    queryKey: ['administration', 'provider-registrations', 'pending'],
+    queryKey: ['administration', 'provider-requests'],
     queryFn: providerReviewApi.pending,
   });
   const approve = useMutation({
     mutationFn: providerReviewApi.approve,
     onSuccess: () =>
       void queryClient.invalidateQueries({
-        queryKey: ['administration', 'provider-registrations'],
+        queryKey: ['administration', 'provider-requests'],
       }),
   });
   return (

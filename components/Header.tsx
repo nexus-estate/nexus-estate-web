@@ -7,7 +7,8 @@ import { useAuth } from '@/hooks/use-auth';
 export default function Header() {
   const t = useTranslations('customer.nav');
   const { user, status, logout } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const nav = [
     [t('home'), '/'],
     [t('properties'), '/properties'],
@@ -47,13 +48,13 @@ export default function Header() {
             <div className="relative">
               <button
                 type="button"
-                onClick={() => setOpen(!open)}
-                aria-expanded={open}
+                onClick={() => setAccountOpen(!accountOpen)}
+                aria-expanded={accountOpen}
                 className="border border-white/25 px-3 py-2 text-sm"
               >
                 {user.email}
               </button>
-              {open && (
+              {accountOpen && (
                 <div className="absolute right-0 mt-2 w-48 border border-[var(--border)] bg-white py-1 text-[var(--text)] shadow-lg">
                   <Link
                     className="block px-3 py-2 text-sm hover:bg-[var(--surface-subtle)]"
@@ -71,7 +72,7 @@ export default function Header() {
                     className="w-full border-t px-3 py-2 text-left text-sm text-red-700"
                     onClick={() => {
                       void logout();
-                      setOpen(false);
+                      setAccountOpen(false);
                     }}
                   >
                     {t('signOut')}
@@ -95,15 +96,15 @@ export default function Header() {
           <button
             type="button"
             className="lg:hidden"
-            aria-label={open ? t('closeMenu') : t('openMenu')}
-            aria-expanded={open}
-            onClick={() => setOpen(!open)}
+            aria-label={mobileOpen ? t('closeMenu') : t('openMenu')}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen(!mobileOpen)}
           >
             ☰
           </button>
         </div>
       </div>
-      {open && (
+      {mobileOpen && (
         <nav
           className="border-t border-white/10 bg-[#071b1b] px-5 py-4 lg:hidden"
           aria-label={t('navigation')}
@@ -112,7 +113,7 @@ export default function Header() {
             <Link
               key={href}
               href={href}
-              onClick={() => setOpen(false)}
+              onClick={() => setMobileOpen(false)}
               className="block border-b border-white/10 py-3 text-sm"
             >
               {label}
@@ -123,7 +124,7 @@ export default function Header() {
               className="py-3 text-left text-sm"
               onClick={() => {
                 void logout();
-                setOpen(false);
+                setMobileOpen(false);
               }}
             >
               {t('signOut')}

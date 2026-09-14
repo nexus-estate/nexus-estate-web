@@ -8,7 +8,8 @@
     "providerReview": "Duyệt Provider",
     "dashboardSection": "Dashboard",
     "operations": "Vận hành",
-    "accessControl": "Kiểm soát truy cập"
+    "accessControl": "Kiểm soát truy cập",
+    "signOut": "Đăng xuất"
   },
   "providerReview": {
     "title": "Yêu cầu Provider",
@@ -55,6 +56,16 @@
     "noSubjects": "Chưa có subject.",
     "noAudit": "Chưa có audit event.",
     "versionConflict": "Role đã thay đổi trong lúc bạn chỉnh sửa. Hãy tải phiên bản mới nhất rồi lưu lại.",
-    "platform": "Nền tảng"
+    "platform": "Nền tảng",
+    "loading": "Đang tải…",
+    "error": "Không thể tải dữ liệu.",
+    "status": "Trạng thái",
+    "type": "Loại",
+    "system": "Hệ thống",
+    "custom": "Tùy chỉnh",
+    "version": "Phiên bản",
+    "assignments": "Gán quyền",
+    "updated": "Cập nhật",
+    "edit": "Sửa thông tin"
   }
 }

@@ -20,7 +20,10 @@ export function resolveProviderLifecycle(input: {
   loading: boolean;
 }): ProviderLifecycleState {
   if (input.loading) return 'LOADING';
-  if (input.authorizationError?.errorCode === 'PROVIDER_CONTEXT_REQUIRED')
+  if (
+    input.accountError?.errorCode === 'PROVIDER_CONTEXT_REQUIRED' ||
+    input.authorizationError?.errorCode === 'PROVIDER_CONTEXT_REQUIRED'
+  )
     return 'CONTEXT_REQUIRED';
   if (
     input.accountError?.errorCode === 'PROVIDER_ACCOUNT_NOT_FOUND' &&

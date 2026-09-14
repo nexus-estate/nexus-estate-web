@@ -8,7 +8,8 @@
     "providerReview": "Provider review",
     "dashboardSection": "Dashboard",
     "operations": "Operations",
-    "accessControl": "Access control"
+    "accessControl": "Access control",
+    "signOut": "Sign out"
   },
   "providerReview": {
     "title": "Provider requests",
@@ -55,6 +56,16 @@
     "noSubjects": "No subjects found.",
     "noAudit": "No audit events found.",
     "versionConflict": "This role changed while you were editing. Reload the latest version before saving again.",
-    "platform": "Platform"
+    "platform": "Platform",
+    "loading": "Loading…",
+    "error": "Unable to load data.",
+    "status": "Status",
+    "type": "Type",
+    "system": "System",
+    "custom": "Custom",
+    "version": "Version",
+    "assignments": "Assignments",
+    "updated": "Updated",
+    "edit": "Edit metadata"
   }
 }

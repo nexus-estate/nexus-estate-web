@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useState,
+  useEffect,
   type ReactNode,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,6 +19,12 @@ export function ProviderContextProvider({ children }: { children: ReactNode }) {
       : localStorage.getItem('nexus.provider.active_id'),
   );
   const queryClient = useQueryClient();
+  useEffect(() => {
+    const clear = () => setProviderIdState(null);
+    window.addEventListener('nexus:provider-context-cleared', clear);
+    return () =>
+      window.removeEventListener('nexus:provider-context-cleared', clear);
+  }, []);
   const setProviderId = useCallback(
     (id: string | null) => {
       if (id) localStorage.setItem('nexus.provider.active_id', id);

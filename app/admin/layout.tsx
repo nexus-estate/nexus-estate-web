@@ -59,7 +59,25 @@ function Guard({ children }: { children: React.ReactNode }) {
       section: t('nav.accessControl'),
     });
   return (
-    <PortalShell platform="Administration / ERP" items={items}>
+    <PortalShell
+      platform="Administration / ERP"
+      items={items}
+      identity={
+        <div className="mt-4 text-xs text-[var(--text-muted)]">
+          {session.authorization?.roles.map((role) => role.name).join(', ')}
+        </div>
+      }
+      footer={
+        <div className="mb-3 px-3 text-xs">
+          <button
+            className="text-red-700"
+            onClick={() => void session.logout()}
+          >
+            {t('nav.signOut')}
+          </button>
+        </div>
+      }
+    >
       {children}
     </PortalShell>
   );
