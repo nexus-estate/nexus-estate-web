@@ -1,22 +1,23 @@
-import { apiClient } from '../client';
+import { customerAuthenticationApi } from '../customer/authentication.api';
 import type {
   AuthenticatedPrincipal,
   LoginRequest,
   RegisterRequest,
-  TokenPair,
   User,
 } from './auth.types';
 
 export const authApi = {
   login(data: LoginRequest) {
-    return apiClient.post<TokenPair>('/auth/login', data);
+    return customerAuthenticationApi.login(data);
   },
 
   register(data: RegisterRequest) {
-    return apiClient.post<void>('/auth/register', data);
+    return customerAuthenticationApi.register<void>(data);
   },
 
   getProfile() {
-    return apiClient.get<User | AuthenticatedPrincipal>('/auth/profile');
+    return customerAuthenticationApi.profile() as Promise<
+      User | AuthenticatedPrincipal
+    >;
   },
 };

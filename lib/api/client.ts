@@ -1,104 +1,105 @@
 import { ApiError, createApiError, isRecord } from './errors';
-
-const ACCESS_TOKEN_KEY = 'nexus_access_token';
-const DEFAULT_API_URL = 'http://localhost:3001/api';
+export type Realm = 'customer' | 'administration';
+export interface ApiClientConfig {
+  getAccessToken?: () => string | null;
+  refreshSession?: () => Promise<string | null>;
+  onUnauthorized?: () => void;
+  getHeaders?: () => Record<string, string>;
+}
+export interface ApiClientOptions {
+  timeoutMs?: number;
+  credentials?: RequestCredentials;
+}
+const DEFAULT_API_URL = 'http://localhost:50001/api/v1';
 const DEFAULT_TIMEOUT_MS = 15_000;
-
-let accessToken: string | null = null;
-
-export function setAccessToken(token: string | null): void {
-  accessToken = token;
+const tokenMemory = new Map<string, string | null>();
+const refreshFlights = new Map<string, Promise<string | null>>();
+export function setRealmAccessToken(realm: Realm, token: string | null) {
+  tokenMemory.set(realm, token);
 }
-
-export function getAccessToken(): string | null {
-  if (accessToken) return accessToken;
+export function getRealmAccessToken(realm: Realm) {
+  const memory = tokenMemory.get(realm);
+  if (memory !== undefined) return memory;
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
+  return localStorage.getItem(`nexus.${realm}.access_token`);
 }
-
-function getBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL).replace(
-    /\/$/,
-    '',
-  );
+export function setAccessToken(token: string | null) {
+  setRealmAccessToken('customer', token);
 }
-
+export function getAccessToken() {
+  return getRealmAccessToken('customer');
+}
 function unwrap<T>(payload: unknown): T {
   if (
     isRecord(payload) &&
     'data' in payload &&
     (payload.status === true || 'timestamp' in payload || 'path' in payload)
-  ) {
+  )
     return payload.data as T;
-  }
   return payload as T;
 }
-
-export interface ApiClientOptions {
-  timeoutMs?: number;
-  credentials?: RequestCredentials;
-}
-
-class ApiClient {
-  constructor(private readonly options: ApiClientOptions = {}) {}
-
-  async get<T>(path: string, init?: RequestInit): Promise<T> {
+export class ApiClient {
+  constructor(
+    private readonly config: ApiClientConfig = {},
+    private readonly options: ApiClientOptions = {},
+  ) {}
+  get<T>(path: string, init?: RequestInit) {
     return this.request<T>(path, { ...init, method: 'GET' });
   }
-
-  async post<TResponse, TBody = unknown>(
-    path: string,
-    body?: TBody,
-    init?: RequestInit,
-  ): Promise<TResponse> {
-    return this.request<TResponse>(path, {
+  post<T, B = unknown>(path: string, body?: B, init?: RequestInit) {
+    return this.request<T>(path, {
       ...init,
       method: 'POST',
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   }
-
-  async patch<TResponse, TBody = unknown>(
-    path: string,
-    body?: TBody,
-    init?: RequestInit,
-  ): Promise<TResponse> {
-    return this.request<TResponse>(path, {
+  patch<T, B = unknown>(path: string, body?: B, init?: RequestInit) {
+    return this.request<T>(path, {
       ...init,
       method: 'PATCH',
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   }
-
-  async delete<T>(path: string, init?: RequestInit): Promise<T> {
+  put<T, B = unknown>(path: string, body?: B, init?: RequestInit) {
+    return this.request<T>(path, {
+      ...init,
+      method: 'PUT',
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  }
+  delete<T>(path: string, init?: RequestInit) {
     return this.request<T>(path, { ...init, method: 'DELETE' });
   }
-
-  private async request<T>(path: string, init: RequestInit): Promise<T> {
+  private async request<T>(
+    path: string,
+    init: RequestInit,
+    retry = false,
+  ): Promise<T> {
     const headers = new Headers(init.headers);
     if (!headers.has('Accept')) headers.set('Accept', 'application/json');
-    if (init.body !== undefined && !headers.has('Content-Type')) {
+    if (init.body !== undefined && !headers.has('Content-Type'))
       headers.set('Content-Type', 'application/json');
-    }
-
-    const token = getAccessToken();
-    if (token && !headers.has('Authorization')) {
+    const token = this.config.getAccessToken?.();
+    if (token && !headers.has('Authorization'))
       headers.set('Authorization', `Bearer ${token}`);
-    }
-
+    Object.entries(this.config.getHeaders?.() ?? {}).forEach(([key, value]) =>
+      headers.set(key, value),
+    );
     const controller = new AbortController();
     const timeout = setTimeout(
       () => controller.abort(),
       this.options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     );
-
     try {
-      const response = await fetch(`${getBaseUrl()}${path}`, {
-        ...init,
-        headers,
-        credentials: this.options.credentials ?? 'same-origin',
-        signal: init.signal ?? controller.signal,
-      });
+      const response = await fetch(
+        `${(process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL).replace(/\/$/, '')}${path}`,
+        {
+          ...init,
+          headers,
+          credentials: this.options.credentials ?? 'same-origin',
+          signal: init.signal ?? controller.signal,
+        },
+      );
       const requestId = response.headers.get('x-request-id') ?? undefined;
       const text = await response.text();
       let payload: unknown;
@@ -107,27 +108,101 @@ class ApiClient {
       } catch {
         payload = text;
       }
-
-      if (!response.ok) {
+      if (
+        response.status === 401 &&
+        !retry &&
+        this.config.refreshSession &&
+        !/\/auth\/(refresh|login|logout)$/.test(path)
+      ) {
+        const key = this.config.getAccessToken?.toString() ?? 'realm';
+        let flight = refreshFlights.get(key);
+        if (!flight) {
+          flight = this.config.refreshSession();
+          refreshFlights.set(key, flight);
+          flight.finally(() => refreshFlights.delete(key));
+        }
+        if (await flight) return this.request<T>(path, init, true);
+        this.config.onUnauthorized?.();
+      }
+      if (!response.ok)
         throw createApiError(
           response.status,
           payload,
           response.statusText,
           requestId,
         );
-      }
-
       return response.status === 204 ? (undefined as T) : unwrap<T>(payload);
     } catch (error) {
       if (error instanceof ApiError) throw error;
-      if (error instanceof DOMException && error.name === 'AbortError') {
+      if (error instanceof DOMException && error.name === 'AbortError')
         throw new ApiError('Request timed out', { status: 408 });
-      }
       throw error;
     } finally {
       clearTimeout(timeout);
     }
   }
 }
-
-export const apiClient = new ApiClient();
+const customerConfig: ApiClientConfig = {
+  getAccessToken: () => getRealmAccessToken('customer'),
+  refreshSession: async () => {
+    if (typeof window === 'undefined') return null;
+    const refresh = localStorage.getItem('nexus.customer.refresh_token');
+    if (!refresh) return null;
+    try {
+      const pair = await publicApiClient.post<{
+        accessToken: string;
+        refreshToken: string;
+      }>('/customers/auth/refresh', { refreshTokenString: refresh });
+      localStorage.setItem('nexus.customer.access_token', pair.accessToken);
+      localStorage.setItem('nexus.customer.refresh_token', pair.refreshToken);
+      setRealmAccessToken('customer', pair.accessToken);
+      return pair.accessToken;
+    } catch {
+      localStorage.removeItem('nexus.customer.access_token');
+      localStorage.removeItem('nexus.customer.refresh_token');
+      setRealmAccessToken('customer', null);
+      return null;
+    }
+  },
+};
+const adminConfig: ApiClientConfig = {
+  getAccessToken: () => getRealmAccessToken('administration'),
+  refreshSession: async () => {
+    if (typeof window === 'undefined') return null;
+    const refresh = localStorage.getItem('nexus.administration.refresh_token');
+    if (!refresh) return null;
+    try {
+      const pair = await publicApiClient.post<{
+        accessToken: string;
+        refreshToken: string;
+      }>('/administration/auth/refresh', { refreshToken: refresh });
+      localStorage.setItem(
+        'nexus.administration.access_token',
+        pair.accessToken,
+      );
+      localStorage.setItem(
+        'nexus.administration.refresh_token',
+        pair.refreshToken,
+      );
+      setRealmAccessToken('administration', pair.accessToken);
+      return pair.accessToken;
+    } catch {
+      localStorage.removeItem('nexus.administration.access_token');
+      localStorage.removeItem('nexus.administration.refresh_token');
+      setRealmAccessToken('administration', null);
+      return null;
+    }
+  },
+};
+export const publicApiClient = new ApiClient();
+export const customerApiClient = new ApiClient(customerConfig);
+export const providerApiClient = new ApiClient({
+  ...customerConfig,
+  getHeaders: (): Record<string, string> => {
+    if (typeof window === 'undefined') return {};
+    const id = localStorage.getItem('nexus.provider.active_id');
+    return id ? { 'X-Provider-Id': id } : {};
+  },
+});
+export const administrationApiClient = new ApiClient(adminConfig);
+export const apiClient = publicApiClient;

@@ -1,8 +1,13 @@
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:50001/api/v1';
 
-export const TOKEN_KEY = 'nexus_access_token';
-export const USER_KEY = 'nexus_user';
+export const CUSTOMER_ACCESS_TOKEN_KEY = 'nexus.customer.access_token';
+export const CUSTOMER_REFRESH_TOKEN_KEY = 'nexus.customer.refresh_token';
+export const ADMINISTRATION_ACCESS_TOKEN_KEY =
+  'nexus.administration.access_token';
+export const ADMINISTRATION_REFRESH_TOKEN_KEY =
+  'nexus.administration.refresh_token';
+export const PROVIDER_ACTIVE_ID_KEY = 'nexus.provider.active_id';
 export const LOCALE_KEY = 'nexus_locale';
 
 export const LOCALES = ['en', 'vi'] as const;

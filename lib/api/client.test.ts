@@ -1,4 +1,4 @@
-import { apiClient, setAccessToken } from './client';
+import { publicApiClient } from './client';
 import { ApiError } from './errors';
 
 const fetchMock = jest.fn();
@@ -23,21 +23,19 @@ describe('apiClient', () => {
     fetchMock.mockReset();
     globalThis.fetch = fetchMock as typeof fetch;
     localStorage.clear();
-    setAccessToken(null);
   });
 
-  it('serializes JSON and attaches the stored bearer token', async () => {
-    localStorage.setItem('nexus_access_token', 'token-123');
+  it('serializes JSON and keeps the public client unauthenticated', async () => {
     fetchMock.mockResolvedValue(mockResponse({ id: 'user-1' }, 200));
 
     await expect(
-      apiClient.post<{ id: string }>('/users', { name: 'Nexus' }),
+      publicApiClient.post<{ id: string }>('/users', { name: 'Nexus' }),
     ).resolves.toEqual({
       id: 'user-1',
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:3001/api/users',
+      'http://localhost:50001/api/v1/users',
       expect.objectContaining({
         method: 'POST',
         credentials: 'same-origin',
@@ -48,7 +46,7 @@ describe('apiClient', () => {
     const headers = new Headers(request.headers);
     expect(headers.get('Accept')).toBe('application/json');
     expect(headers.get('Content-Type')).toBe('application/json');
-    expect(headers.get('Authorization')).toBe('Bearer token-123');
+    expect(headers.get('Authorization')).toBeNull();
   });
 
   it('unwraps the current API envelope and handles no-content responses', async () => {
@@ -57,11 +55,13 @@ describe('apiClient', () => {
     );
     fetchMock.mockResolvedValueOnce(mockResponse(undefined, 204));
 
-    await expect(apiClient.get<{ ok: boolean }>('/health')).resolves.toEqual({
+    await expect(
+      publicApiClient.get<{ ok: boolean }>('/health'),
+    ).resolves.toEqual({
       ok: true,
     });
     await expect(
-      apiClient.delete<void>('/sessions/current'),
+      publicApiClient.delete<void>('/sessions/current'),
     ).resolves.toBeUndefined();
   });
 
@@ -83,7 +83,7 @@ describe('apiClient', () => {
     );
 
     await expect(
-      apiClient.get('/users/user-1'),
+      publicApiClient.get('/users/user-1'),
     ).rejects.toMatchObject<ApiError>({
       name: 'ApiError',
       status: 404,
@@ -106,7 +106,9 @@ describe('apiClient', () => {
       ),
     );
 
-    await expect(apiClient.post('/auth/login', {})).rejects.toMatchObject({
+    await expect(
+      publicApiClient.post('/customers/auth/login', {}),
+    ).rejects.toMatchObject({
       name: 'ApiError',
       status: 400,
       message: 'email must be an email, password is too short',
