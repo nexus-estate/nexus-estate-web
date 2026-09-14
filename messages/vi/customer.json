@@ -2,11 +2,27 @@
   "nav": {
     "overview": "Tổng quan",
     "account": "Tài khoản",
-    "profile": "Hồ sơ"
+    "profile": "Hồ sơ",
+    "home": "Marketplace",
+    "properties": "Nhà đất",
+    "provider": "Provider Portal",
+    "signIn": "Đăng nhập",
+    "signUp": "Đăng ký",
+    "signOut": "Đăng xuất",
+    "navigation": "Điều hướng Marketplace",
+    "openMenu": "Mở menu",
+    "closeMenu": "Đóng menu"
   },
   "account": {
     "title": "Tài khoản khách hàng",
-    "description": "Quản lý thông tin và quyền truy cập của bạn."
+    "description": "Quản lý danh tính và quyền truy cập của bạn.",
+    "email": "Email",
+    "emailStatus": "Trạng thái email",
+    "verified": "Đã xác minh",
+    "unverified": "Chưa xác minh",
+    "lastLogin": "Đăng nhập gần nhất",
+    "customerId": "Mã khách hàng",
+    "loading": "Đang tải…"
   },
   "dashboard": {
     "welcome": "Xin chào",
@@ -25,6 +41,35 @@
     "views": "lượt xem",
     "statsListings": "Tin đăng",
     "statsViews": "Lượt xem",
-    "statsRole": "Tài khoản"
+    "statsRole": "Tài khoản",
+    "loading": "Đang tải…",
+    "accountTitle": "Tài khoản khách hàng",
+    "verified": "Email đã xác minh",
+    "unverified": "Email chưa xác minh",
+    "openAccount": "Mở tài khoản"
+  },
+  "providerEntry": {
+    "title": "Nền tảng Nhà cung cấp",
+    "defaultName": "Tài khoản nhà cung cấp",
+    "loading": "Đang kiểm tra trạng thái…",
+    "error": "Không thể tải trạng thái nhà cung cấp.",
+    "noProvider": { "title": "Trở thành nhà cung cấp" },
+    "pending": {
+      "description": "Hồ sơ đang chờ duyệt. Tài khoản khách hàng của bạn vẫn hoạt động."
+    },
+    "rejected": {
+      "description": "Hồ sơ nhà cung cấp đã bị từ chối. Marketplace vẫn khả dụng."
+    },
+    "suspended": {
+      "description": "Tài khoản nhà cung cấp đang bị tạm ngưng. Marketplace vẫn khả dụng."
+    },
+    "active": { "description": "Đang hoạt động · Đã xác minh" },
+    "context_required": {
+      "description": "Hãy chọn ngữ cảnh nhà cung cấp trước khi mở portal."
+    },
+    "actions": {
+      "become": "Đăng ký nhà cung cấp",
+      "open": "Mở Provider Portal"
+    }
   }
 }

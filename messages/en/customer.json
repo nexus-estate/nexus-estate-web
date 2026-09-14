@@ -1,8 +1,28 @@
 {
-  "nav": { "overview": "Overview", "account": "Account", "profile": "Profile" },
+  "nav": {
+    "overview": "Overview",
+    "account": "My account",
+    "profile": "Profile",
+    "home": "Marketplace",
+    "properties": "Properties",
+    "provider": "Provider portal",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "signOut": "Sign out",
+    "navigation": "Marketplace navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
   "account": {
     "title": "Customer account",
-    "description": "Manage your profile and access."
+    "description": "Manage your identity and access.",
+    "email": "Email",
+    "emailStatus": "Email status",
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "lastLogin": "Last login",
+    "customerId": "Customer ID",
+    "loading": "Loading…"
   },
   "dashboard": {
     "welcome": "Welcome",
@@ -21,6 +41,32 @@
     "views": "views",
     "statsListings": "Listings",
     "statsViews": "Views",
-    "statsRole": "Account"
+    "statsRole": "Account",
+    "loading": "Loading…",
+    "accountTitle": "Customer account",
+    "verified": "Email verified",
+    "unverified": "Email not verified",
+    "openAccount": "Open account"
+  },
+  "providerEntry": {
+    "title": "Provider Platform",
+    "defaultName": "Provider account",
+    "loading": "Checking Provider status…",
+    "error": "Provider status could not be loaded.",
+    "noProvider": { "title": "Become a Provider" },
+    "pending": {
+      "description": "Your application is pending review. Your Customer account remains active."
+    },
+    "rejected": {
+      "description": "This Provider application was rejected. Marketplace access remains available."
+    },
+    "suspended": {
+      "description": "This Provider account is suspended. Marketplace access remains available."
+    },
+    "active": { "description": "Active · Verified" },
+    "context_required": {
+      "description": "Select a Provider context before opening the Provider portal."
+    },
+    "actions": { "become": "Become a Provider", "open": "Open Provider Portal" }
   }
 }
