@@ -51,12 +51,3 @@ export const NAV_LINKS = [
   { href: ROUTES.properties, labelKey: 'nav.properties' },
   { href: `${ROUTES.properties}?purpose=rent`, labelKey: 'nav.forRent' },
 ] as const;
-
-export const AUTH_NAV_LINKS = [
-  {
-    href: ROUTES.dashboard,
-    labelKey: 'nav.dashboard',
-    roles: ['ADMIN', 'BROKER', 'BUYER'],
-  },
-  { href: ROUTES.admin, labelKey: 'nav.admin', roles: ['ADMIN'] },
-] as const;

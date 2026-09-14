@@ -14,7 +14,7 @@ const groups = [
     title: 'Nexus Estate',
     links: [
       ['Về chúng tôi', '/'],
-      ['Dành cho chủ nhà', '/dashboard/listings/new'],
+      ['Trở thành Provider', '/provider/onboarding'],
       ['Đăng ký tư vấn', '/signup'],
       ['Đăng nhập', '/signin'],
     ],
