@@ -8,11 +8,13 @@ export function PortalShell({
   items,
   children,
   context,
+  identity,
 }: {
   platform: string;
   items: PortalNavItem[];
   children: ReactNode;
   context?: ReactNode;
+  identity?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -22,6 +24,7 @@ export function PortalShell({
         items={items}
         open={open}
         onClose={() => setOpen(false)}
+        identity={identity}
       />
       <div className="lg:pl-64">
         <PortalTopbar onMenu={() => setOpen(true)} context={context} />

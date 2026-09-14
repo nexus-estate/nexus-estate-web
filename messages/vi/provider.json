@@ -1,4 +1,32 @@
 {
+  "title": "Cổng Provider",
+  "loading": "Đang tải Provider workspace…",
+  "identity": {
+    "providerPlatform": "Nền tảng Provider",
+    "notEnrolled": "Chưa đăng ký"
+  },
+  "types": {
+    "INDIVIDUAL": "Cá nhân",
+    "BROKER": "Môi giới",
+    "AGENCY": "Đại lý"
+  },
+  "status": {
+    "active": "Đang hoạt động",
+    "suspended": "Tạm ngưng",
+    "unverified": "Chưa xác minh",
+    "pending": "Đang chờ duyệt",
+    "verified": "Đã xác minh",
+    "rejected": "Bị từ chối",
+    "removed": "Đã gỡ"
+  },
+  "lifecycle": {
+    "pending_verification": "Hồ sơ Provider đang được xét duyệt.",
+    "rejected": "Hồ sơ Provider đã bị từ chối.",
+    "suspended": "Quyền Provider đang bị tạm ngưng.",
+    "active_verified": "Quyền Supply đang hoạt động.",
+    "context_required": "Cần chọn ngữ cảnh Provider.",
+    "error": "Không thể tải trạng thái Provider."
+  },
   "nav": {
     "overview": "Tổng quan",
     "account": "Tài khoản",
@@ -7,17 +35,24 @@
   "labels": {
     "provider": "Provider",
     "providerStatus": "Trạng thái Provider",
+    "membership": "Membership",
+    "roles": "Vai trò",
     "verification": "Xác minh",
     "permissions": "Quyền",
     "supplyAccess": "Quyền Supply",
-    "activeVerified": "Đã active và xác minh. Có thể bật thao tác theo permission.",
+    "activeVerified": "Đã active và xác minh.",
     "currentState": "Trạng thái hiện tại: {state}",
-    "noAccount": "Chưa có Provider account cho Customer này. Hãy bắt đầu onboarding từ tài khoản Customer."
+    "noAccount": "Chưa có Provider account."
   },
-  "title": "Cổng Provider",
   "overview": {
     "title": "Tổng quan Provider",
-    "description": "Trạng thái vận hành của Provider đang chọn."
+    "description": "Trạng thái vận hành của Provider đang chọn.",
+    "business": "Doanh nghiệp",
+    "membershipAccess": "Membership và quyền truy cập",
+    "platformState": "Trạng thái nền tảng",
+    "noProviderTitle": "Bắt đầu workspace Provider",
+    "noProviderDescription": "Onboarding Provider",
+    "noProviderBody": "Provider account là danh tính kinh doanh phía Supply. Tài khoản Customer vẫn là Marketplace của bạn."
   },
   "onboarding": {
     "title": "Đăng ký Provider",
@@ -26,19 +61,12 @@
     "displayName": "Tên hiển thị",
     "submit": "Gửi xét duyệt",
     "submitting": "Đang gửi…",
-    "error": "Không thể gửi đăng ký."
-  },
-  "status": {
-    "noProvider": "Chưa có Provider",
-    "pending": "Đang chờ duyệt",
-    "rejected": "Bị từ chối",
-    "suspended": "Tạm ngưng",
-    "verified": "Đã xác minh",
-    "contextRequired": "Cần chọn Provider"
+    "error": "Không thể gửi đăng ký.",
+    "start": "Bắt đầu onboarding Provider"
   },
   "authorization": {
     "title": "Phân quyền Provider",
-    "description": "Quyền hiệu lực của membership và business context hiện tại.",
+    "description": "Quyền hiệu lực của membership hiện tại.",
     "permissions": "Quyền hiệu lực"
   }
 }

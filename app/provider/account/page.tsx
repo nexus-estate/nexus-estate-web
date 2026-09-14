@@ -14,10 +14,11 @@ export default function ProviderAccountPage() {
     queryFn: providerApi.account,
   });
   const [displayName, setDisplayName] = useState('');
+  const currentName = account.data?.displayName ?? '';
   const update = useMutation({
     mutationFn: () =>
       providerApi.updateAccount({
-        displayName: displayName || account.data?.displayName || '',
+        displayName: displayName.trim(),
       }),
     onSuccess: () =>
       void queryClient.invalidateQueries({
@@ -45,10 +46,40 @@ export default function ProviderAccountPage() {
             className="w-full rounded-md border border-[var(--border)] px-3 py-2"
             required
             maxLength={255}
-            value={displayName || account.data?.displayName || ''}
+            value={displayName || currentName}
             onChange={(event) => setDisplayName(event.target.value)}
           />
         </label>
+        {account.data && (
+          <dl className="mt-6 grid gap-3 border-t border-[var(--border)] pt-5 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-[var(--text-muted)]">Provider ID</dt>
+              <dd className="break-all font-mono text-xs">{account.data.id}</dd>
+            </div>
+            <div>
+              <dt className="text-[var(--text-muted)]">
+                {t('labels.providerStatus')}
+              </dt>
+              <dd>{t(`status.${account.data.status.toLowerCase()}`)}</dd>
+            </div>
+            <div>
+              <dt className="text-[var(--text-muted)]">
+                {t('labels.verification')}
+              </dt>
+              <dd>
+                {t(`status.${account.data.verificationStatus.toLowerCase()}`)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[var(--text-muted)]">Created</dt>
+              <dd>
+                {new Intl.DateTimeFormat(undefined, {
+                  dateStyle: 'medium',
+                }).format(new Date(account.data.createdAt))}
+              </dd>
+            </div>
+          </dl>
+        )}
         {account.error && (
           <p className="mt-3 text-sm text-red-700">{account.error.message}</p>
         )}
@@ -57,7 +88,12 @@ export default function ProviderAccountPage() {
         )}
         <button
           className="mt-5 rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
-          disabled={update.isPending || account.isLoading}
+          disabled={
+            update.isPending ||
+            account.isLoading ||
+            !displayName.trim() ||
+            displayName.trim() === currentName
+          }
         >
           {update.isPending
             ? t('onboarding.submitting')

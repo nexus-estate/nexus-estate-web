@@ -13,11 +13,13 @@ export function PortalSidebar({
   items,
   open,
   onClose,
+  identity,
 }: {
   platform: string;
   items: PortalNavItem[];
   open: boolean;
   onClose: () => void;
+  identity?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const t = useTranslations('common');
@@ -38,6 +40,7 @@ export function PortalSidebar({
             <div className="mt-1 text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
               {platform} portal
             </div>
+            {identity}
           </div>
           <nav className="mt-5 space-y-1">
             {items.map((item) => (

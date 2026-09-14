@@ -22,7 +22,15 @@ export default function ProviderOnboardingPage() {
           setSaving(true);
           setError('');
           try {
-            await providerApi.registerFromCustomer({ type, displayName });
+            const result = await providerApi.registerFromCustomer({
+              type,
+              displayName: displayName.trim(),
+            });
+            if (result.providerAccount.id)
+              localStorage.setItem(
+                'nexus.provider.active_id',
+                result.providerAccount.id,
+              );
             router.push('/provider');
           } catch (cause) {
             setError(

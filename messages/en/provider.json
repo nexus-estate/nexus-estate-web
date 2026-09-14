@@ -1,4 +1,32 @@
 {
+  "title": "Provider portal",
+  "loading": "Loading Provider workspace…",
+  "identity": {
+    "providerPlatform": "Provider Platform",
+    "notEnrolled": "Not enrolled"
+  },
+  "types": {
+    "INDIVIDUAL": "Individual",
+    "BROKER": "Broker",
+    "AGENCY": "Agency"
+  },
+  "status": {
+    "active": "Active",
+    "suspended": "Suspended",
+    "unverified": "Unverified",
+    "pending": "Pending review",
+    "verified": "Verified",
+    "rejected": "Rejected",
+    "removed": "Removed"
+  },
+  "lifecycle": {
+    "pending_verification": "Provider review is in progress.",
+    "rejected": "This Provider application was rejected.",
+    "suspended": "Provider access is suspended.",
+    "active_verified": "Supply access is active.",
+    "context_required": "A Provider context must be selected.",
+    "error": "Provider status could not be loaded."
+  },
   "nav": {
     "overview": "Overview",
     "account": "Account",
@@ -7,17 +35,24 @@
   "labels": {
     "provider": "Provider",
     "providerStatus": "Provider status",
+    "membership": "Membership",
+    "roles": "Roles",
     "verification": "Verification",
     "permissions": "Permissions",
     "supplyAccess": "Supply access",
-    "activeVerified": "Active and verified. Supply actions can be enabled by permission.",
+    "activeVerified": "Active and verified.",
     "currentState": "Current state: {state}",
-    "noAccount": "No provider account is available for this Customer session. Start onboarding from your Customer account."
+    "noAccount": "No Provider account is available."
   },
-  "title": "Provider portal",
   "overview": {
     "title": "Provider overview",
-    "description": "Operational status for the selected Provider."
+    "description": "Operational status for the selected Provider.",
+    "business": "Business",
+    "membershipAccess": "Membership & access",
+    "platformState": "Platform state",
+    "noProviderTitle": "Start your Provider workspace",
+    "noProviderDescription": "Provider onboarding",
+    "noProviderBody": "A Provider account represents your supply-side business identity. Your Customer account remains your Marketplace identity."
   },
   "onboarding": {
     "title": "Provider onboarding",
@@ -26,19 +61,12 @@
     "displayName": "Display name",
     "submit": "Submit for review",
     "submitting": "Submitting…",
-    "error": "Unable to submit onboarding."
-  },
-  "status": {
-    "noProvider": "No Provider",
-    "pending": "Pending review",
-    "rejected": "Rejected",
-    "suspended": "Suspended",
-    "verified": "Verified",
-    "contextRequired": "Provider context required"
+    "error": "Unable to submit onboarding.",
+    "start": "Start Provider onboarding"
   },
   "authorization": {
     "title": "Provider authorization",
-    "description": "Effective permissions for the current membership and business context.",
+    "description": "Effective permissions for this Provider membership.",
     "permissions": "Effective permissions"
   }
 }
