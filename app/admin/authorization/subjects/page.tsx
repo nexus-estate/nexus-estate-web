@@ -1,12 +1,15 @@
 'use client';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import {
+  PlatformSelector,
+  useAuthorizationPlatform,
+} from '@/components/administration/platform-selector';
 import { PageHeader } from '@/components/portal/page-header';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
-import type { Platform } from '@/lib/api/administration/types';
 export default function SubjectsPage() {
   const [q, setQ] = useState('');
-  const platform: Platform = 'MARKETPLACE';
+  const { platform, setPlatform } = useAuthorizationPlatform();
   const query = useQuery({
     queryKey: ['administration', 'authorization', platform, 'subjects', q],
     queryFn: () =>
@@ -19,6 +22,9 @@ export default function SubjectsPage() {
         title="Authorization subjects"
         description="Platform-specific identities and their current role assignments."
       />
+      <div className="mb-4">
+        <PlatformSelector platform={platform} onChange={setPlatform} />
+      </div>
       <div className="mb-4">
         <input
           className="w-full max-w-sm rounded-md border border-[var(--border)] bg-white px-3 py-2 text-sm"

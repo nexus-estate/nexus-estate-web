@@ -7,6 +7,7 @@ export interface PortalNavItem {
   label: string;
   href: string;
   requiredPermission?: string;
+  section?: string;
 }
 export function PortalSidebar({
   platform,
@@ -43,15 +44,24 @@ export function PortalSidebar({
             {identity}
           </div>
           <nav className="mt-5 space-y-1">
-            {items.map((item) => (
-              <Link
-                key={item.href}
-                onClick={onClose}
-                href={item.href}
-                className={`block rounded-md px-3 py-2 text-sm ${pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'bg-[var(--primary-soft)] font-medium text-[var(--primary)]' : 'text-[var(--text-muted)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text)]'}`}
-              >
-                {item.label}
-              </Link>
+            {items.map((item, index) => (
+              <div key={item.href}>
+                {item.section &&
+                  (index === 0 ||
+                    items[index - 1]?.section !== item.section) && (
+                    <div className="px-3 pb-1 pt-4 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                      {item.section}
+                    </div>
+                  )}
+                <Link
+                  key={item.href}
+                  onClick={onClose}
+                  href={item.href}
+                  className={`block rounded-md px-3 py-2 text-sm ${pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'bg-[var(--primary-soft)] font-medium text-[var(--primary)]' : 'text-[var(--text-muted)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text)]'}`}
+                >
+                  {item.label}
+                </Link>
+              </div>
             ))}
           </nav>
           <div className="mt-auto border-t border-[var(--border)] pt-4">

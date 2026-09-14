@@ -5,14 +5,32 @@
     "authorization": "Roles & permissions",
     "subjects": "Subjects",
     "audit": "Audit",
-    "providerReview": "Provider review"
+    "providerReview": "Provider review",
+    "dashboardSection": "Dashboard",
+    "operations": "Operations",
+    "accessControl": "Access control"
   },
   "providerReview": {
     "title": "Provider requests",
     "description": "Review and approve pending Provider registrations.",
     "approve": "Approve",
     "loading": "Loading requests…",
-    "empty": "No pending requests."
+    "empty": "No pending requests.",
+    "error": "Unable to load Provider request.",
+    "detailTitle": "Provider request",
+    "detailDescription": "Review the Customer request for Supply Platform access.",
+    "request": "Provider request",
+    "provider": "Provider",
+    "type": "Type",
+    "status": "Status",
+    "created": "Created",
+    "owner": "Customer owner",
+    "email": "Email",
+    "emailVerified": "Email verified",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Approve Provider request? This enables the Provider business capability while keeping Customer authentication unchanged.",
+    "approving": "Approving…"
   },
   "overview": {
     "title": "Administration",
@@ -36,6 +54,7 @@
     "noRoles": "No roles found.",
     "noSubjects": "No subjects found.",
     "noAudit": "No audit events found.",
-    "versionConflict": "This role changed while you were editing. Reload the latest version before saving again."
+    "versionConflict": "This role changed while you were editing. Reload the latest version before saving again.",
+    "platform": "Platform"
   }
 }

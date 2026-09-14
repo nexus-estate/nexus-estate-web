@@ -2,9 +2,13 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
+import {
+  PlatformSelector,
+  useAuthorizationPlatform,
+} from '@/components/administration/platform-selector';
 import { PageHeader } from '@/components/portal/page-header';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
-import type { MatrixResponse, Platform } from '@/lib/api/administration/types';
+import type { MatrixResponse } from '@/lib/api/administration/types';
 import { getApiErrorMessage } from '@/lib/api/error-message';
 type Group = {
   category: string;
@@ -17,7 +21,7 @@ type Group = {
 };
 export default function MatrixPage() {
   const t = useTranslations('common');
-  const platform: Platform = 'MARKETPLACE';
+  const { platform, setPlatform } = useAuthorizationPlatform();
   const qc = useQueryClient();
   const query = useQuery({
     queryKey: ['administration', 'authorization', platform, 'matrix'],
@@ -62,6 +66,9 @@ export default function MatrixPage() {
           </button>
         }
       />
+      <div className="mb-5">
+        <PlatformSelector platform={platform} onChange={setPlatform} />
+      </div>
       <div className="mb-5">
         <label
           className="text-xs font-medium text-[var(--text-muted)]"

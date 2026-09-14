@@ -1,8 +1,6 @@
 import { administrationApiClient } from '../client';
-import type {
-  ProviderRegistrationResponse,
-  ProviderRegistrationReview,
-} from '../provider/types';
+import type { ProviderRegistrationResponse } from '../provider/types';
+import type { ProviderRegistrationReview } from './provider-review.types';
 export const providerReviewApi = {
   pending: () =>
     administrationApiClient.get<ProviderRegistrationReview[]>(

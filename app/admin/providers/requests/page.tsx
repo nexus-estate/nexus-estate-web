@@ -37,7 +37,12 @@ export default function ProviderRequestsPage() {
             {(requests.data ?? []).map((request) => (
               <tr className="border-t border-[var(--border)]" key={request.id}>
                 <td className="px-4 py-3 font-medium">
-                  {request.providerAccount.displayName}
+                  <a
+                    className="hover:underline"
+                    href={`/admin/provider-requests/${request.id}`}
+                  >
+                    {request.providerAccount.displayName}
+                  </a>
                 </td>
                 <td>{request.owner.email}</td>
                 <td>
@@ -48,7 +53,7 @@ export default function ProviderRequestsPage() {
                   <button
                     className="rounded-md bg-[var(--primary)] px-3 py-1.5 text-xs text-white disabled:opacity-50"
                     disabled={approve.isPending}
-                    onClick={() => approve.mutate(request.providerAccount.id)}
+                    onClick={() => approve.mutate(request.id)}
                   >
                     {t('providerReview.approve')}
                   </button>
