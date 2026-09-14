@@ -1,12 +1,14 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
+import { safeAdministrationNext } from '@/lib/admin-return-path';
 export default function AdminLoginPage() {
   const t = useTranslations('auth.admin');
   const { login } = useAdministrationSession();
   const router = useRouter();
+  const search = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,7 +25,7 @@ export default function AdminLoginPage() {
           setError('');
           try {
             await login(email, password);
-            router.replace('/admin');
+            router.replace(safeAdministrationNext(search.get('next')));
           } catch (err) {
             setError(err instanceof Error ? err.message : t('invalid'));
           } finally {

@@ -5,6 +5,7 @@ import type {
   RoleAllowedActions,
   SubjectListResponse,
   AuthorizationSubjectDetailWire,
+  RoleListResponse,
 } from './administration/types';
 import type { RegisterCustomerRequest } from './customer/types';
 import type { ProviderType } from './provider/types';
@@ -102,4 +103,92 @@ test('normalizes provider subject wire fields at the administration API boundary
     customerId: 'customer-1',
     customerEmail: 'owner@example.com',
   });
+});
+
+test('normalizes provider subject mutation responses at the same boundary', async () => {
+  const { administrationAuthorizationApi } =
+    await import('./administration/authorization.api');
+  const wire: AuthorizationSubjectDetailWire = {
+    id: 'membership-1',
+    subjectType: 'PROVIDER_MEMBERSHIP',
+    displayName: 'Nexus Realty',
+    secondaryText: 'owner@example.com',
+    status: 'ACTIVE',
+    roleCount: 1,
+    roleIds: ['role-1'],
+    roles: [],
+    permissions: [],
+    provider_id: 'provider-1',
+    provider_display_name: 'Nexus Realty',
+    customer_id: 'customer-1',
+    customer_email: 'owner@example.com',
+  };
+  jest
+    .spyOn((await import('./client')).administrationApiClient, 'put')
+    .mockResolvedValueOnce(wire);
+
+  await expect(
+    administrationAuthorizationApi.replaceSubjectRoles(
+      'PROVIDER',
+      'membership-1',
+      {
+        roleIds: ['role-1'],
+      },
+    ),
+  ).resolves.toMatchObject({
+    providerId: 'provider-1',
+    providerDisplayName: 'Nexus Realty',
+    customerId: 'customer-1',
+    customerEmail: 'owner@example.com',
+  });
+});
+
+test('loads all pages when building a complete role catalogue', async () => {
+  jest.restoreAllMocks();
+  const { administrationAuthorizationApi } =
+    await import('./administration/authorization.api');
+  const firstPage: RoleListResponse = {
+    items: [],
+    meta: {
+      total: 101,
+      page: 1,
+      limit: 100,
+      totalPages: 2,
+      hasNextPage: true,
+      hasPreviousPage: false,
+    },
+  };
+  const secondPage: RoleListResponse = {
+    items: [],
+    meta: {
+      total: 101,
+      page: 2,
+      limit: 100,
+      totalPages: 2,
+      hasNextPage: false,
+      hasPreviousPage: true,
+    },
+  };
+  const get = jest
+    .spyOn((await import('./client')).administrationApiClient, 'get')
+    .mockResolvedValueOnce(firstPage)
+    .mockResolvedValueOnce(secondPage);
+
+  await expect(
+    administrationAuthorizationApi.rolesAll('PROVIDER', {
+      status: 'ACTIVE',
+      limit: 100,
+    }),
+  ).resolves.toMatchObject({
+    items: [],
+    meta: { total: 0, totalPages: 0, hasNextPage: false },
+  });
+  expect(get).toHaveBeenNthCalledWith(
+    1,
+    '/administration/authorization/PROVIDER/roles?status=ACTIVE&limit=100&page=1',
+  );
+  expect(get).toHaveBeenNthCalledWith(
+    2,
+    '/administration/authorization/PROVIDER/roles?status=ACTIVE&limit=100&page=2',
+  );
 });

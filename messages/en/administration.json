@@ -71,6 +71,9 @@
     "updated": "Updated",
     "edit": "Edit metadata",
     "readOnly": "You do not have permission to change this item.",
-    "assignedSubjects": "Assigned subjects"
+    "assignedSubjects": "Assigned subjects",
+    "errors": {
+      "assignmentConflict": "The assignment changed while you were editing it. Refresh the subject roles and submit the current selection again."
+    }
   }
 }

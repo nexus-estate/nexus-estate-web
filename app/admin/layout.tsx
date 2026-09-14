@@ -17,9 +17,12 @@ function Guard({ children }: { children: React.ReactNode }) {
   const search = useSearchParams();
   const router = useRouter();
   useEffect(() => {
-    if (session.status === 'anonymous' && pathname !== '/admin/login')
-      router.replace(`/admin/login?next=${encodeURIComponent(pathname)}`);
-  }, [pathname, router, session.status]);
+    if (session.status === 'anonymous' && pathname !== '/admin/login') {
+      const query = search.toString();
+      const current = query ? `${pathname}?${query}` : pathname;
+      router.replace(`/admin/login?next=${encodeURIComponent(current)}`);
+    }
+  }, [pathname, router, search, session.status]);
   if (session.status === 'restoring')
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-[var(--text-muted)]">

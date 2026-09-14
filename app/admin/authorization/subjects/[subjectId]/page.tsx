@@ -11,8 +11,12 @@ import type {
   AuthorizationPermission,
   Platform,
 } from '@/lib/api/administration/types';
-import { ApiError } from '@/lib/api/core/error';
-import { getApiErrorMessage } from '@/lib/api/error-message';
+import { getApiErrorDisplayMessage } from '@/lib/api/error-message';
+import {
+  activeSelectedRoleIds,
+  buildAssignmentRoleOptions,
+  selectedDisabledRoleIds,
+} from '../assignment-options';
 
 export default function SubjectDetailPage() {
   const t = useTranslations('administration.authorization');
@@ -20,6 +24,9 @@ export default function SubjectDetailPage() {
   const search = useSearchParams();
   const platform = (search.get('platform') as Platform) || 'MARKETPLACE';
   const { hasPermission } = useAdministrationSession();
+  const canManageAssignments =
+    hasPermission('authorization:assignment:write') &&
+    hasPermission('authorization:role:read');
   const qc = useQueryClient();
   const subject = useQuery({
     queryKey: [
@@ -41,16 +48,33 @@ export default function SubjectDetailPage() {
       'assignment-options',
     ],
     queryFn: () =>
-      administrationAuthorizationApi.roles(platform, {
+      administrationAuthorizationApi.rolesAll(platform, {
         status: 'ACTIVE',
         limit: 100,
       }),
-    enabled: hasPermission('authorization:assignment:write'),
+    enabled: canManageAssignments,
   });
   const [reason, setReason] = useState('');
   const [draftRoles, setDraftRoles] = useState<string[] | null>(null);
   const selectedRoles =
     draftRoles ?? subject.data?.roles.map((role) => role.id) ?? [];
+  const assignmentOptions = useMemo(
+    () =>
+      buildAssignmentRoleOptions(
+        subject.data?.roles ?? [],
+        roles.data?.items ?? [],
+      ),
+    [roles.data?.items, subject.data?.roles],
+  );
+  const selectedDisabledRoles = selectedDisabledRoleIds(
+    assignmentOptions,
+    selectedRoles,
+  );
+  const activeSelectedRoles = activeSelectedRoleIds(
+    assignmentOptions,
+    selectedRoles,
+  );
+  const [validationError, setValidationError] = useState('');
   const permissionsByCategory = useMemo(() => {
     const groups = new Map<string, AuthorizationPermission[]>();
     for (const permission of subject.data?.permissions ?? []) {
@@ -66,13 +90,14 @@ export default function SubjectDetailPage() {
         platform,
         params.subjectId,
         {
-          roleIds: selectedRoles,
+          roleIds: activeSelectedRoles,
           reason: reason.trim() || undefined,
         },
       ),
     onSuccess: () => {
       setDraftRoles(null);
       setReason('');
+      setValidationError('');
       void qc.invalidateQueries({
         queryKey: ['administration', 'authorization', platform],
       });
@@ -149,15 +174,16 @@ export default function SubjectDetailPage() {
               </div>
             ))}
           </div>
-          {hasPermission('authorization:assignment:write') && (
+          {canManageAssignments && (
             <div className="mt-5 border-t pt-4">
               <p className="text-sm font-medium">Replace role assignment</p>
               <div className="mt-2 grid gap-2">
-                {roles.data?.items.map((role) => (
+                {assignmentOptions.map((role) => (
                   <label className="flex gap-2 text-sm" key={role.id}>
                     <input
                       type="checkbox"
                       checked={selectedRoles.includes(role.id)}
+                      disabled={!role.canAdd && !role.assigned}
                       onChange={(e) =>
                         setDraftRoles((current) => {
                           const next = current ?? selectedRoles;
@@ -171,6 +197,11 @@ export default function SubjectDetailPage() {
                     <code className="text-xs text-[var(--text-muted)]">
                       {role.code}
                     </code>
+                    <span className="text-xs text-[var(--text-muted)]">
+                      {role.status === 'DISABLED'
+                        ? 'DISABLED — remove before saving'
+                        : 'ACTIVE'}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -180,19 +211,37 @@ export default function SubjectDetailPage() {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
               />
+              {selectedDisabledRoles.length > 0 && (
+                <p className="mt-2 text-sm text-amber-700">
+                  Remove disabled assigned roles before saving.
+                </p>
+              )}
               <button
                 className="mt-3 rounded bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
-                disabled={assign.isPending}
-                onClick={() => assign.mutate()}
+                disabled={
+                  assign.isPending ||
+                  roles.isLoading ||
+                  roles.isError ||
+                  selectedDisabledRoles.length > 0
+                }
+                onClick={() => {
+                  if (selectedDisabledRoles.length > 0) {
+                    setValidationError(
+                      'Remove disabled assigned roles before saving.',
+                    );
+                    return;
+                  }
+                  assign.mutate();
+                }}
               >
                 Save assignments
               </button>
+              {validationError && (
+                <p className="mt-2 text-sm text-red-700">{validationError}</p>
+              )}
               {assign.isError && (
                 <p className="mt-2 text-sm text-red-700">
-                  {getApiErrorMessage(assign.error, t)}
-                  {assign.error instanceof ApiError && assign.error.requestId
-                    ? ` (${assign.error.requestId})`
-                    : ''}
+                  {getApiErrorDisplayMessage(assign.error, t)}
                 </p>
               )}
             </div>

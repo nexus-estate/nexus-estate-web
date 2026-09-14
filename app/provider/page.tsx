@@ -28,7 +28,13 @@ export default function ProviderPage() {
       </>
     );
   if (workspace.state === 'LOADING') return <p>{t('loading')}</p>;
-  const stateText = t(`lifecycle.${workspace.state.toLowerCase()}`);
+  const lifecycleKey =
+    workspace.state === 'PENDING'
+      ? 'pending_verification'
+      : workspace.state === 'ACTIVE'
+        ? 'active_verified'
+        : workspace.state.toLowerCase();
+  const stateText = t(`lifecycle.${lifecycleKey}`);
   return (
     <>
       <PageHeader

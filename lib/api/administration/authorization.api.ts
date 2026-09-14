@@ -48,6 +48,37 @@ export const administrationAuthorizationApi = {
     administrationApiClient.get<RoleListResponse>(
       `${base(platform)}/roles${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
+  rolesAll: async (platform: Platform, filters: ApiFilters = {}) => {
+    const { page: _page, ...rest } = filters;
+    const limit = rest.limit ?? 100;
+    const items: AuthorizationRole[] = [];
+    let page = 1;
+    let last: RoleListResponse | undefined;
+
+    do {
+      last = await administrationAuthorizationApi.roles(platform, {
+        ...rest,
+        page,
+        limit,
+      });
+      items.push(...last.items);
+      page += 1;
+    } while (last.meta.hasNextPage || page <= last.meta.totalPages);
+
+    return {
+      ...last,
+      items,
+      meta: {
+        ...last.meta,
+        page: 1,
+        limit,
+        total: items.length,
+        totalPages: items.length ? 1 : 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+    };
+  },
   role: (platform: Platform, id: string) =>
     administrationApiClient.get<AuthorizationRoleDetail>(
       `${base(platform)}/roles/${id}`,
@@ -101,14 +132,16 @@ export const administrationAuthorizationApi = {
         `${base(platform)}/subjects/${id}`,
       ),
     ),
-  replaceSubjectRoles: (
+  replaceSubjectRoles: async (
     platform: Platform,
     id: string,
     data: ReplaceSubjectRolesRequest,
   ) =>
-    administrationApiClient.put<AuthorizationSubjectDetail>(
-      `${base(platform)}/subjects/${id}/roles`,
-      data,
+    normalizeSubjectDetail(
+      await administrationApiClient.put<AuthorizationSubjectDetailWire>(
+        `${base(platform)}/subjects/${id}/roles`,
+        data,
+      ),
     ),
   providerMembers: (providerId: string, filters: ApiFilters = {}) =>
     administrationApiClient.get<ProviderMemberListResponse>(

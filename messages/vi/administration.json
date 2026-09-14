@@ -71,6 +71,9 @@
     "updated": "Cập nhật",
     "edit": "Sửa thông tin",
     "readOnly": "Bạn không có quyền thay đổi mục này.",
-    "assignedSubjects": "Các subject được gán"
+    "assignedSubjects": "Các subject được gán",
+    "errors": {
+      "assignmentConflict": "Assignment đã thay đổi trong lúc bạn chỉnh sửa. Hãy làm mới role của đối tượng rồi gửi lại lựa chọn hiện tại."
+    }
   }
 }
