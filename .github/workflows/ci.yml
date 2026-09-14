@@ -184,7 +184,7 @@ jobs:
       - name: Wait for API
         run: |
           for attempt in {1..30}; do
-            if curl --silent --fail http://localhost:50001/api/v1/health/live; then exit 0; fi
+            if curl --silent --fail http://localhost:50001/health/live; then exit 0; fi
             sleep 2
           done
           cat /tmp/nexus-estate-api.log
