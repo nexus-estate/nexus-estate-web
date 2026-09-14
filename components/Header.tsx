@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
-import type { User } from '@/lib/api/auth/auth.types';
+import type { CustomerAccount } from '@/lib/api/customer/types';
 
-function userName(user: User | null) {
+function userName(user: CustomerAccount | null) {
   if (!user) return '';
-  return user.fullName || user.username || user.email;
+  return user.email;
 }
 
 export default function Header() {

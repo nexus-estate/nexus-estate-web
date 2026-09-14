@@ -14,6 +14,7 @@ import { administrationAuthorizationApi } from '@/lib/api/administration/authori
 import type { AdminAuthorization } from '@/lib/api/administration/types';
 import { getRealmAccessToken, setRealmAccessToken } from '@/lib/api/client';
 type Session = {
+  status: 'restoring' | 'authenticated' | 'anonymous';
   isAuthenticated: boolean;
   authorization: AdminAuthorization | null;
   login: (email: string, password: string) => Promise<void>;
@@ -34,14 +35,20 @@ export function AdministrationSessionProvider({
   const [authenticated, setAuthenticated] = useState(
     Boolean(getRealmAccessToken('administration')),
   );
+  const [restoring, setRestoring] = useState(true);
   const queryClient = useQueryClient();
   const restore = useCallback(async () => {
-    if (!getRealmAccessToken('administration')) return;
+    if (!getRealmAccessToken('administration')) {
+      setRestoring(false);
+      return;
+    }
     try {
       setAuthorization(await administrationAuthorizationApi.effective());
       setAuthenticated(true);
     } catch {
       setAuthenticated(false);
+    } finally {
+      setRestoring(false);
     }
   }, []);
   useEffect(() => {
@@ -75,17 +82,19 @@ export function AdministrationSessionProvider({
   }, [queryClient]);
   const value = useMemo(
     () => ({
+      status: (restoring
+        ? 'restoring'
+        : authenticated
+          ? 'authenticated'
+          : 'anonymous') as Session['status'],
       isAuthenticated: authenticated,
       authorization,
       login,
       logout,
       hasPermission: (code: string) =>
-        Boolean(
-          authorization?.permissionCodes?.includes(code) ||
-          authorization?.permissions?.some((p) => p.code === code),
-        ),
+        Boolean(authorization?.permissions.some((p) => p.code === code)),
     }),
-    [authenticated, authorization, login, logout],
+    [authenticated, authorization, login, logout, restoring],
   );
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }

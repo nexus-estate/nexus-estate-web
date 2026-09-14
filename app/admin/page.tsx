@@ -26,9 +26,7 @@ export default function AdminPage() {
         <div className="rounded-xl bg-white p-6 shadow">
           <h2 className="font-semibold">Effective authorization</h2>
           <p className="mt-2 text-3xl font-bold text-[#173b38]">
-            {authorization?.permissionCodes?.length ??
-              authorization?.permissions?.length ??
-              0}
+            {authorization?.permissions.length ?? 0}
           </p>
           <p className="text-sm text-gray-500">permissions available</p>
         </div>

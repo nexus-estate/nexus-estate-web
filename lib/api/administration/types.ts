@@ -3,36 +3,84 @@ export interface AdminTokenPair {
   refreshToken: string;
 }
 export type Platform = 'MARKETPLACE' | 'PROVIDER' | 'ADMINISTRATION';
-export interface AdminAuthorization {
-  permissions?: Array<{ code: string }>;
-  permissionCodes?: string[];
-  [key: string]: unknown;
+export type SubjectType = 'CUSTOMER' | 'PROVIDER_MEMBERSHIP' | 'ADMINISTRATOR';
+export type RoleStatus = 'ACTIVE' | 'DISABLED';
+export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export interface AuthorizationPrincipal {
+  id: string;
+  code: string;
+  name: string;
+}
+export interface AdministrationAuthorization {
+  platform: 'ADMINISTRATION';
+  isActive: boolean;
+  roles: AuthorizationPrincipal[];
+  permissions: Array<AuthorizationPrincipal & { category: string }>;
+  authorizationVersion: string;
+}
+export type AdminAuthorization = AdministrationAuthorization;
+export interface PlatformMetadata {
+  platform: Platform;
+  displayName: string;
+  subjectType: SubjectType;
+  supportsRoles: boolean;
+  supportsAssignments: boolean;
+}
+export interface PlatformMetadataResponse {
+  items: PlatformMetadata[];
+}
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+export interface Paginated<T> {
+  items: T[];
+  meta: PaginationMeta;
+}
+export interface RoleAllowedActions {
+  updateMetadata: boolean;
+  updateStatus: boolean;
+  updatePermissions: boolean;
+  delete: boolean;
 }
 export interface AuthorizationRole {
   id: string;
   code: string;
   name: string;
-  description?: string | null;
-  status?: string;
-  isSystem?: boolean;
-  permissionCount?: number;
-  assignmentCount?: number;
-  allowedActions?: string[];
-  isDeletable?: boolean;
+  description: string | null;
+  isSystem: boolean;
+  status: RoleStatus;
   version: number;
-  updatedAt?: string;
+  permissionCount: number;
+  assignmentCount: number;
+  allowedActions: RoleAllowedActions;
+  isEditable: boolean;
+  isDeletable: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 export interface AuthorizationPermission {
   id: string;
   code: string;
-  name?: string;
-  category?: string;
-  resource?: string;
-  action?: string;
-  riskLevel?: string;
-  isAssignable?: boolean;
-  isDeprecated?: boolean;
-  description?: string;
+  name: string;
+  description: string | null;
+  platform: Platform;
+  category: string;
+  resource: string;
+  action: string;
+  riskLevel: RiskLevel;
+  isAssignable: boolean;
+  isDeprecated: boolean;
+  deprecatedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface AuthorizationRoleDetail extends AuthorizationRole {
+  permissions: AuthorizationPermission[];
 }
 export interface CreateRoleRequest {
   code: string;
@@ -43,7 +91,7 @@ export interface CreateRoleRequest {
 export interface UpdateRoleRequest {
   name?: string;
   description?: string | null;
-  status?: string;
+  status?: RoleStatus;
   expectedVersion: number;
 }
 export interface ReplaceRolePermissionsRequest {
@@ -52,53 +100,62 @@ export interface ReplaceRolePermissionsRequest {
 }
 export interface ReplaceSubjectRolesRequest {
   roleIds: string[];
-  expectedVersion?: number;
   reason?: string;
 }
-export interface RoleListResponse {
-  items: AuthorizationRole[];
-  total?: number;
-  page?: number;
-  limit?: number;
-  totalPages?: number;
-}
-export interface PermissionListResponse {
-  items: AuthorizationPermission[];
-  total?: number;
-  page?: number;
-  limit?: number;
-  totalPages?: number;
-}
+export type RoleListResponse = Paginated<AuthorizationRole>;
+export type PermissionListResponse = Paginated<AuthorizationPermission>;
 export interface MatrixResponse {
   roles: AuthorizationRole[];
-  permissions: AuthorizationPermission[];
-  assignments?: Record<string, string[]>;
-  [key: string]: unknown;
-}
-export interface SubjectSummary {
-  id: string;
-  displayName?: string;
-  email?: string;
-  roles?: AuthorizationRole[];
-  [key: string]: unknown;
-}
-export interface SubjectListResponse {
-  items: SubjectSummary[];
-  total?: number;
-  page?: number;
-  limit?: number;
-  totalPages?: number;
-}
-export interface AuditListResponse {
-  items: Array<{
-    id?: string;
-    action?: string;
-    actor?: string;
-    platform?: Platform;
-    requestId?: string;
-    createdAt?: string;
-    beforeState?: unknown;
-    afterState?: unknown;
+  permissionGroups: Array<{
+    category: string;
+    permissions: Array<{
+      id: string;
+      code: string;
+      name: string;
+      riskLevel: RiskLevel;
+    }>;
   }>;
-  total?: number;
+  assignments: Record<string, string[]>;
 }
+export interface AuthorizationSubjectSummary {
+  id: string;
+  subjectType: SubjectType;
+  displayName: string;
+  secondaryText: string | null;
+  status: string;
+  roleCount: number;
+  roleIds: string[];
+}
+export interface AuthorizationSubjectDetail extends AuthorizationSubjectSummary {
+  roles: Array<{ id: string; code: string; name: string; status: string }>;
+  permissions: AuthorizationPermission[];
+  providerId?: string;
+  providerDisplayName?: string;
+  customerId?: string;
+  customerEmail?: string;
+}
+export type SubjectListResponse = Paginated<AuthorizationSubjectSummary>;
+export interface AuthorizationAuditEvent {
+  id: string;
+  actorAdministratorId: string;
+  platform: Platform;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  reason: string | null;
+  beforeState: Record<string, unknown> | null;
+  afterState: Record<string, unknown> | null;
+  requestId: string | null;
+  createdAt: string;
+}
+export type AuditListResponse = Paginated<AuthorizationAuditEvent>;
+export interface ProviderMember {
+  id: string;
+  providerId: string;
+  customerId: string;
+  status: string;
+  joinedAt: string;
+  customerEmail: string;
+  roleCodes: string[];
+}
+export type ProviderMemberListResponse = Paginated<ProviderMember>;

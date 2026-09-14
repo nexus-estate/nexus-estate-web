@@ -1,25 +1,24 @@
 'use client';
 import { useCallback, useSyncExternalStore } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type {
-  AuthenticatedPrincipal,
-  LoginRequest,
-  RegisterRequest,
-  User,
-} from '@/lib/api/auth/auth.types';
 import { getRealmAccessToken, setRealmAccessToken } from '@/lib/api/client';
 import { customerAuthenticationApi } from '@/lib/api/customer/authentication.api';
 import { customerAuthorizationApi } from '@/lib/api/customer/authorization.api';
+import type {
+  CustomerAccount,
+  LoginCustomerRequest,
+  RegisterCustomerRequest,
+} from '@/lib/api/customer/types';
 const USER_KEY = 'nexus.customer.user';
 const REFRESH_KEY = 'nexus.customer.refresh_token';
 const listeners = new Set<() => void>();
-let currentUser: User | null = null;
+let currentUser: CustomerAccount | null = null;
 let initialized = false;
-const isUser = (v: unknown): v is User =>
+const isUser = (v: unknown): v is CustomerAccount =>
   typeof v === 'object' &&
   v !== null &&
-  typeof (v as User).id === 'string' &&
-  typeof (v as User).email === 'string';
+  typeof (v as CustomerAccount).id === 'string' &&
+  typeof (v as CustomerAccount).email === 'string';
 function restore() {
   if (typeof window === 'undefined') return null;
   const token = getRealmAccessToken('customer');
@@ -39,11 +38,7 @@ function snapshot() {
   }
   return currentUser;
 }
-const normalize = (p: AuthenticatedPrincipal): User => ({
-  ...p,
-  fullName: p.fullName || p.email.split('@')[0],
-  role: typeof p.role === 'object' ? p.role : undefined,
-});
+const normalize = (p: CustomerAccount): CustomerAccount => p;
 export function useAuth() {
   const user = useSyncExternalStore(
     (fn) => {
@@ -59,20 +54,18 @@ export function useAuth() {
     queryFn: customerAuthorizationApi.effective,
     enabled: user !== null,
   });
-  const publish = (next: User | null) => {
+  const publish = (next: CustomerAccount | null) => {
     currentUser = next;
     listeners.forEach((fn) => fn());
   };
   const getProfile = useCallback(async () => {
-    const next = normalize(
-      (await customerAuthenticationApi.profile()) as AuthenticatedPrincipal,
-    );
+    const next = normalize(await customerAuthenticationApi.profile());
     localStorage.setItem(USER_KEY, JSON.stringify(next));
     publish(next);
     return next;
   }, []);
   const login = useCallback(
-    async (data: LoginRequest) => {
+    async (data: LoginCustomerRequest) => {
       const pair = await customerAuthenticationApi.login(data);
       localStorage.setItem('nexus.customer.access_token', pair.accessToken);
       localStorage.setItem(REFRESH_KEY, pair.refreshToken);
@@ -81,7 +74,7 @@ export function useAuth() {
     },
     [getProfile],
   );
-  const register = useCallback(async (data: RegisterRequest) => {
+  const register = useCallback(async (data: RegisterCustomerRequest) => {
     await customerAuthenticationApi.register(data);
   }, []);
   const logout = useCallback(async () => {
@@ -103,7 +96,13 @@ export function useAuth() {
   }, [queryClient]);
   return {
     user,
-    isLoading: false,
+    status:
+      user === null && !initialized
+        ? ('restoring' as const)
+        : user
+          ? ('authenticated' as const)
+          : ('anonymous' as const),
+    isLoading: user === null && !initialized,
     isAuthenticated: user !== null,
     login,
     register,
@@ -112,7 +111,6 @@ export function useAuth() {
     refreshUser: getProfile,
     hasMarketplacePermission: (code: string) =>
       Boolean(
-        authorization.data?.permissionCodes?.includes(code) ||
         authorization.data?.permissions?.some(
           (permission) => permission.code === code,
         ),

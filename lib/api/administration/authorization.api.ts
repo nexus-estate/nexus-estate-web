@@ -1,6 +1,7 @@
 import { administrationApiClient } from '../client';
+import { buildSearchParams, type ApiFilters } from '../core/query';
 import type {
-  AdminAuthorization,
+  AdministrationAuthorization,
   AuthorizationPermission,
   AuthorizationRole,
   AuditListResponse,
@@ -8,35 +9,39 @@ import type {
   MatrixResponse,
   PermissionListResponse,
   Platform,
+  PlatformMetadataResponse,
   ReplaceRolePermissionsRequest,
   ReplaceSubjectRolesRequest,
   RoleListResponse,
   SubjectListResponse,
+  AuthorizationSubjectDetail,
+  AuthorizationRoleDetail,
+  ProviderMemberListResponse,
   UpdateRoleRequest,
 } from './types';
 const base = (platform: Platform) =>
   `/administration/authorization/${platform}`;
 export const administrationAuthorizationApi = {
   effective: () =>
-    administrationApiClient.get<AdminAuthorization>(
+    administrationApiClient.get<AdministrationAuthorization>(
       '/administration/me/authorization',
     ),
   platforms: () =>
-    administrationApiClient.get<Platform[]>(
+    administrationApiClient.get<PlatformMetadataResponse>(
       '/administration/authorization/platforms',
     ),
-  audit: (query = '') =>
+  audit: (filters: ApiFilters = {}) =>
     administrationApiClient.get<AuditListResponse>(
-      `/administration/authorization/audit${query ? `?${query}` : ''}`,
+      `/administration/authorization/audit${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
-  roles: (platform: Platform, query = '') =>
+  roles: (platform: Platform, filters: ApiFilters = {}) =>
     administrationApiClient.get<RoleListResponse>(
-      `${base(platform)}/roles${query ? `?${query}` : ''}`,
+      `${base(platform)}/roles${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
   role: (platform: Platform, id: string) =>
-    administrationApiClient.get<
-      AuthorizationRole & { permissions?: AuthorizationPermission[] }
-    >(`${base(platform)}/roles/${id}`),
+    administrationApiClient.get<AuthorizationRoleDetail>(
+      `${base(platform)}/roles/${id}`,
+    ),
   createRole: (platform: Platform, data: CreateRoleRequest) =>
     administrationApiClient.post<AuthorizationRole>(
       `${base(platform)}/roles`,
@@ -58,13 +63,13 @@ export const administrationAuthorizationApi = {
       `${base(platform)}/roles/${id}/permissions`,
       data,
     ),
-  roleSubjects: (platform: Platform, id: string, query = '') =>
+  roleSubjects: (platform: Platform, id: string, filters: ApiFilters = {}) =>
     administrationApiClient.get<SubjectListResponse>(
-      `${base(platform)}/roles/${id}/subjects${query ? `?${query}` : ''}`,
+      `${base(platform)}/roles/${id}/subjects${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
-  permissions: (platform: Platform, query = '') =>
+  permissions: (platform: Platform, filters: ApiFilters = {}) =>
     administrationApiClient.get<PermissionListResponse>(
-      `${base(platform)}/permissions${query ? `?${query}` : ''}`,
+      `${base(platform)}/permissions${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
   permission: (platform: Platform, id: string) =>
     administrationApiClient.get<AuthorizationPermission>(
@@ -76,23 +81,25 @@ export const administrationAuthorizationApi = {
     ),
   matrix: (platform: Platform) =>
     administrationApiClient.get<MatrixResponse>(`${base(platform)}/matrix`),
-  subjects: (platform: Platform, query = '') =>
+  subjects: (platform: Platform, filters: ApiFilters = {}) =>
     administrationApiClient.get<SubjectListResponse>(
-      `${base(platform)}/subjects${query ? `?${query}` : ''}`,
+      `${base(platform)}/subjects${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
   subject: (platform: Platform, id: string) =>
-    administrationApiClient.get<unknown>(`${base(platform)}/subjects/${id}`),
+    administrationApiClient.get<AuthorizationSubjectDetail>(
+      `${base(platform)}/subjects/${id}`,
+    ),
   replaceSubjectRoles: (
     platform: Platform,
     id: string,
     data: ReplaceSubjectRolesRequest,
   ) =>
-    administrationApiClient.put<unknown>(
+    administrationApiClient.put<AuthorizationSubjectDetail>(
       `${base(platform)}/subjects/${id}/roles`,
       data,
     ),
-  providerMembers: (providerId: string) =>
-    administrationApiClient.get<SubjectListResponse>(
-      `/administration/providers/${providerId}/members`,
+  providerMembers: (providerId: string, filters: ApiFilters = {}) =>
+    administrationApiClient.get<ProviderMemberListResponse>(
+      `/administration/providers/${providerId}/members${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
 };

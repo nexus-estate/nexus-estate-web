@@ -1,6 +1,5 @@
 'use client';
 import { NextIntlClientProvider } from 'next-intl';
-import { messages } from '@/lib/i18n';
 import administrationEn from '@/messages/en/administration.json';
 import authEn from '@/messages/en/auth.json';
 import commonEn from '@/messages/en/common.json';
@@ -13,17 +12,15 @@ import customerVi from '@/messages/vi/customer.json';
 import providerVi from '@/messages/vi/provider.json';
 export const localeMessages = {
   vi: {
-    ...messages.vi,
-    common: { ...(messages.vi.common as object), ...commonVi },
-    auth: { ...(messages.vi.auth as object), ...authVi },
+    common: commonVi,
+    auth: authVi,
     customer: customerVi,
     provider: providerVi,
     administration: administrationVi,
   },
   en: {
-    ...messages.en,
-    common: { ...(messages.en.common as object), ...commonEn },
-    auth: { ...(messages.en.auth as object), ...authEn },
+    common: commonEn,
+    auth: authEn,
     customer: customerEn,
     provider: providerEn,
     administration: administrationEn,

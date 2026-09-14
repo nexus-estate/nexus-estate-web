@@ -1,6 +1,15 @@
+import type {
+  AuthorizationPermission,
+  AuthorizationPrincipal,
+} from '../customer/types';
+export type ProviderType = 'INDIVIDUAL' | 'BROKER' | 'AGENCY';
+export type ProviderStatus = 'ACTIVE' | 'SUSPENDED';
+export type ProviderVerificationStatus =
+  'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+export type ProviderMembershipStatus = 'ACTIVE' | 'SUSPENDED' | 'REMOVED';
 export interface ProviderAccount {
   id: string;
-  type: 'INDIVIDUAL' | 'BROKER' | 'AGENCY';
+  type: ProviderType;
   displayName: string;
   status: 'ACTIVE' | 'SUSPENDED';
   verificationStatus: 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
@@ -23,18 +32,23 @@ export interface ProviderRegistrationReview {
   };
   providerAccount: ProviderAccount;
 }
-export interface CreateProviderAccountRequest {
-  type: ProviderAccount['type'];
+export interface RegisterProviderFromCustomerRequest {
+  type: ProviderType;
   displayName: string;
 }
+export type CreateProviderAccountRequest = RegisterProviderFromCustomerRequest;
 export interface UpdateProviderAccountRequest {
-  displayName: string;
+  displayName?: string;
 }
 export interface ProviderAuthorization {
-  membershipStatus?: string;
-  providerStatus?: string;
-  verificationStatus?: string;
-  permissions?: Array<{ code: string }>;
-  permissionCodes?: string[];
-  [key: string]: unknown;
+  platform: 'PROVIDER';
+  providerId: string | null;
+  membershipId: string | null;
+  roles: AuthorizationPrincipal[];
+  permissions: AuthorizationPermission[];
+  providerStatus: ProviderStatus | null;
+  verificationStatus: ProviderVerificationStatus | null;
+  membershipStatus: ProviderMembershipStatus | null;
+  providerDisplayName?: string;
+  authorizationVersion: string;
 }

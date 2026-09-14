@@ -37,18 +37,14 @@ export interface User {
   profile?: UserProfile | null;
 }
 
-export type LoginRequest =
-  | { email: string; identifier?: never; password: string }
-  | { identifier: string; email?: never; password: string };
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
 
 export interface RegisterRequest {
   email: string;
   password: string;
-  fullName?: string;
-  username?: string;
-  phoneNumber?: string;
-  avatar?: string;
-  bio?: string;
 }
 
 export interface TokenPair {

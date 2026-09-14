@@ -59,11 +59,12 @@ export default function AuthorizationPage() {
           value={platform}
           onChange={(e) => setPlatform(e.target.value as Platform)}
         >
-          {(platformQuery.data?.length ? platformQuery.data : platforms).map(
-            (p) => (
-              <option key={p}>{p}</option>
-            ),
-          )}
+          {(platformQuery.data?.items?.length
+            ? platformQuery.data.items.map((item) => item.platform)
+            : platforms
+          ).map((p) => (
+            <option key={p}>{p}</option>
+          ))}
         </select>
       </div>
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">

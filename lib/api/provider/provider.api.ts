@@ -1,6 +1,7 @@
 import { providerApiClient } from '../client';
 import type {
   CreateProviderAccountRequest,
+  RegisterProviderFromCustomerRequest,
   ProviderAccount,
   ProviderAuthorization,
   ProviderRegistrationResponse,
@@ -12,7 +13,7 @@ export const providerApi = {
       '/providers/register',
       data,
     ),
-  registerFromCustomer: (data: CreateProviderAccountRequest) =>
+  registerFromCustomer: (data: RegisterProviderFromCustomerRequest) =>
     providerApiClient.post<ProviderRegistrationResponse>(
       '/providers/register/from-customer',
       data,

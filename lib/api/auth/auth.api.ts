@@ -12,7 +12,7 @@ export const authApi = {
   },
 
   register(data: RegisterRequest) {
-    return customerAuthenticationApi.register<void>(data);
+    return customerAuthenticationApi.register(data);
   },
 
   getProfile() {

@@ -1,10 +1,15 @@
 import { customerApiClient, publicApiClient } from '../client';
-import type { TokenPair, CustomerProfile } from './types';
+import type {
+  CustomerAccount,
+  LoginCustomerRequest,
+  RegisterCustomerRequest,
+  TokenPair,
+} from './types';
 export const customerAuthenticationApi = {
-  login: (data: { email?: string; identifier?: string; password: string }) =>
+  login: (data: LoginCustomerRequest) =>
     publicApiClient.post<TokenPair>('/customers/auth/login', data),
-  register: <T = CustomerProfile>(data: object) =>
-    publicApiClient.post<T>('/customers/register', data),
+  register: (data: RegisterCustomerRequest) =>
+    publicApiClient.post<CustomerAccount>('/customers/register', data),
   refresh: (refreshTokenString: string) =>
     publicApiClient.post<TokenPair>('/customers/auth/refresh', {
       refreshTokenString,
@@ -14,5 +19,5 @@ export const customerAuthenticationApi = {
       refreshTokenString,
     }),
   profile: () =>
-    customerApiClient.get<CustomerProfile>('/customers/auth/profile'),
+    customerApiClient.get<CustomerAccount>('/customers/auth/profile'),
 };

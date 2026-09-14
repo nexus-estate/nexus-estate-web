@@ -10,10 +10,7 @@ export default function SubjectsPage() {
   const query = useQuery({
     queryKey: ['administration', 'authorization', platform, 'subjects', q],
     queryFn: () =>
-      administrationAuthorizationApi.subjects(
-        platform,
-        q ? `q=${encodeURIComponent(q)}` : '',
-      ),
+      administrationAuthorizationApi.subjects(platform, q ? { q } : {}),
   });
   const items = query.data?.items ?? [];
   return (
@@ -43,19 +40,15 @@ export default function SubjectsPage() {
             {items.map((item) => (
               <tr className="border-t border-[var(--border)]" key={item.id}>
                 <td className="px-4 py-3">
-                  <div className="font-medium">
-                    {item.displayName ?? item.email ?? item.id}
-                  </div>
-                  {item.email && (
+                  <div className="font-medium">{item.displayName}</div>
+                  {item.secondaryText && (
                     <div className="text-xs text-[var(--text-muted)]">
-                      {item.email}
+                      {item.secondaryText}
                     </div>
                   )}
                 </td>
                 <td>{String(item.status ?? '—')}</td>
-                <td>
-                  {item.roles?.map((role) => role.code).join(', ') || '—'}
-                </td>
+                <td>{item.roleIds.length ? String(item.roleCount) : '—'}</td>
               </tr>
             ))}
           </tbody>

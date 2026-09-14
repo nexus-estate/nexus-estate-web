@@ -2,26 +2,24 @@
 
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { useAuth } from '@/hooks/use-auth';
-import type { User } from '@/lib/api/auth/auth.types';
+import type { CustomerAccount } from '@/lib/api/customer/types';
 import { listingApi } from '@/lib/api/listing/listing.api';
 import type { Listing } from '@/lib/api/listing/listing.types';
 import { paymentApi } from '@/lib/api/payment/payment.api';
 import type { PostingPackage as Package } from '@/lib/api/payment/payment.types';
-import { useTranslations } from '@/lib/i18n';
 
-function getUserFullName(user: User | null): string {
+function getUserFullName(user: CustomerAccount | null): string {
   if (!user) return '';
-  if (user.fullName) return user.fullName;
-  if (user.username) return user.username;
   return user.email;
 }
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { t } = useTranslations();
+  const t = useTranslations('customer.dashboard');
 
   const { data: listings = [], isLoading: listingsLoading } = useQuery<
     Listing[]
@@ -62,21 +60,21 @@ export default function DashboardPage() {
         {/* Welcome */}
         <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
           <h1 className="text-2xl font-bold">
-            {t('dashboard.welcome')}, {getUserFullName(user)}!
+            {t('welcome')}, {getUserFullName(user)}!
           </h1>
-          <p className="mt-1 text-blue-100">{t('dashboard.welcomeSub')}</p>
+          <p className="mt-1 text-blue-100">{t('welcomeSub')}</p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
               href="/dashboard/listings/new"
               className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 transition-colors"
             >
-              {t('dashboard.newListing')}
+              {t('newListing')}
             </Link>
             <Link
               href="/properties"
               className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-400 transition-colors"
             >
-              {t('dashboard.explore')}
+              {t('explore')}
             </Link>
           </div>
         </div>
@@ -85,19 +83,19 @@ export default function DashboardPage() {
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           {[
             {
-              label: t('dashboard.statsListings'),
+              label: t('statsListings'),
               value: listings.length,
               icon: '📋',
               color: 'bg-blue-50 text-blue-700',
             },
             {
-              label: t('dashboard.statsViews'),
+              label: t('statsViews'),
               value: totalViews,
               icon: '👁️',
               color: 'bg-green-50 text-green-700',
             },
             {
-              label: t('dashboard.statsRole'),
+              label: t('statsRole'),
               value: accountLabel,
               icon: '👤',
               color: 'bg-purple-50 text-purple-700',
@@ -129,13 +127,13 @@ export default function DashboardPage() {
             <Card.Header>
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-gray-900">
-                  {t('dashboard.myListings')}
+                  {t('myListings')}
                 </h2>
                 <Link
                   href="/dashboard/listings/new"
                   className="text-sm font-medium text-blue-600 hover:text-blue-700"
                 >
-                  {t('dashboard.add')}
+                  {t('add')}
                 </Link>
               </div>
             </Card.Header>
@@ -148,14 +146,12 @@ export default function DashboardPage() {
                 </div>
               ) : listings.length === 0 ? (
                 <div className="rounded-xl bg-gray-50 p-6 text-center">
-                  <p className="text-sm text-gray-500">
-                    {t('dashboard.noListings')}
-                  </p>
+                  <p className="text-sm text-gray-500">{t('noListings')}</p>
                   <Link
                     href="/dashboard/listings/new"
                     className="mt-2 inline-block text-sm font-medium text-blue-600 hover:underline"
                   >
-                    {t('dashboard.postNow')}
+                    {t('postNow')}
                   </Link>
                 </div>
               ) : (
@@ -180,16 +176,16 @@ export default function DashboardPage() {
                           size="sm"
                         >
                           {listing.status === 'published'
-                            ? t('dashboard.statusPublished')
+                            ? t('statusPublished')
                             : listing.status === 'draft'
-                              ? t('dashboard.statusDraft')
-                              : t('dashboard.statusPending')}
+                              ? t('statusDraft')
+                              : t('statusPending')}
                         </Badge>
                       </div>
                       <div className="text-right text-xs text-gray-400">
                         {listing.viewCount > 0 && (
                           <p>
-                            {listing.viewCount} {t('dashboard.views')}
+                            {listing.viewCount} {t('views')}
                           </p>
                         )}
                       </div>
@@ -205,7 +201,7 @@ export default function DashboardPage() {
             <Card.Header>
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-gray-900">
-                  {t('dashboard.packages')}
+                  {t('packages')}
                 </h2>
               </div>
             </Card.Header>
@@ -218,9 +214,7 @@ export default function DashboardPage() {
                 </div>
               ) : packages.length === 0 ? (
                 <div className="rounded-xl bg-gray-50 p-6 text-center">
-                  <p className="text-sm text-gray-500">
-                    {t('dashboard.noPackages')}
-                  </p>
+                  <p className="text-sm text-gray-500">{t('noPackages')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -239,11 +233,10 @@ export default function DashboardPage() {
                       </div>
                       <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
                         <span>
-                          {pkg.durationDays} {t('dashboard.days')}
+                          {pkg.durationDays} {t('days')}
                         </span>
                         <span>
-                          {t('dashboard.maxListings')} {pkg.maxListings}{' '}
-                          {t('dashboard.posts')}
+                          {t('maxListings')} {pkg.maxListings} {t('posts')}
                         </span>
                       </div>
                     </div>

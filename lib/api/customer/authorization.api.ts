@@ -1,8 +1,8 @@
 import { customerApiClient } from '../client';
-import type { EffectiveAuthorization } from './types';
+import type { EffectiveMarketplaceAuthorization } from './types';
 export const customerAuthorizationApi = {
   effective: () =>
-    customerApiClient.get<EffectiveAuthorization>(
+    customerApiClient.get<EffectiveMarketplaceAuthorization>(
       '/customers/me/authorization',
     ),
 };

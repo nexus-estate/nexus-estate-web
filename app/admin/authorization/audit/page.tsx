@@ -32,7 +32,7 @@ export default function AuditPage() {
                 key={item.id ?? `${item.createdAt}-${index}`}
               >
                 <td className="px-4 py-3">{item.createdAt ?? '—'}</td>
-                <td>{item.actor ?? '—'}</td>
+                <td>{item.actorAdministratorId}</td>
                 <td>{item.platform ?? '—'}</td>
                 <td>{item.action ?? '—'}</td>
                 <td className="font-mono text-xs">{item.requestId ?? '—'}</td>

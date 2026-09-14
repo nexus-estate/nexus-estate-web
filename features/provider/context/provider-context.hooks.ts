@@ -39,9 +39,7 @@ export function useProviderAuthorization() {
     state = 'ACTIVE_VERIFIED';
   else if (value?.verificationStatus === 'REJECTED') state = 'REJECTED';
   const permissions =
-    value?.permissionCodes ??
-    value?.permissions?.map((permission) => permission.code) ??
-    [];
+    value?.permissions.map((permission) => permission.code) ?? [];
   return {
     ...query,
     state,

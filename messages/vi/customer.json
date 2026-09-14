@@ -7,5 +7,24 @@
   "account": {
     "title": "Tài khoản khách hàng",
     "description": "Quản lý thông tin và quyền truy cập của bạn."
+  },
+  "dashboard": {
+    "welcome": "Xin chào",
+    "welcomeSub": "Chào mừng bạn đến với Nexus Estate.",
+    "newListing": "+ Đăng tin mới",
+    "explore": "Khám phá bất động sản",
+    "myListings": "Tin đăng của tôi",
+    "add": "+ Thêm",
+    "noListings": "Bạn chưa có tin đăng nào.",
+    "postNow": "Đăng tin ngay",
+    "packages": "Gói dịch vụ",
+    "noPackages": "Chưa có gói dịch vụ nào.",
+    "days": "ngày",
+    "maxListings": "Tối đa",
+    "posts": "tin",
+    "views": "lượt xem",
+    "statsListings": "Tin đăng",
+    "statsViews": "Lượt xem",
+    "statsRole": "Tài khoản"
   }
 }
