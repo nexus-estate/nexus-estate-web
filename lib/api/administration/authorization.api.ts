@@ -18,9 +18,19 @@ import type {
   AuthorizationRoleDetail,
   ProviderMemberListResponse,
   UpdateRoleRequest,
+  AuthorizationSubjectDetailWire,
 } from './types';
 const base = (platform: Platform) =>
   `/administration/authorization/${platform}`;
+const normalizeSubjectDetail = (
+  wire: AuthorizationSubjectDetailWire,
+): AuthorizationSubjectDetail => ({
+  ...wire,
+  providerId: wire.provider_id,
+  providerDisplayName: wire.provider_display_name,
+  customerId: wire.customer_id,
+  customerEmail: wire.customer_email,
+});
 export const administrationAuthorizationApi = {
   effective: () =>
     administrationApiClient.get<AdministrationAuthorization>(
@@ -85,9 +95,11 @@ export const administrationAuthorizationApi = {
     administrationApiClient.get<SubjectListResponse>(
       `${base(platform)}/subjects${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
-  subject: (platform: Platform, id: string) =>
-    administrationApiClient.get<AuthorizationSubjectDetail>(
-      `${base(platform)}/subjects/${id}`,
+  subject: async (platform: Platform, id: string) =>
+    normalizeSubjectDetail(
+      await administrationApiClient.get<AuthorizationSubjectDetailWire>(
+        `${base(platform)}/subjects/${id}`,
+      ),
     ),
   replaceSubjectRoles: (
     platform: Platform,

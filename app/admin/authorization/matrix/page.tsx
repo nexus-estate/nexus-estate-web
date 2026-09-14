@@ -20,6 +20,8 @@ type Group = {
     riskLevel?: string;
   }>;
 };
+const sameSet = (left: string[], right: string[]) =>
+  left.length === right.length && left.every((value) => right.includes(value));
 export default function MatrixPage() {
   const t = useTranslations('common');
   const { platform, setPlatform } = useAuthorizationPlatform();
@@ -33,24 +35,27 @@ export default function MatrixPage() {
     (MatrixResponse & { permissionGroups?: Group[] }) | undefined;
   const [roleId, setRoleId] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
-  const [dirty, setDirty] = useState(false);
   const activeRoleId = roleId || data?.roles?.[0]?.id || '';
-  const activeSelected = roleId
-    ? selected
-    : (data?.assignments?.[activeRoleId] ?? []);
+  const persisted = data?.assignments?.[activeRoleId] ?? [];
+  const activeSelected = roleId ? selected : persisted;
+  const dirty = !sameSet(activeSelected, persisted);
   const activeRole = data?.roles.find((role) => role.id === activeRoleId);
   const canEdit =
     hasPermission('authorization:role:write') &&
     Boolean(activeRole?.allowedActions.updatePermissions);
   useEffect(() => {
+    if (data?.roles && !data.roles.length) {
+      // Empty platforms are valid and need a deliberate empty state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRoleId('');
+      setSelected([]);
+      return;
+    }
     if (data?.roles && !data.roles.some((role) => role.id === roleId)) {
       // Synchronize the draft with the first server-provided role once.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRoleId(data.roles[0].id);
 
       setSelected(data.assignments[data.roles[0].id] ?? []);
-
-      setDirty(false);
     }
   }, [data, roleId]);
   useEffect(() => {
@@ -58,7 +63,6 @@ export default function MatrixPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setRoleId('');
     setSelected([]);
-    setDirty(false);
   }, [platform]);
   const save = useMutation({
     mutationFn: () =>
@@ -72,7 +76,6 @@ export default function MatrixPage() {
         },
       ),
     onSuccess: () => {
-      setDirty(false);
       void qc.invalidateQueries({
         queryKey: ['administration', 'authorization', platform],
       });
@@ -97,7 +100,6 @@ export default function MatrixPage() {
               disabled={!dirty || save.isPending}
               onClick={() => {
                 setSelected(data?.assignments?.[activeRoleId] ?? []);
-                setDirty(false);
               }}
               className="ml-2 rounded-md border border-[var(--border)] px-4 py-2 text-sm disabled:opacity-50"
             >
@@ -123,7 +125,6 @@ export default function MatrixPage() {
           onChange={(e) => {
             setRoleId(e.target.value);
             setSelected(data?.assignments?.[e.target.value] ?? []);
-            setDirty(false);
           }}
         >
           {(data?.roles ?? []).map((role) => (
@@ -133,6 +134,12 @@ export default function MatrixPage() {
           ))}
         </select>
       </div>
+      {!query.isLoading && data?.roles?.length === 0 && (
+        <p className="border border-dashed border-[var(--border)] p-6 text-sm text-[var(--text-muted)]">
+          No roles are available for this platform. Create a role first to
+          manage its permission matrix.
+        </p>
+      )}
       <div className="space-y-5">
         {(data?.permissionGroups ?? []).map((group) => (
           <section
@@ -153,7 +160,6 @@ export default function MatrixPage() {
                     checked={activeSelected.includes(permission.id)}
                     disabled={!canEdit}
                     onChange={(e) => {
-                      setDirty(true);
                       setSelected((current) =>
                         e.target.checked
                           ? [...current, permission.id]

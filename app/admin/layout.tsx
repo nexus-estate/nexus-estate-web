@@ -1,6 +1,6 @@
 'use client';
 import { useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
   PortalShell,
@@ -14,6 +14,7 @@ function Guard({ children }: { children: React.ReactNode }) {
   const session = useAdministrationSession();
   const t = useTranslations('administration');
   const pathname = usePathname();
+  const search = useSearchParams();
   const router = useRouter();
   useEffect(() => {
     if (session.status === 'anonymous' && pathname !== '/admin/login')
@@ -34,6 +35,7 @@ function Guard({ children }: { children: React.ReactNode }) {
       section: t('nav.dashboardSection'),
     },
   ];
+  const platform = search.get('platform') || 'MARKETPLACE';
   if (session.hasPermission('provider-account:approve'))
     items.push({
       label: t('nav.providerReview'),
@@ -41,15 +43,28 @@ function Guard({ children }: { children: React.ReactNode }) {
       section: t('nav.operations'),
     });
   if (session.hasPermission('authorization:role:read'))
+    items.push(
+      {
+        label: t('nav.roles'),
+        href: `/admin/authorization?platform=${platform}`,
+        section: t('nav.accessControl'),
+      },
+      {
+        label: t('nav.matrix'),
+        href: `/admin/authorization/matrix?platform=${platform}`,
+        section: t('nav.accessControl'),
+      },
+    );
+  if (session.hasPermission('authorization:permission:read'))
     items.push({
-      label: t('nav.authorization'),
-      href: '/admin/authorization',
+      label: t('nav.permissions'),
+      href: `/admin/authorization/permissions?platform=${platform}`,
       section: t('nav.accessControl'),
     });
   if (session.hasPermission('authorization:assignment:read'))
     items.push({
       label: t('nav.subjects'),
-      href: '/admin/authorization/subjects',
+      href: `/admin/authorization/subjects?platform=${platform}`,
       section: t('nav.accessControl'),
     });
   if (session.hasPermission('authorization:audit:read'))

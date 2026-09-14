@@ -4,6 +4,7 @@ import type {
   PlatformMetadataResponse,
   RoleAllowedActions,
   SubjectListResponse,
+  AuthorizationSubjectDetailWire,
 } from './administration/types';
 import type { RegisterCustomerRequest } from './customer/types';
 import type { ProviderType } from './provider/types';
@@ -70,4 +71,35 @@ test('PR31 response contracts remain exact at the frontend boundary', () => {
   expect(matrix.permissionGroups).toEqual([]);
   expect(subjects.meta.page).toBe(1);
   expect(audit.actorAdministratorId).toBe('admin');
+});
+
+test('normalizes provider subject wire fields at the administration API boundary', async () => {
+  const { administrationAuthorizationApi } =
+    await import('./administration/authorization.api');
+  const wire: AuthorizationSubjectDetailWire = {
+    id: 'membership-1',
+    subjectType: 'PROVIDER_MEMBERSHIP',
+    displayName: 'Nexus Realty',
+    secondaryText: 'owner@example.com',
+    status: 'ACTIVE',
+    roleCount: 1,
+    roleIds: ['role-1'],
+    roles: [],
+    permissions: [],
+    provider_id: 'provider-1',
+    provider_display_name: 'Nexus Realty',
+    customer_id: 'customer-1',
+    customer_email: 'owner@example.com',
+  };
+  jest
+    .spyOn((await import('./client')).administrationApiClient, 'get')
+    .mockResolvedValueOnce(wire);
+  await expect(
+    administrationAuthorizationApi.subject('PROVIDER', 'membership-1'),
+  ).resolves.toMatchObject({
+    providerId: 'provider-1',
+    providerDisplayName: 'Nexus Realty',
+    customerId: 'customer-1',
+    customerEmail: 'owner@example.com',
+  });
 });

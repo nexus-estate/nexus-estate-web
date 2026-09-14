@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import {
   PlatformSelector,
@@ -9,11 +10,21 @@ import { PageHeader } from '@/components/portal/page-header';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 export default function SubjectsPage() {
   const [q, setQ] = useState('');
+  const [status, setStatus] = useState('');
   const { platform, setPlatform } = useAuthorizationPlatform();
   const query = useQuery({
-    queryKey: ['administration', 'authorization', platform, 'subjects', q],
+    queryKey: [
+      'administration',
+      'authorization',
+      platform,
+      'subjects',
+      { q, status },
+    ],
     queryFn: () =>
-      administrationAuthorizationApi.subjects(platform, q ? { q } : {}),
+      administrationAuthorizationApi.subjects(platform, {
+        q: q || undefined,
+        status: status || undefined,
+      }),
   });
   const items = query.data?.items ?? [];
   return (
@@ -32,6 +43,15 @@ export default function SubjectsPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
+        <select
+          className="ml-2 rounded-md border border-[var(--border)] bg-white px-3 py-2 text-sm"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="">All statuses</option>
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="DISABLED">DISABLED</option>
+        </select>
       </div>
       <div className="overflow-x-auto border border-[var(--border)] bg-[var(--surface)]">
         <table className="w-full text-left text-sm">
@@ -40,6 +60,7 @@ export default function SubjectsPage() {
               <th className="px-4 py-3">Identity</th>
               <th>Status</th>
               <th>Roles</th>
+              <th />
             </tr>
           </thead>
           <tbody>
@@ -54,7 +75,15 @@ export default function SubjectsPage() {
                   )}
                 </td>
                 <td>{String(item.status ?? '—')}</td>
-                <td>{item.roleIds.length ? String(item.roleCount) : '—'}</td>
+                <td>{String(item.roleCount)}</td>
+                <td>
+                  <Link
+                    className="text-[var(--primary)] hover:underline"
+                    href={`/admin/authorization/subjects/${item.id}?platform=${platform}`}
+                  >
+                    View
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>

@@ -134,6 +134,15 @@ export interface AuthorizationSubjectDetail extends AuthorizationSubjectSummary 
   customerId?: string;
   customerEmail?: string;
 }
+export type AuthorizationSubjectDetailWire = Omit<
+  AuthorizationSubjectDetail,
+  'providerId' | 'providerDisplayName' | 'customerId' | 'customerEmail'
+> & {
+  provider_id?: string;
+  provider_display_name?: string;
+  customer_id?: string;
+  customer_email?: string;
+};
 export type SubjectListResponse = Paginated<AuthorizationSubjectSummary>;
 export interface AuthorizationAuditEvent {
   id: string;
