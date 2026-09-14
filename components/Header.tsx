@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/portal/language-switcher';
 import { useAuth } from '@/hooks/use-auth';
+
 export default function Header() {
   const t = useTranslations('customer.nav');
   const { user, status, logout } = useAuth();
@@ -16,9 +17,10 @@ export default function Header() {
     [t('provider'), '/provider'],
   ];
   const signedIn = status === 'authenticated' && user;
+
   return (
-    <header className="sticky inset-x-0 top-0 z-50 border-b border-white/10 bg-[#071b1b]/95 text-white">
-      <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-14">
+    <header className="sticky inset-x-0 top-0 z-50 border-b border-white/10 bg-[var(--brand-strong)]/96 text-[var(--text-on-dark)] shadow-[var(--shadow-xs)] backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-[var(--content-max)] items-center justify-between px-5 sm:px-8 lg:px-10">
         <Link
           href="/"
           className="font-display text-xl tracking-wide"
@@ -34,14 +36,14 @@ export default function Header() {
             <Link
               key={href}
               href={href}
-              className="text-sm text-white/80 hover:text-white"
+              className="text-sm text-white/75 transition-colors hover:text-white"
             >
               {label}
             </Link>
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <div className="hidden w-28 sm:block">
+          <div className="hidden w-28 sm:block [&_button]:border-white/15 [&_button]:bg-white/5 [&_button]:text-white/75 [&_button:hover]:bg-white/10 [&_button:hover]:text-white">
             <LanguageSwitcher />
           </div>
           {signedIn ? (
@@ -50,26 +52,26 @@ export default function Header() {
                 type="button"
                 onClick={() => setAccountOpen(!accountOpen)}
                 aria-expanded={accountOpen}
-                className="border border-white/25 px-3 py-2 text-sm"
+                className="rounded-[var(--radius-md)] border border-white/20 bg-white/5 px-3 py-2 text-sm font-medium transition-colors hover:bg-white/10"
               >
                 {user.email}
               </button>
               {accountOpen && (
-                <div className="absolute right-0 mt-2 w-48 border border-[var(--border)] bg-white py-1 text-[var(--text)] shadow-lg">
+                <div className="absolute right-0 mt-2 w-52 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] py-1 text-[var(--text)] shadow-[var(--shadow-md)]">
                   <Link
-                    className="block px-3 py-2 text-sm hover:bg-[var(--surface-subtle)]"
+                    className="block px-3 py-2 text-sm transition-colors hover:bg-[var(--surface-hover)]"
                     href="/profile"
                   >
                     {t('account')}
                   </Link>
                   <Link
-                    className="block px-3 py-2 text-sm hover:bg-[var(--surface-subtle)]"
+                    className="block px-3 py-2 text-sm transition-colors hover:bg-[var(--surface-hover)]"
                     href="/provider"
                   >
                     {t('provider')}
                   </Link>
                   <button
-                    className="w-full border-t px-3 py-2 text-left text-sm text-red-700"
+                    className="w-full border-t border-[var(--border-muted)] px-3 py-2 text-left text-sm font-medium text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)]"
                     onClick={() => {
                       void logout();
                       setAccountOpen(false);
@@ -82,12 +84,15 @@ export default function Header() {
             </div>
           ) : (
             <div className="hidden gap-2 sm:flex">
-              <Link href="/signin" className="px-3 py-2 text-sm">
+              <Link
+                href="/signin"
+                className="rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+              >
                 {t('signIn')}
               </Link>
               <Link
                 href="/signup"
-                className="border border-[#c7a66b] px-3 py-2 text-sm"
+                className="rounded-[var(--radius-md)] border border-[var(--brand-accent)] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--brand-accent)] hover:text-[var(--brand-strong)]"
               >
                 {t('signUp')}
               </Link>
@@ -95,7 +100,7 @@ export default function Header() {
           )}
           <button
             type="button"
-            className="lg:hidden"
+            className="rounded-[var(--radius-md)] p-2 transition-colors hover:bg-white/10 lg:hidden"
             aria-label={mobileOpen ? t('closeMenu') : t('openMenu')}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -106,7 +111,7 @@ export default function Header() {
       </div>
       {mobileOpen && (
         <nav
-          className="border-t border-white/10 bg-[#071b1b] px-5 py-4 lg:hidden"
+          className="border-t border-white/10 bg-[var(--brand-strong)] px-5 py-4 shadow-[var(--shadow-md)] lg:hidden"
           aria-label={t('navigation')}
         >
           {nav.map(([label, href]) => (
@@ -114,14 +119,14 @@ export default function Header() {
               key={href}
               href={href}
               onClick={() => setMobileOpen(false)}
-              className="block border-b border-white/10 py-3 text-sm"
+              className="block border-b border-white/10 py-3 text-sm text-white/80 transition-colors hover:text-white"
             >
               {label}
             </Link>
           ))}
           {signedIn ? (
             <button
-              className="py-3 text-left text-sm"
+              className="py-3 text-left text-sm text-white/80"
               onClick={() => {
                 void logout();
                 setMobileOpen(false);
@@ -130,7 +135,7 @@ export default function Header() {
               {t('signOut')}
             </button>
           ) : (
-            <div className="flex gap-4 py-3">
+            <div className="flex gap-4 py-3 text-sm">
               <Link href="/signin">{t('signIn')}</Link>
               <Link href="/signup">{t('signUp')}</Link>
             </div>

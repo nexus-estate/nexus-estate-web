@@ -12,18 +12,22 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-  secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',
+  primary:
+    'border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] shadow-[var(--shadow-xs)] hover:border-[var(--primary-hover)] hover:bg-[var(--primary-hover)] active:border-[var(--primary-active)] active:bg-[var(--primary-active)]',
+  secondary:
+    'border border-[var(--border)] bg-[var(--surface-subtle)] text-[var(--text)] shadow-[var(--shadow-xs)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)]',
   outline:
-    'border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-blue-500',
-  ghost: 'text-gray-700 hover:bg-gray-100 focus:ring-gray-500',
-  danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+    'border border-[var(--border-interactive)] bg-[var(--surface)] text-[var(--text)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]',
+  ghost:
+    'border border-transparent bg-transparent text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
+  danger:
+    'border border-[var(--danger)] bg-[var(--danger)] text-white shadow-[var(--shadow-xs)] hover:border-[var(--danger-strong)] hover:bg-[var(--danger-strong)]',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-6 py-3 text-base',
+  sm: 'min-h-8 px-3 text-xs',
+  md: 'min-h-10 px-4 text-sm',
+  lg: 'min-h-11 px-5 text-sm',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -46,20 +50,21 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={isDisabled}
         className={clsx(
-          'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
+          'inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] active:translate-y-px',
           variantClasses[variant],
           sizeClasses[size],
-          isDisabled && 'cursor-not-allowed opacity-50',
+          isDisabled && 'cursor-not-allowed opacity-50 active:translate-y-0',
           className,
         )}
         {...props}
       >
         {loading && (
           <svg
-            className="mr-2 h-4 w-4 animate-spin"
+            className="h-4 w-4 animate-spin"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <circle
               className="opacity-25"

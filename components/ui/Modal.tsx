@@ -20,7 +20,7 @@ const sizeClasses: Record<ModalSize, string> = {
   md: 'max-w-md',
   lg: 'max-w-lg',
   xl: 'max-w-xl',
-  full: 'max-w-full mx-4',
+  full: 'mx-4 max-w-full',
 };
 
 export function Modal({
@@ -57,7 +57,7 @@ export function Modal({
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-[var(--overlay)] backdrop-blur-[2px] transition-opacity"
         onClick={closeOnOverlay ? onClose : undefined}
         aria-hidden="true"
       />
@@ -66,23 +66,22 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}
         className={clsx(
-          'relative w-full rounded-lg bg-white shadow-xl',
+          'relative flex max-h-[85vh] w-full flex-col overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface-raised)] shadow-[var(--shadow-lg)]',
           'transform transition-all duration-200 ease-out',
-          'max-h-[85vh] flex flex-col',
           sizeClasses[size],
         )}
       >
         {title && (
-          <div className="flex items-center justify-between border-b px-6 py-4">
+          <div className="flex items-center justify-between border-b border-[var(--border-muted)] px-5 py-4 sm:px-6">
             <h2
               id="modal-title"
-              className="text-lg font-semibold text-gray-900"
+              className="text-base font-semibold text-[var(--text)]"
             >
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
+              className="rounded-[var(--radius-sm)] p-1.5 text-[var(--text-subtle)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
               aria-label="Close modal"
             >
               <svg
@@ -90,6 +89,7 @@ export function Modal({
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -101,9 +101,9 @@ export function Modal({
             </button>
           </div>
         )}
-        <div className="overflow-y-auto px-6 py-4 flex-1">{children}</div>
+        <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
         {footer && (
-          <div className="border-t px-6 py-4 flex items-center justify-end space-x-3">
+          <div className="flex items-center justify-end gap-3 border-t border-[var(--border-muted)] bg-[var(--surface-subtle)] px-5 py-4 sm:px-6">
             {footer}
           </div>
         )}

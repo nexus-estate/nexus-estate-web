@@ -20,9 +20,10 @@ export default async function RootLayout({
   const localeCookie = (await cookies()).get('nexus.locale')?.value;
   const locale =
     localeCookie === 'vi' || localeCookie === 'en' ? localeCookie : 'en';
+
   return (
-    <html lang={locale} className="h-full">
-      <body className="flex min-h-full flex-col bg-[#f7f5ef] font-sans antialiased">
+    <html lang={locale} className="h-full bg-[var(--background)]">
+      <body className="flex min-h-full flex-col bg-[var(--background)] font-sans text-[var(--text)] antialiased">
         <QueryProvider>
           <AppProviders locale={locale}>{children}</AppProviders>
         </QueryProvider>

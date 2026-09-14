@@ -19,7 +19,7 @@ interface UploadProps {
 export function Upload({
   accept,
   multiple = false,
-  maxSize = 10 * 1024 * 1024, // 10MB
+  maxSize = 10 * 1024 * 1024,
   onUpload,
   className,
 }: UploadProps) {
@@ -101,17 +101,18 @@ export function Upload({
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
         className={clsx(
-          'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors',
+          'flex cursor-pointer flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed p-8 text-center transition-[border-color,background-color,box-shadow]',
           isDragging
-            ? 'border-blue-400 bg-blue-50'
-            : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100',
+            ? 'border-[var(--primary)] bg-[var(--primary-soft)] shadow-[0_0_0_3px_var(--focus-ring)]'
+            : 'border-[var(--border-strong)] bg-[var(--surface-subtle)] hover:border-[var(--border-interactive)] hover:bg-[var(--surface-hover)]',
         )}
       >
         <svg
-          className="mb-3 h-10 w-10 text-gray-400"
+          className="mb-3 h-10 w-10 text-[var(--text-subtle)]"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -120,11 +121,11 @@ export function Upload({
             d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
           />
         </svg>
-        <p className="mb-1 text-sm text-gray-600">
-          <span className="font-medium text-blue-600">Click to upload</span> or
-          drag and drop
+        <p className="mb-1 text-sm text-[var(--text-muted)]">
+          <span className="font-semibold text-[var(--primary)]">Click to upload</span>{' '}
+          or drag and drop
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-[var(--text-subtle)]">
           {accept ? accept.replace(/,/g, ', ') : 'Any file'} up to{' '}
           {maxSize / 1024 / 1024}MB
         </p>
@@ -139,7 +140,7 @@ export function Upload({
       </div>
 
       {error && (
-        <p role="alert" className="mt-2 text-sm text-red-600">
+        <p role="alert" className="mt-2 text-xs font-medium text-[var(--danger)]">
           {error}
         </p>
       )}
@@ -149,7 +150,7 @@ export function Upload({
           {uploadedFiles.map((file, index) => (
             <li
               key={`${file.file.name}-${file.file.lastModified}`}
-              className="flex items-center rounded-md border bg-white px-3 py-2"
+              className="flex items-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 shadow-[var(--shadow-xs)]"
             >
               {file.preview ? (
                 <Image
@@ -158,15 +159,16 @@ export function Upload({
                   width={40}
                   height={40}
                   unoptimized
-                  className="mr-3 h-10 w-10 rounded object-cover"
+                  className="mr-3 h-10 w-10 rounded-[var(--radius-sm)] object-cover"
                 />
               ) : (
-                <div className="mr-3 flex h-10 w-10 items-center justify-center rounded bg-gray-100 text-gray-400">
+                <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--surface-muted)] text-[var(--text-subtle)]">
                   <svg
                     className="h-5 w-5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -177,11 +179,11 @@ export function Upload({
                   </svg>
                 </div>
               )}
-              <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-medium text-gray-700">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-[var(--text)]">
                   {file.file.name}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[var(--text-muted)]">
                   {(file.file.size / 1024).toFixed(1)} KB
                 </p>
               </div>
@@ -190,7 +192,7 @@ export function Upload({
                   e.stopPropagation();
                   removeFile(index);
                 }}
-                className="ml-2 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                className="ml-2 rounded-[var(--radius-sm)] p-1.5 text-[var(--text-subtle)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
                 aria-label={`Remove ${file.file.name}`}
               >
                 <svg
@@ -198,6 +200,7 @@ export function Upload({
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
