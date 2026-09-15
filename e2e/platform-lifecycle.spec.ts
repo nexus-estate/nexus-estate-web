@@ -23,12 +23,13 @@ async function token(page: Page, key: string) {
   return page.evaluate((storageKey) => localStorage.getItem(storageKey), key);
 }
 
-test('proves the Customer → Provider → Administration lifecycle and isolation', async (
-  { browser },
-  testInfo,
-) => {
+test('proves the Customer → Provider → Administration lifecycle and isolation', async ({
+  browser,
+}) => {
   test.setTimeout(60_000);
-  const runKey = `${process.env.GITHUB_RUN_ID ?? `local-${process.pid}`}-${testInfo.retry}`;
+  const testInfo = test.info();
+  const runId = process.env.GITHUB_RUN_ID ?? `local-${process.pid}`;
+  const runKey = `${runId}-${testInfo.retry}`;
   const customerEmail = `lifecycle-customer-${runKey}@nexus.test`;
   const providerName = `Lifecycle Provider ${runKey}`;
   const customerContext = await browser.newContext();
@@ -119,7 +120,9 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     await adminPage.locator('input[type="password"]').fill(adminPassword);
     await adminPage.getByRole('button', { name: /Sign in|Đăng nhập/ }).click();
     await expect(adminPage).toHaveURL(/\/admin\/provider-requests(?:\?|$)/);
-    await expect(adminPage.getByText(providerName, { exact: true })).toBeVisible();
+    await expect(
+      adminPage.getByText(providerName, { exact: true }),
+    ).toBeVisible();
     await adminPage
       .getByRole('button', { name: /Approve|Phê duyệt/ })
       .first()
@@ -164,9 +167,7 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
 
     await customerPage.goto('/profile');
     await expect(
-      customerPage
-        .getByRole('main')
-        .getByText(customerEmail, { exact: true }),
+      customerPage.getByRole('main').getByText(customerEmail, { exact: true }),
     ).toBeVisible();
     const marketplaceHeader = customerRequests.find((headers) =>
       headers.authorization?.startsWith('Bearer '),
