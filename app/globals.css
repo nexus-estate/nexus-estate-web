@@ -1,47 +1,194 @@
 @import 'tailwindcss';
 
+/*
+ * Nexus Estate design foundation
+ *
+ * The base layer intentionally separates brand colors from product interaction
+ * colors. Marketplace surfaces can stay recognisably Nexus while provider and
+ * administration portals share a neutral, data-dense enterprise UI language.
+ */
 :root {
-  --background: #f7f5ef;
-  --foreground: #102f2d;
-  --primary: #0c302e;
-  --primary-dark: #071b1b;
-  --secondary: #c7a66b;
-  --accent: #d9bf8d;
-  --muted: #697572;
-  --border: #ded9cf;
+  color-scheme: light;
+
+  /* Neutral canvas */
+  --neutral-0: #ffffff;
+  --neutral-25: #fbfcfd;
+  --neutral-50: #f6f8fa;
+  --neutral-100: #eef1f4;
+  --neutral-200: #d8dee4;
+  --neutral-300: #b7c0ca;
+  --neutral-400: #8c959f;
+  --neutral-500: #66707b;
+  --neutral-600: #57606a;
+  --neutral-700: #3d444d;
+  --neutral-800: #2d333b;
+  --neutral-900: #1f2328;
+  --neutral-950: #161b22;
+
+  /* Product interaction */
+  --primary: #1f6feb;
+  --primary-hover: #1a5fd0;
+  --primary-active: #174ea6;
+  --primary-soft: #eef5ff;
+  --primary-soft-hover: #e2efff;
+  --primary-foreground: #ffffff;
+
+  /* Nexus brand — use for identity, not generic actions */
+  --brand: #123b3a;
+  --brand-hover: #174b49;
+  --brand-strong: #0b2626;
+  --brand-soft: #e8f3f2;
+  --brand-accent: #b38a46;
+  --brand-accent-soft: #f7f0e4;
+
+  /* Semantic states */
+  --success: #1a7f37;
+  --success-strong: #116329;
+  --success-soft: #dafbe1;
+  --warning: #9a6700;
+  --warning-strong: #7d4e00;
+  --warning-soft: #fff8c5;
+  --danger: #cf222e;
+  --danger-strong: #a40e26;
+  --danger-soft: #ffebe9;
+  --info: #0969da;
+  --info-strong: #0550ae;
+  --info-soft: #ddf4ff;
+
+  /* Semantic surfaces */
+  --background: var(--neutral-50);
+  --surface: var(--neutral-0);
+  --surface-raised: var(--neutral-0);
+  --surface-subtle: var(--neutral-25);
+  --surface-muted: var(--neutral-100);
+  --surface-hover: #f3f6f9;
+  --surface-selected: var(--primary-soft);
+  --overlay: rgb(31 35 40 / 0.42);
+
+  --border: var(--neutral-200);
+  --border-muted: #e7ebef;
+  --border-strong: var(--neutral-300);
+  --border-interactive: #a8b3bf;
+
+  --text: var(--neutral-900);
+  --text-muted: var(--neutral-600);
+  --text-subtle: var(--neutral-500);
+  --text-disabled: var(--neutral-400);
+  --text-on-dark: #f6f8fa;
+  --foreground: var(--text);
+  --muted: var(--text-muted);
+
+  /* Compatibility aliases used by older marketplace views */
+  --primary-dark: var(--primary-active);
+  --secondary: var(--brand-accent);
+  --accent: var(--brand-accent);
+
+  /* Charts — balanced categorical palette for dashboards */
+  --chart-1: #1f6feb;
+  --chart-2: #0f766e;
+  --chart-3: #8250df;
+  --chart-4: #bc4c00;
+  --chart-5: #1a7f37;
+  --chart-6: #bf3989;
+  --chart-7: #0969da;
+  --chart-8: #9a6700;
+  --chart-grid: #e7ebef;
+  --chart-axis: #66707b;
+  --chart-tooltip: #1f2328;
+
+  /* Typography */
+  --font-sans:
+    Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    monospace;
+  --font-display:
+    Iowan Old Style, Baskerville, 'Times New Roman', ui-serif, Georgia, serif;
+
+  /* Geometry */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --control-h-sm: 2rem;
+  --control-h-md: 2.5rem;
+  --control-h-lg: 2.75rem;
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgb(31 35 40 / 0.06);
+  --shadow-sm: 0 1px 3px rgb(31 35 40 / 0.08), 0 1px 2px rgb(31 35 40 / 0.04);
+  --shadow-md: 0 8px 24px rgb(31 35 40 / 0.1);
+  --shadow-lg: 0 16px 40px rgb(31 35 40 / 0.14);
+
+  /* Focus and motion */
+  --focus-ring: rgb(31 111 235 / 0.28);
+  --focus-border: #1f6feb;
+  --duration-fast: 120ms;
+  --duration-normal: 180ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Portal layout */
+  --portal-sidebar-width: 16rem;
+  --content-max: 90rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
   --color-primary: var(--primary);
-  --color-primary-dark: var(--primary-dark);
+  --color-primary-dark: var(--primary-active);
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
   --color-muted: var(--muted);
-  --font-sans:
-    Inter, Avenir, 'Helvetica Neue', Arial, ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 html {
+  min-height: 100%;
   scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
+  min-height: 100%;
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
 button,
 select,
-input {
+input,
+textarea {
   font: inherit;
+}
+
+button,
+select,
+input,
+textarea {
+  color: inherit;
 }
 
 button,
@@ -49,127 +196,256 @@ select {
   cursor: pointer;
 }
 
-.font-display {
-  font-family:
-    Iowan Old Style,
-    Baskerville,
-    'Times New Roman',
-    serif;
+button:disabled,
+select:disabled,
+input:disabled,
+textarea:disabled {
+  cursor: not-allowed;
 }
 
+input,
+select,
+textarea {
+  background: var(--surface);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-subtle);
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-border);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--primary-soft-hover);
+  color: var(--text);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Reusable platform primitives */
+.app-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+
+.app-panel-muted {
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-lg);
+}
+
+.app-control {
+  min-height: var(--control-h-md);
+  width: 100%;
+  border: 1px solid var(--border-interactive);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard),
+    background-color var(--duration-normal) var(--ease-standard);
+}
+
+.app-control:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.app-control:focus {
+  border-color: var(--focus-border);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  outline: none;
+}
+
+.app-control:disabled {
+  background: var(--surface-muted);
+  color: var(--text-disabled);
+}
+
+.app-label {
+  display: block;
+  margin-bottom: 0.375rem;
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.app-help {
+  margin-top: 0.375rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.app-error {
+  color: var(--danger);
+  font-size: 0.75rem;
+}
+
+.chart-surface {
+  --chart-grid-color: var(--chart-grid);
+  --chart-axis-color: var(--chart-axis);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.status-success {
+  background: var(--success-soft);
+  color: var(--success-strong);
+}
+
+.status-warning {
+  background: var(--warning-soft);
+  color: var(--warning-strong);
+}
+
+.status-danger {
+  background: var(--danger-soft);
+  color: var(--danger-strong);
+}
+
+.status-info {
+  background: var(--info-soft);
+  color: var(--info-strong);
+}
+
+/* Marketplace identity helpers */
 .eyebrow {
-  color: #9a7b4f;
+  color: var(--brand-accent);
   font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
 .eyebrow::before {
-  background: currentColor;
-  content: '';
   display: inline-block;
+  width: 2rem;
   height: 1px;
   margin-right: 0.75rem;
+  background: currentColor;
+  content: '';
   vertical-align: middle;
-  width: 2rem;
 }
 
+/* Authentication surfaces */
 .auth-label {
-  color: #314846;
   display: block;
-  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .auth-input {
-  background: rgb(255 255 255 / 0.66);
-  border: 1px solid #d9d5cb;
-  border-radius: 0;
-  color: #102f2d;
   display: block;
-  font-size: 0.875rem;
-  height: 3.25rem;
-  outline: none;
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background-color 180ms ease;
   width: 100%;
+  height: 3.125rem;
+  border: 1px solid var(--border-interactive);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.875rem;
+  outline: none;
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard),
+    background-color var(--duration-normal) var(--ease-standard);
 }
 
 .auth-input::placeholder {
-  color: #a4aaa8;
+  color: var(--text-subtle);
 }
 
 .auth-input:focus {
-  background: white;
-  border-color: #9a7b4f;
-  box-shadow: 0 0 0 3px rgb(154 123 79 / 0.1);
+  border-color: var(--focus-border);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .auth-field-icon {
-  color: #89918f;
-  height: 1.15rem;
-  left: 0.9rem;
-  pointer-events: none;
   position: absolute;
   top: 50%;
+  left: 0.9rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--text-subtle);
+  pointer-events: none;
   transform: translateY(-50%);
-  width: 1.15rem;
 }
 
 .auth-submit {
-  align-items: center;
-  background: #0c302e;
-  color: white;
   display: flex;
-  font-size: 0.7rem;
-  font-weight: 700;
-  height: 3.5rem;
+  align-items: center;
   justify-content: space-between;
-  letter-spacing: 0.16em;
-  padding: 0 1.4rem;
+  width: 100%;
+  height: 3.125rem;
+  padding: 0 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  box-shadow: var(--shadow-xs);
   text-transform: uppercase;
   transition:
-    background-color 180ms ease,
-    transform 180ms ease;
-  width: 100%;
+    background-color var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-standard);
 }
 
 .auth-submit:hover:not(:disabled) {
-  background: #17423f;
+  background: var(--primary-hover);
+  box-shadow: var(--shadow-sm);
   transform: translateY(-1px);
 }
 
+.auth-submit:active:not(:disabled) {
+  background: var(--primary-active);
+  transform: translateY(0);
+}
+
 .auth-submit:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
+  opacity: 0.55;
 }
 
-::selection {
-  background: #c7a66b;
-  color: #071b1b;
-}
-
+/* Scrollbars stay subtle on dense ERP surfaces. */
 ::-webkit-scrollbar {
-  width: 7px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f0ede6;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #9d9079;
+  border: 3px solid transparent;
+  border-radius: var(--radius-full);
+  background: var(--neutral-300);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neutral-400);
+  background-clip: padding-box;
 }
 
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(22px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -178,16 +454,21 @@ select {
 }
 
 .animate-fade-up {
-  animation: fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-fade-in {
-  animation: fade-up 0.35s ease-out both;
+  animation: fade-up 0.28s ease-out both;
 }
 
 .skeleton {
-  animation: skeleton-loading 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #ece9e2 25%, #ddd8cf 50%, #ece9e2 75%);
+  animation: skeleton-loading 1.35s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    var(--surface-muted) 25%,
+    var(--border) 50%,
+    var(--surface-muted) 75%
+  );
   background-size: 200% 100%;
 }
 
@@ -207,5 +488,6 @@ select {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

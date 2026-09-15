@@ -1,17 +1,22 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations('auth.customer');
+  const commonT = useTranslations('common');
   return (
     <main className="grid min-h-screen bg-[#f7f5ef] lg:grid-cols-[1.08fr_.92fr]">
       <section className="relative hidden overflow-hidden bg-[#071b1b] text-white lg:block">
         <Image
           src="/images/hero-villa.webp"
-          alt="Biệt thự cao cấp thuộc bộ sưu tập Nexus Estate"
+          alt=""
           fill
           priority
           sizes="55vw"
@@ -47,11 +52,10 @@ export default function AuthLayout({
         <div className="absolute bottom-14 left-12 right-12 max-w-2xl">
           <div className="mb-6 h-px w-12 bg-[#d2b477]" />
           <blockquote className="font-display text-4xl leading-tight xl:text-5xl">
-            “Một ngôi nhà đẹp không chỉ được nhìn thấy. Nó được{' '}
-            <span className="italic text-[#dcc18c]">cảm nhận.</span>”
+            “{t('heroQuote')}”
           </blockquote>
           <p className="mt-6 text-[10px] font-semibold uppercase tracking-[.22em] text-white/55">
-            Nexus Private Collection · Việt Nam
+            {t('heroCollection')}
           </p>
         </div>
       </section>
@@ -78,7 +82,7 @@ export default function AuthLayout({
           href="/"
           className="absolute right-5 top-7 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.14em] text-[#6e7976] transition hover:text-[#9a7b4f] sm:right-10 lg:right-12"
         >
-          Về trang chủ <span aria-hidden="true">→</span>
+          {commonT('navigation.home')} <span aria-hidden="true">→</span>
         </Link>
         <div className="w-full max-w-[440px]">{children}</div>
       </section>

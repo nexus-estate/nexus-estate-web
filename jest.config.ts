@@ -13,6 +13,7 @@ const config: Config = {
     '<rootDir>/node_modules/',
     '<rootDir>/e2e/',
   ],
+  modulePathIgnorePatterns: ['<rootDir>/.next/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },

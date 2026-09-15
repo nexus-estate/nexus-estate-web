@@ -1,141 +1,154 @@
 'use client';
-
-import { useCallback, useSyncExternalStore } from 'react';
-import { authApi } from '@/lib/api/auth/auth.api';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getRealmAccessToken, setRealmAccessToken } from '@/lib/api/client';
+import { subscribeRealmSessionExpired } from '@/lib/api/core/session-events';
+import { customerAuthenticationApi } from '@/lib/api/customer/authentication.api';
+import { customerAuthorizationApi } from '@/lib/api/customer/authorization.api';
 import type {
-  AuthenticatedPrincipal,
-  LoginRequest,
-  RegisterRequest,
-  User,
-} from '@/lib/api/auth/auth.types';
-import { setAccessToken } from '@/lib/api/client';
-
-const ACCESS_TOKEN_KEY = 'nexus_access_token';
-const REFRESH_TOKEN_KEY = 'nexus_refresh_token';
-const USER_KEY = 'nexus_user';
-
-type AuthListener = () => void;
-const listeners = new Set<AuthListener>();
-let currentUser: User | null = null;
+  CustomerAccount,
+  LoginCustomerRequest,
+  RegisterCustomerRequest,
+} from '@/lib/api/customer/types';
+const USER_KEY = 'nexus.customer.user';
+const REFRESH_KEY = 'nexus.customer.refresh_token';
+const listeners = new Set<() => void>();
+let currentUser: CustomerAccount | null = null;
 let initialized = false;
-
-function isUser(value: unknown): value is User {
-  if (typeof value !== 'object' || value === null) return false;
-  const candidate = value as Record<string, unknown>;
-  return (
-    typeof candidate.id === 'string' && typeof candidate.email === 'string'
-  );
-}
-
-function readSession(): User | null {
+type AuthSnapshot = {
+  user: CustomerAccount | null;
+  initialized: boolean;
+};
+const EMPTY_AUTH_SNAPSHOT: AuthSnapshot = { user: null, initialized: false };
+let currentSnapshot: AuthSnapshot = EMPTY_AUTH_SNAPSHOT;
+const isUser = (v: unknown): v is CustomerAccount =>
+  typeof v === 'object' &&
+  v !== null &&
+  typeof (v as CustomerAccount).id === 'string' &&
+  typeof (v as CustomerAccount).email === 'string';
+function restore() {
   if (typeof window === 'undefined') return null;
+  const token = getRealmAccessToken('customer');
   const raw = localStorage.getItem(USER_KEY);
-  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-  if (!raw || !token) return null;
+  if (!token || !raw) return null;
   try {
-    const parsed: unknown = JSON.parse(raw);
-    if (isUser(parsed)) {
-      setAccessToken(token);
-      return parsed;
-    }
+    const value = JSON.parse(raw);
+    return isUser(value) ? value : null;
   } catch {
-    // A malformed session is cleared below.
+    return null;
   }
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-  return null;
 }
-
-function initializeSession() {
-  if (!initialized && typeof window !== 'undefined') {
-    currentUser = readSession();
-    initialized = true;
-  }
-  return currentUser;
+function snapshot() {
+  return currentSnapshot;
 }
-
-function publish(user: User | null) {
-  currentUser = user;
-  listeners.forEach((listener) => listener());
-}
-
-function subscribe(listener: AuthListener) {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-}
-
-function getSnapshot() {
-  return initializeSession();
-}
-
-function getServerSnapshot() {
-  return null;
-}
-
-function normalizePrincipal(principal: AuthenticatedPrincipal): User {
-  const role = principal.role;
-  return {
-    id: principal.id,
-    email: principal.email,
-    fullName: principal.fullName || principal.email.split('@')[0],
-    username: principal.username,
-    roleId: principal.roleId,
-    role:
-      typeof role === 'object'
-        ? role
-        : role && principal.roleId
-          ? { id: principal.roleId, name: role }
-          : undefined,
-    profile: principal.profile,
-  };
-}
-
+const normalize = (p: CustomerAccount): CustomerAccount => p;
 export function useAuth() {
-  const user = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-
-  const getProfile = useCallback(async () => {
-    const response = await authApi.getProfile();
-    const freshUser = normalizePrincipal(response);
-    localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
-    publish(freshUser);
+  const authSnapshot = useSyncExternalStore(
+    (fn) => {
+      listeners.add(fn);
+      return () => listeners.delete(fn);
+    },
+    snapshot,
+    () => EMPTY_AUTH_SNAPSHOT,
+  );
+  const user = authSnapshot.user;
+  const isRestored = authSnapshot.initialized;
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!initialized) {
+      currentUser = restore();
+      initialized = true;
+      currentSnapshot = { user: currentUser, initialized };
+      listeners.forEach((fn) => fn());
+    }
   }, []);
-
+  useEffect(() => {
+    return subscribeRealmSessionExpired('customer', () => {
+      ['nexus.customer.access_token', REFRESH_KEY, USER_KEY].forEach((key) =>
+        localStorage.removeItem(key),
+      );
+      localStorage.removeItem('nexus.provider.active_id');
+      window.dispatchEvent(new CustomEvent('nexus:provider-context-cleared'));
+      setRealmAccessToken('customer', null);
+      queryClient.removeQueries({ queryKey: ['customer'] });
+      queryClient.removeQueries({ queryKey: ['marketplace'] });
+      queryClient.removeQueries({ queryKey: ['provider'] });
+      queryClient.removeQueries({ queryKey: ['provider-workspace'] });
+      currentUser = null;
+      currentSnapshot = { user: currentUser, initialized };
+      listeners.forEach((fn) => fn());
+    });
+  }, [queryClient]);
+  const authorization = useQuery({
+    queryKey: ['marketplace', 'me', 'authorization'],
+    queryFn: customerAuthorizationApi.effective,
+    enabled: user !== null,
+  });
+  const publish = (next: CustomerAccount | null) => {
+    currentUser = next;
+    currentSnapshot = { user: currentUser, initialized };
+    listeners.forEach((fn) => fn());
+  };
+  const getProfile = useCallback(async () => {
+    const next = normalize(await customerAuthenticationApi.profile());
+    localStorage.setItem(USER_KEY, JSON.stringify(next));
+    publish(next);
+    return next;
+  }, []);
   const login = useCallback(
-    async (data: LoginRequest) => {
-      const response = await authApi.login(data);
-      localStorage.setItem(ACCESS_TOKEN_KEY, response.accessToken);
-      if (response.refreshToken) {
-        localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
-      }
-      setAccessToken(response.accessToken);
+    async (data: LoginCustomerRequest) => {
+      const pair = await customerAuthenticationApi.login(data);
+      localStorage.setItem('nexus.customer.access_token', pair.accessToken);
+      localStorage.setItem(REFRESH_KEY, pair.refreshToken);
+      setRealmAccessToken('customer', pair.accessToken);
       await getProfile();
     },
     [getProfile],
   );
-
-  const register = useCallback(async (data: RegisterRequest) => {
-    await authApi.register(data);
+  const register = useCallback(async (data: RegisterCustomerRequest) => {
+    await customerAuthenticationApi.register(data);
   }, []);
-
-  const logout = useCallback(() => {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    setAccessToken(null);
+  const logout = useCallback(async () => {
+    const refresh = localStorage.getItem(REFRESH_KEY);
+    if (refresh) {
+      try {
+        await customerAuthenticationApi.logout(refresh);
+      } catch {
+        /* session cleanup remains authoritative locally */
+      }
+    }
+    ['nexus.customer.access_token', REFRESH_KEY, USER_KEY].forEach((key) =>
+      localStorage.removeItem(key),
+    );
+    localStorage.removeItem('nexus.provider.active_id');
+    window.dispatchEvent(new CustomEvent('nexus:provider-context-cleared'));
+    queryClient.removeQueries({ queryKey: ['customer'] });
+    setRealmAccessToken('customer', null);
     publish(null);
-  }, []);
-
+    queryClient.removeQueries({ queryKey: ['marketplace'] });
+    queryClient.removeQueries({ queryKey: ['provider'] });
+    queryClient.removeQueries({ queryKey: ['provider-workspace'] });
+  }, [queryClient]);
   return {
     user,
-    isLoading: false,
+    status:
+      user === null && !isRestored
+        ? ('restoring' as const)
+        : user
+          ? ('authenticated' as const)
+          : ('anonymous' as const),
+    isLoading: user === null && !isRestored,
     isAuthenticated: user !== null,
     login,
     register,
     logout,
     getProfile,
     refreshUser: getProfile,
+    hasMarketplacePermission: (code: string) =>
+      Boolean(
+        authorization.data?.permissions?.some(
+          (permission) => permission.code === code,
+        ),
+      ),
   };
 }

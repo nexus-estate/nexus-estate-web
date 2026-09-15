@@ -1,5 +1,7 @@
+'use client';
 import { useMemo, useState } from 'react';
 import clsx from 'clsx';
+import { useTranslations } from 'next-intl';
 
 export interface Column<T> {
   key: string;
@@ -24,8 +26,8 @@ function SkeletonRow({ columns }: { columns: number }) {
   return (
     <tr>
       {Array.from({ length: columns }).map((_, i) => (
-        <td key={i} className="px-4 py-3">
-          <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
+        <td key={i} className="px-4 py-3.5">
+          <div className="skeleton h-4 w-full rounded-[var(--radius-sm)]" />
         </td>
       ))}
     </tr>
@@ -41,6 +43,7 @@ export function Table<T>({
   emptyState,
   pageSize = 10,
 }: TableProps<T>) {
+  const t = useTranslations('common');
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -76,23 +79,24 @@ export function Table<T>({
 
   if (!isLoading && data.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white">
+      <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-xs)]">
         {emptyState || (
-          <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+          <div className="flex flex-col items-center justify-center px-6 py-12 text-[var(--text-muted)]">
             <svg
-              className="mb-3 h-12 w-12"
+              className="mb-3 h-10 w-10 text-[var(--text-subtle)]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={1}
+                strokeWidth={1.25}
                 d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
               />
             </svg>
-            <p className="text-sm font-medium">No data available</p>
+            <p className="text-sm font-medium">{t('status.empty')}</p>
           </div>
         )}
       </div>
@@ -100,35 +104,55 @@ export function Table<T>({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white">
+    <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-xs)]">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-[var(--border-muted)]">
+          <thead className="bg-[var(--surface-subtle)]">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
                   className={clsx(
-                    'px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500',
+                    'px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--text-muted)]',
                     col.sortable &&
-                      'cursor-pointer select-none hover:bg-gray-100',
+                      'cursor-pointer select-none transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
                     col.headerClassName,
                   )}
-                  onClick={() => col.sortable && handleSort(col.key)}
+                  aria-sort={
+                    col.sortable && sortKey === col.key
+                      ? sortDirection === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : col.sortable
+                        ? 'none'
+                        : undefined
+                  }
                 >
-                  <div className="flex items-center space-x-1">
-                    <span>{col.header}</span>
-                    {col.sortable && sortKey === col.key && (
-                      <span className="text-gray-400">
-                        {sortDirection === 'asc' ? '↑' : '↓'}
-                      </span>
+                  <div className="flex items-center gap-1.5">
+                    {col.sortable ? (
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1.5 text-left font-inherit"
+                        onClick={() => handleSort(col.key)}
+                      >
+                        <span>{col.header}</span>
+                        <span aria-hidden="true">
+                          {sortKey === col.key
+                            ? sortDirection === 'asc'
+                              ? '↑'
+                              : '↓'
+                            : '↕'}
+                        </span>
+                      </button>
+                    ) : (
+                      <span>{col.header}</span>
                     )}
                   </div>
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-[var(--border-muted)] bg-[var(--surface)]">
             {isLoading
               ? Array.from({ length: 5 }).map((_, i) => (
                   <SkeletonRow key={i} columns={columns.length} />
@@ -139,14 +163,15 @@ export function Table<T>({
                     onClick={() => onRowClick?.(item)}
                     className={clsx(
                       'transition-colors',
-                      onRowClick && 'cursor-pointer hover:bg-gray-50',
+                      onRowClick &&
+                        'cursor-pointer hover:bg-[var(--surface-hover)]',
                     )}
                   >
                     {columns.map((col) => (
                       <td
                         key={col.key}
                         className={clsx(
-                          'whitespace-nowrap px-4 py-3 text-sm text-gray-700',
+                          'whitespace-nowrap px-4 py-3.5 text-sm text-[var(--text)]',
                           col.className,
                         )}
                       >
@@ -163,23 +188,26 @@ export function Table<T>({
         </table>
       </div>
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t px-4 py-3">
+        <div className="flex items-center justify-between border-t border-[var(--border-muted)] bg-[var(--surface-subtle)] px-4 py-3">
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="rounded-md px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[var(--radius-sm)] border border-transparent px-3 py-1.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-45"
           >
-            Previous
+            {t('pagination.previous')}
           </button>
-          <span className="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
+          <span className="text-xs font-medium text-[var(--text-muted)]">
+            {t('pagination.pageOf', {
+              current: currentPage,
+              total: totalPages,
+            })}
           </span>
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="rounded-md px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[var(--radius-sm)] border border-transparent px-3 py-1.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-45"
           >
-            Next
+            {t('pagination.next')}
           </button>
         </div>
       )}
