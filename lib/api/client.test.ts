@@ -101,6 +101,17 @@ describe('apiClient', () => {
     );
   });
 
+  it('does not let a localStorage-only locale diverge from SSR locale', async () => {
+    localStorage.setItem('nexus.locale', 'vi');
+    fetchMock.mockResolvedValue(mockResponse({}, 200));
+
+    await publicApiClient.get('/health');
+
+    expect(new Headers(fetchMock.mock.calls[0][1].headers).get('x-lang')).toBe(
+      'en',
+    );
+  });
+
   it('unwraps the current API envelope and handles no-content responses', async () => {
     fetchMock.mockResolvedValueOnce(
       mockResponse({ status: true, data: { ok: true } }, 200),

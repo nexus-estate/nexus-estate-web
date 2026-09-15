@@ -41,8 +41,7 @@ export function getLocale(): Locale {
     .split('; ')
     .find((entry) => entry.startsWith(`${LOCALE_KEY}=`))
     ?.slice(LOCALE_KEY.length + 1);
-  const stored = cookie ?? localStorage.getItem(LOCALE_KEY);
-  return normalizeLocale(stored);
+  return normalizeLocale(cookie);
 }
 function unwrap<T>(payload: unknown): T {
   if (

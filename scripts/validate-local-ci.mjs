@@ -1,16 +1,90 @@
-import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { execFileSync, spawn } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const webRoot = resolve(import.meta.dirname, '..');
-const apiRoot = resolve(webRoot, '../api');
+const apiRoot = resolve(webRoot, process.env.NEXUS_API_ROOT ?? '../api');
+const expectedApiRef = process.env.NEXUS_API_EXPECTED_REF ?? 'origin/develop';
 const apiUrl = 'http://localhost:50001/api/v1';
 const apiHealthUrl = 'http://localhost:50001/health/live';
 const postgresContainer = `nexus-estate-web-precommit-postgres-${process.pid}`;
 
 function log(message) {
   process.stdout.write(`${message}\n`);
+}
+
+function gitValue(args, label) {
+  try {
+    return execFileSync('git', ['-C', apiRoot, ...args], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }).trim();
+  } catch (error) {
+    const details = error instanceof Error ? error.message : String(error);
+    throw new Error(`${label}: ${details}`);
+  }
+}
+
+function validateApiRevision() {
+  if (!existsSync(resolve(apiRoot, 'package.json'))) {
+    throw new Error(
+      `API repository is missing at ${apiRoot}. Set NEXUS_API_ROOT to a Nexus Estate API checkout.`,
+    );
+  }
+
+  let packageName;
+  try {
+    packageName = JSON.parse(
+      readFileSync(resolve(apiRoot, 'package.json'), 'utf8'),
+    ).name;
+  } catch (error) {
+    const details = error instanceof Error ? error.message : String(error);
+    throw new Error(`Unable to read API package metadata: ${details}`);
+  }
+  if (packageName !== 'nexus-estate-api')
+    throw new Error(
+      `Unexpected API repository at ${apiRoot}: package name is ${packageName ?? '(missing)'}, expected nexus-estate-api.`,
+    );
+
+  const repositoryRoot = gitValue(
+    ['rev-parse', '--show-toplevel'],
+    'API checkout is not a Git repository',
+  );
+  const branch =
+    gitValue(['branch', '--show-current'], 'Unable to read API branch') ||
+    '(detached HEAD)';
+  const head = gitValue(
+    ['rev-parse', '--verify', 'HEAD^{commit}'],
+    'Unable to resolve API HEAD',
+  );
+  const expected = gitValue(
+    ['rev-parse', '--verify', `${expectedApiRef}^{commit}`],
+    `Unable to resolve expected API ref ${expectedApiRef}`,
+  );
+  let remote = '(not configured)';
+  try {
+    remote = gitValue(
+      ['remote', 'get-url', 'origin'],
+      'Unable to read API origin',
+    );
+  } catch {
+    // A remote is useful context, but the selected expected ref is authoritative.
+  }
+
+  log(`[local-ci] API repository: ${repositoryRoot}`);
+  log(`[local-ci] API remote: ${remote}`);
+  log(`[local-ci] API branch: ${branch}`);
+  log(`[local-ci] API SHA: ${head}`);
+  log(`[local-ci] Expected CI ref: ${expectedApiRef}`);
+  log(`[local-ci] Expected CI SHA: ${expected}`);
+
+  if (head !== expected) {
+    throw new Error(
+      `API revision mismatch.\n\nExpected:\n${expectedApiRef} @ ${expected}\n\nCurrent:\n${branch} @ ${head}\n\nCheckout the API revision used by CI or explicitly set NEXUS_API_EXPECTED_REF before running the local gate.`,
+    );
+  }
+  log('[local-ci] API revision parity: PASS');
 }
 
 const lifecycleEnv = {
@@ -185,6 +259,7 @@ async function stopProcess(child) {
 }
 
 async function main() {
+  validateApiRevision();
   await run('Prettier check', 'npm', ['run', 'format:check']);
   await run('Internationalization check', 'npm', ['run', 'i18n:check']);
   await run('Lint', 'npm', ['run', 'lint']);
@@ -207,12 +282,6 @@ async function main() {
     'nexus-estate-web:local',
     '.',
   ]);
-
-  if (!existsSync(resolve(apiRoot, 'package.json'))) {
-    throw new Error(
-      'Full-stack lifecycle requires the sibling ../api checkout',
-    );
-  }
 
   let apiProcess;
   try {

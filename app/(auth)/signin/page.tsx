@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/use-auth';
+import { safeCustomerNext } from '@/lib/customer-return-path';
 
 export default function SignInPage() {
   const router = useRouter();
+  const search = useSearchParams();
   const { login } = useAuth();
   const t = useTranslations('auth.customer');
   const [email, setEmail] = useState('');
@@ -26,7 +28,7 @@ export default function SignInPage() {
     setLoading(true);
     try {
       await login({ email, password });
-      router.push('/');
+      router.replace(safeCustomerNext(search.get('next')));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('loginFailed'));
     } finally {

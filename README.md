@@ -73,5 +73,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 Husky runs `npm run test:precommit` before each commit. The gate mirrors the
 repository CI checks: formatting, i18n parity, linting, TypeScript, unit tests,
 production build, browser E2E, Docker validation, and the isolated
-API/PostgreSQL platform lifecycle. The lifecycle gate uses the sibling
-`../api` checkout and an ephemeral PostgreSQL container.
+API/PostgreSQL platform lifecycle. The lifecycle gate uses Docker and validates
+the sibling `../api` checkout against `origin/develop` before starting the
+API. Set `NEXUS_API_ROOT` to override the API path or
+`NEXUS_API_EXPECTED_REF` to explicitly test another API commit. The gate only
+inspects the sibling repository; it does not check out, pull, reset, or clean
+it.

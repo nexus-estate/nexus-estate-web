@@ -1,7 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PortalShell } from '@/components/portal/portal-shell';
 import { useProviderEntryState } from '@/features/provider/use-provider-entry-state';
@@ -13,11 +13,16 @@ export default function ProviderLayout({
 }) {
   const t = useTranslations('provider');
   const router = useRouter();
+  const pathname = usePathname();
+  const search = useSearchParams();
   const { status, logout } = useAuth();
   const workspace = useProviderEntryState(status === 'authenticated');
   useEffect(() => {
-    if (status === 'anonymous') router.replace('/signin?next=/provider');
-  }, [router, status]);
+    if (status !== 'anonymous') return;
+    const query = search.toString();
+    const current = query ? `${pathname}?${query}` : pathname;
+    router.replace(`/signin?next=${encodeURIComponent(current)}`);
+  }, [pathname, router, search, status]);
   if (status === 'restoring')
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-[var(--text-muted)]">

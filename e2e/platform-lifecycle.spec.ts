@@ -68,14 +68,17 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
       }),
     ).toBeVisible();
 
-    await customerPage.goto('/signin');
+    await customerPage.goto('/provider');
+    await expect(customerPage).toHaveURL(/\/signin\?/);
+    expect(new URL(customerPage.url()).searchParams.get('next')).toBe(
+      '/provider',
+    );
     await customerPage.locator('input[type="email"]').fill(customerEmail);
     await customerPage.locator('input[type="password"]').fill(customerPassword);
     await customerPage
       .getByRole('button', { name: /Đăng nhập|Sign in/ })
       .click();
-    await expect(customerPage).toHaveURL(/\/$/);
-    await customerPage.goto('/provider');
+    await expect(customerPage).toHaveURL(/\/provider$/);
     await expect(
       customerPage.getByRole('heading', {
         name: /Start your Provider workspace|Bắt đầu workspace Provider/,

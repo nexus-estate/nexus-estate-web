@@ -52,7 +52,7 @@ function Guard({ children }: { children: React.ReactNode }) {
       {
         label: t('nav.roles'),
         href: `/admin/authorization?platform=${platform}`,
-        match: 'exact',
+        match: 'prefix',
         section: t('nav.accessControl'),
       },
       {

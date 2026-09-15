@@ -15,6 +15,12 @@ const REFRESH_KEY = 'nexus.customer.refresh_token';
 const listeners = new Set<() => void>();
 let currentUser: CustomerAccount | null = null;
 let initialized = false;
+type AuthSnapshot = {
+  user: CustomerAccount | null;
+  initialized: boolean;
+};
+const EMPTY_AUTH_SNAPSHOT: AuthSnapshot = { user: null, initialized: false };
+let currentSnapshot: AuthSnapshot = EMPTY_AUTH_SNAPSHOT;
 const isUser = (v: unknown): v is CustomerAccount =>
   typeof v === 'object' &&
   v !== null &&
@@ -33,23 +39,29 @@ function restore() {
   }
 }
 function snapshot() {
-  if (!initialized && typeof window !== 'undefined') {
-    currentUser = restore();
-    initialized = true;
-  }
-  return currentUser;
+  return currentSnapshot;
 }
 const normalize = (p: CustomerAccount): CustomerAccount => p;
 export function useAuth() {
-  const user = useSyncExternalStore(
+  const authSnapshot = useSyncExternalStore(
     (fn) => {
       listeners.add(fn);
       return () => listeners.delete(fn);
     },
     snapshot,
-    () => null,
+    () => EMPTY_AUTH_SNAPSHOT,
   );
+  const user = authSnapshot.user;
+  const isRestored = authSnapshot.initialized;
   const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!initialized) {
+      currentUser = restore();
+      initialized = true;
+      currentSnapshot = { user: currentUser, initialized };
+      listeners.forEach((fn) => fn());
+    }
+  }, []);
   useEffect(() => {
     return subscribeRealmSessionExpired('customer', () => {
       ['nexus.customer.access_token', REFRESH_KEY, USER_KEY].forEach((key) =>
@@ -63,6 +75,7 @@ export function useAuth() {
       queryClient.removeQueries({ queryKey: ['provider'] });
       queryClient.removeQueries({ queryKey: ['provider-workspace'] });
       currentUser = null;
+      currentSnapshot = { user: currentUser, initialized };
       listeners.forEach((fn) => fn());
     });
   }, [queryClient]);
@@ -73,6 +86,7 @@ export function useAuth() {
   });
   const publish = (next: CustomerAccount | null) => {
     currentUser = next;
+    currentSnapshot = { user: currentUser, initialized };
     listeners.forEach((fn) => fn());
   };
   const getProfile = useCallback(async () => {
@@ -118,12 +132,12 @@ export function useAuth() {
   return {
     user,
     status:
-      user === null && !initialized
+      user === null && !isRestored
         ? ('restoring' as const)
         : user
           ? ('authenticated' as const)
           : ('anonymous' as const),
-    isLoading: user === null && !initialized,
+    isLoading: user === null && !isRestored,
     isAuthenticated: user !== null,
     login,
     register,
