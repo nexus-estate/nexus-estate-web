@@ -2,7 +2,6 @@ import { expect, test, type Page } from '@playwright/test';
 
 const apiUrl =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:50001/api/v1';
-const customerEmail = 'lifecycle-customer@nexus.test';
 const customerPassword = 'lifecycle-customer-password';
 const adminEmail = 'superadmin@nexus-estate.local';
 const adminPassword = 'NexusEstate#SuperAdmin2026!';
@@ -24,10 +23,14 @@ async function token(page: Page, key: string) {
   return page.evaluate((storageKey) => localStorage.getItem(storageKey), key);
 }
 
-test('proves the Customer → Provider → Administration lifecycle and isolation', async ({
-  browser,
-}) => {
+test('proves the Customer → Provider → Administration lifecycle and isolation', async (
+  { browser },
+  testInfo,
+) => {
   test.setTimeout(60_000);
+  const runKey = `${process.env.GITHUB_RUN_ID ?? `local-${process.pid}`}-${testInfo.retry}`;
+  const customerEmail = `lifecycle-customer-${runKey}@nexus.test`;
+  const providerName = `Lifecycle Provider ${runKey}`;
   const customerContext = await browser.newContext();
   const adminContext = await browser.newContext();
   const customerPage = await customerContext.newPage();
@@ -98,7 +101,7 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
         name: /Start Provider onboarding|Bắt đầu onboarding Provider/,
       })
       .click();
-    await customerPage.locator('input').fill('Lifecycle Provider');
+    await customerPage.locator('input').fill(providerName);
     await customerPage
       .getByRole('button', { name: /Submit for review|Gửi xét duyệt/ })
       .click();
@@ -116,7 +119,7 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     await adminPage.locator('input[type="password"]').fill(adminPassword);
     await adminPage.getByRole('button', { name: /Sign in|Đăng nhập/ }).click();
     await expect(adminPage).toHaveURL(/\/admin\/provider-requests(?:\?|$)/);
-    await expect(adminPage.getByText('Lifecycle Provider')).toBeVisible();
+    await expect(adminPage.getByText(providerName, { exact: true })).toBeVisible();
     await adminPage
       .getByRole('button', { name: /Approve|Phê duyệt/ })
       .first()
@@ -160,7 +163,11 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     expect(providerHeader?.['x-lang']).toBeTruthy();
 
     await customerPage.goto('/profile');
-    await expect(customerPage.getByText(customerEmail)).toBeVisible();
+    await expect(
+      customerPage
+        .getByRole('main')
+        .getByText(customerEmail, { exact: true }),
+    ).toBeVisible();
     const marketplaceHeader = customerRequests.find((headers) =>
       headers.authorization?.startsWith('Bearer '),
     );
