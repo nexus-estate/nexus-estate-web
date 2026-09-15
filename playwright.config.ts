@@ -1,9 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const e2ePort = process.env.E2E_PORT ?? '3000';
+const integration = process.env.E2E_INTEGRATION === 'true';
 
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: integration ? [] : ['**/platform-lifecycle.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

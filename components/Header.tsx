@@ -26,7 +26,7 @@ export default function Header() {
         <Link
           href="/"
           className="font-display text-xl tracking-wide"
-          aria-label="Nexus Estate"
+          aria-label={t('brand')}
         >
           NEXUS
         </Link>

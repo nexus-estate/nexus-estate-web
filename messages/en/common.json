@@ -17,6 +17,8 @@
   "navigation": {
     "portal": "Portal navigation",
     "platformNavigation": "{platform} navigation",
+    "portalLabel": "{platform} portal",
+    "breadcrumbs": "Breadcrumbs",
     "overview": "Overview",
     "openNavigation": "Open navigation",
     "closeNavigation": "Close navigation",

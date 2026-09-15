@@ -3,12 +3,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from './language-switcher';
+import {
+  getActiveNavigationHref,
+  type NavigationMatch,
+} from './portal-navigation';
 
 export interface PortalNavItem {
   label: string;
   href: string;
   requiredPermission?: string;
   section?: string;
+  match?: NavigationMatch;
 }
 
 export function PortalSidebar({
@@ -28,6 +33,7 @@ export function PortalSidebar({
 }) {
   const pathname = usePathname();
   const t = useTranslations('common');
+  const activeHref = getActiveNavigationHref(pathname, items);
 
   return (
     <>
@@ -49,7 +55,7 @@ export function PortalSidebar({
               Nexus Estate
             </div>
             <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">
-              {platform} portal
+              {t('navigation.portalLabel', { platform })}
             </div>
             {identity && <div className="mt-4">{identity}</div>}
           </div>
@@ -59,9 +65,7 @@ export function PortalSidebar({
             aria-label={t('navigation.platformNavigation', { platform })}
           >
             {items.map((item, index) => {
-              const itemPath = item.href.split('?')[0];
-              const active =
-                pathname === itemPath || pathname.startsWith(`${itemPath}/`);
+              const active = activeHref === item.href;
               const showSection =
                 item.section &&
                 (index === 0 || items[index - 1]?.section !== item.section);

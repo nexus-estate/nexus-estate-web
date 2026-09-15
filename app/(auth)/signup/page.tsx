@@ -258,12 +258,12 @@ export default function SignUpPage() {
         </button>
       </form>
       <p className="mt-7 text-center text-sm text-[#75807d]">
-        Đã là thành viên?{' '}
+        {t('hasAccount')}{' '}
         <Link
           href="/signin"
           className="font-semibold text-[#8e7043] underline decoration-[#c8b087] underline-offset-4"
         >
-          Đăng nhập
+          {t('signInNow')}
         </Link>
       </p>
     </div>

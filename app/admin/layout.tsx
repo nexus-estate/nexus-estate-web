@@ -44,6 +44,7 @@ function Guard({ children }: { children: React.ReactNode }) {
     items.push({
       label: t('nav.providerReview'),
       href: '/admin/provider-requests',
+      match: 'prefix',
       section: t('nav.operations'),
     });
   if (session.hasPermission('authorization:role:read'))
@@ -51,11 +52,13 @@ function Guard({ children }: { children: React.ReactNode }) {
       {
         label: t('nav.roles'),
         href: `/admin/authorization?platform=${platform}`,
+        match: 'exact',
         section: t('nav.accessControl'),
       },
       {
         label: t('nav.matrix'),
         href: `/admin/authorization/matrix?platform=${platform}`,
+        match: 'exact',
         section: t('nav.accessControl'),
       },
     );
@@ -63,18 +66,21 @@ function Guard({ children }: { children: React.ReactNode }) {
     items.push({
       label: t('nav.permissions'),
       href: `/admin/authorization/permissions?platform=${platform}`,
+      match: 'prefix',
       section: t('nav.accessControl'),
     });
   if (session.hasPermission('authorization:assignment:read'))
     items.push({
       label: t('nav.subjects'),
       href: `/admin/authorization/subjects?platform=${platform}`,
+      match: 'prefix',
       section: t('nav.accessControl'),
     });
   if (session.hasPermission('authorization:audit:read'))
     items.push({
       label: t('nav.audit'),
       href: '/admin/authorization/audit',
+      match: 'exact',
       section: t('nav.accessControl'),
     });
   return (

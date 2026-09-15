@@ -36,3 +36,8 @@ error, or success state`. New navigation items should be added to the owning
 layout configuration and have a localized label in both catalogues. Raw route
 segments, permission codes, IDs, and user-created names are never presented as
 translated UI copy.
+
+`PortalShell` owns the responsive shell, topbar, sidebar, and route-metadata
+breadcrumbs shared by Provider and Administration. Navigation items declare
+their matching mode (`exact` or `prefix`); exact overview routes do not stay
+active on nested pages. Marketplace remains outside this ERP-oriented shell.

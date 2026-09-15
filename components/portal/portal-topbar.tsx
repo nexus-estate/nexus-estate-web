@@ -1,23 +1,7 @@
 'use client';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-
-const routeKeys = [
-  ['admin/authorization/permissions/', 'permission'],
-  ['admin/authorization/roles/', 'roles'],
-  ['admin/authorization/subjects/', 'subject'],
-  ['admin/authorization/permissions', 'permissions'],
-  ['admin/authorization/matrix', 'matrix'],
-  ['admin/authorization/subjects', 'subjects'],
-  ['admin/authorization/audit', 'audit'],
-  ['admin/provider-requests', 'providerReview'],
-  ['admin/authorization', 'authorization'],
-  ['admin', 'admin'],
-  ['provider/authorization', 'providerAuthorization'],
-  ['provider/account', 'providerAccount'],
-  ['provider', 'provider'],
-  ['', 'home'],
-] as const;
+import { getPortalRouteMetadata } from './route-metadata';
 
 export function PortalTopbar({
   onMenu,
@@ -29,11 +13,7 @@ export function PortalTopbar({
   const pathname = usePathname();
   const t = useTranslations('common');
   const routeKey =
-    routeKeys.find(([path]) =>
-      path === ''
-        ? pathname === '/'
-        : pathname === `/${path}` || pathname.startsWith(`/${path}/`),
-    )?.[1] ?? 'overview';
+    getPortalRouteMetadata(pathname)?.labelKey ?? 'status.overview';
 
   return (
     <header className="sticky top-0 z-20 flex min-h-14 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)]/96 px-4 shadow-[var(--shadow-xs)] backdrop-blur sm:px-6">
@@ -55,7 +35,7 @@ export function PortalTopbar({
           </svg>
         </button>
         <div className="truncate text-xs font-medium text-[var(--text-muted)]">
-          {t(`navigation.${routeKey}`)}
+          {t(routeKey)}
         </div>
       </div>
       {context && <div className="ml-4 shrink-0">{context}</div>}

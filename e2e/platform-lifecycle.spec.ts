@@ -1,10 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
 
-test.skip(
-  process.env.E2E_INTEGRATION !== 'true',
-  'Runs only in the isolated PostgreSQL + API integration job.',
-);
-
 const apiUrl =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:50001/api/v1';
 const customerEmail = 'lifecycle-customer@nexus.test';
@@ -76,7 +71,9 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     await customerPage.goto('/signin');
     await customerPage.locator('input[type="email"]').fill(customerEmail);
     await customerPage.locator('input[type="password"]').fill(customerPassword);
-    await customerPage.getByRole('button', { name: /Đăng nhập/ }).click();
+    await customerPage
+      .getByRole('button', { name: /Đăng nhập|Sign in/ })
+      .click();
     await expect(customerPage).toHaveURL(/\/$/);
     await customerPage.goto('/provider');
     await expect(
@@ -196,7 +193,9 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     await customerPage.goto('/signin');
     await customerPage.locator('input[type="email"]').fill(customerEmail);
     await customerPage.locator('input[type="password"]').fill(customerPassword);
-    await customerPage.getByRole('button', { name: /Đăng nhập/ }).click();
+    await customerPage
+      .getByRole('button', { name: /Đăng nhập|Sign in/ })
+      .click();
     await expect(customerPage).toHaveURL(/\/$/);
     await customerPage.goto('/provider');
 
@@ -236,7 +235,9 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     await customerPage.goto('/signin');
     await customerPage.locator('input[type="email"]').fill(customerEmail);
     await customerPage.locator('input[type="password"]').fill(customerPassword);
-    await customerPage.getByRole('button', { name: /Đăng nhập/ }).click();
+    await customerPage
+      .getByRole('button', { name: /Đăng nhập|Sign in/ })
+      .click();
     await expect(customerPage).toHaveURL(/\/$/);
     await adminPage.evaluate(() => {
       localStorage.setItem(

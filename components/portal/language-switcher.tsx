@@ -1,7 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { LOCALE_KEY, LOCALES, type Locale } from '@/lib/constants';
+import { LOCALE_KEY, SUPPORTED_LOCALES, type Locale } from '@/lib/constants';
 
 export function LanguageSwitcher() {
   const locale = useLocale() as Locale;
@@ -10,7 +10,7 @@ export function LanguageSwitcher() {
   const nextLocale: Locale = locale === 'vi' ? 'en' : 'vi';
 
   const change = () => {
-    if (!LOCALES.includes(nextLocale)) return;
+    if (!SUPPORTED_LOCALES.includes(nextLocale)) return;
     document.cookie = `${LOCALE_KEY}=${nextLocale}; Path=/; Max-Age=31536000; SameSite=Lax`;
     localStorage.setItem(LOCALE_KEY, nextLocale);
     router.refresh();

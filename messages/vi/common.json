@@ -17,6 +17,8 @@
   "navigation": {
     "portal": "Điều hướng portal",
     "platformNavigation": "Điều hướng {platform}",
+    "portalLabel": "Cổng {platform}",
+    "breadcrumbs": "Điều hướng phân cấp",
     "overview": "Tổng quan",
     "openNavigation": "Mở điều hướng",
     "closeNavigation": "Đóng điều hướng",

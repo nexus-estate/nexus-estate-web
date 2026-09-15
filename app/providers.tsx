@@ -1,6 +1,7 @@
 'use client';
 import { NextIntlClientProvider } from 'next-intl';
 import { ProviderContextProvider } from '@/features/provider/context/provider-context.provider';
+import type { Locale } from '@/lib/constants';
 import administrationEn from '@/messages/en/administration.json';
 import authEn from '@/messages/en/auth.json';
 import commonEn from '@/messages/en/common.json';
@@ -31,7 +32,7 @@ export function AppProviders({
   locale,
   children,
 }: {
-  locale: 'vi' | 'en';
+  locale: Locale;
   children: React.ReactNode;
 }) {
   return (

@@ -1,11 +1,6 @@
 import { cookies } from 'next/headers';
 import { getRequestConfig } from 'next-intl/server';
-import {
-  DEFAULT_LOCALE,
-  LOCALE_KEY,
-  LOCALES,
-  type Locale,
-} from '@/lib/constants';
+import { LOCALE_KEY, normalizeLocale } from '@/lib/constants';
 import administrationEn from '@/messages/en/administration.json';
 import authEn from '@/messages/en/auth.json';
 import commonEn from '@/messages/en/common.json';
@@ -36,8 +31,6 @@ const messages = {
 
 export default getRequestConfig(async () => {
   const value = (await cookies()).get(LOCALE_KEY)?.value;
-  const locale: Locale = LOCALES.includes(value as Locale)
-    ? (value as Locale)
-    : DEFAULT_LOCALE;
+  const locale = normalizeLocale(value);
   return { locale, messages: messages[locale] };
 });

@@ -1,5 +1,6 @@
 'use client';
 import { useState, type ReactNode } from 'react';
+import { PortalBreadcrumbs } from './portal-breadcrumbs';
 import { PortalSidebar, type PortalNavItem } from './portal-sidebar';
 import { PortalTopbar } from './portal-topbar';
 export type { PortalNavItem } from './portal-sidebar';
@@ -34,6 +35,7 @@ export function PortalShell({
       <div className="min-w-0 lg:pl-[var(--portal-sidebar-width)]">
         <PortalTopbar onMenu={() => setOpen(true)} context={context} />
         <main className="mx-auto w-full max-w-[var(--content-max)] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-9">
+          <PortalBreadcrumbs />
           {children}
         </main>
       </div>

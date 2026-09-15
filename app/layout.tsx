@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import { AppProviders } from '@/app/providers';
-import { DEFAULT_LOCALE, LOCALE_KEY, LOCALES } from '@/lib/constants';
+import { LOCALE_KEY, normalizeLocale } from '@/lib/constants';
 import { QueryProvider } from '@/lib/query-client';
 
 export const metadata: Metadata = {
@@ -19,9 +19,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const localeCookie = (await cookies()).get(LOCALE_KEY)?.value;
-  const locale = LOCALES.includes(localeCookie as (typeof LOCALES)[number])
-    ? (localeCookie as (typeof LOCALES)[number])
-    : DEFAULT_LOCALE;
+  const locale = normalizeLocale(localeCookie);
 
   return (
     <html lang={locale} className="h-full bg-[var(--background)]">

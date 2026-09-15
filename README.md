@@ -70,6 +70,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Pre-commit checks
 
-Husky runs `npm run test:precommit` before each commit. It checks formatting,
-linting, TypeScript, unit tests, and the production build. Browser e2e tests
-and Docker publication remain CI checks.
+Husky runs `npm run test:precommit` before each commit. The gate mirrors the
+repository CI checks: formatting, i18n parity, linting, TypeScript, unit tests,
+production build, browser E2E, Docker validation, and the isolated
+API/PostgreSQL platform lifecycle. The lifecycle gate uses the sibling
+`../api` checkout and an ephemeral PostgreSQL container.

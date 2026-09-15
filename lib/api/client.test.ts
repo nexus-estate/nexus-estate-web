@@ -84,6 +84,23 @@ describe('apiClient', () => {
     expect(adminHeaders.get('x-lang')).toBe('vi');
   });
 
+  it('falls back to the canonical locale for missing and invalid preferences', async () => {
+    fetchMock.mockResolvedValue(mockResponse({}, 200));
+
+    await publicApiClient.get('/health');
+    expect(new Headers(fetchMock.mock.calls[0][1].headers).get('x-lang')).toBe(
+      'en',
+    );
+
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue(mockResponse({}, 200));
+    document.cookie = 'nexus.locale=fr; Path=/';
+    await publicApiClient.get('/health');
+    expect(new Headers(fetchMock.mock.calls[0][1].headers).get('x-lang')).toBe(
+      'en',
+    );
+  });
+
   it('unwraps the current API envelope and handles no-content responses', async () => {
     fetchMock.mockResolvedValueOnce(
       mockResponse({ status: true, data: { ok: true } }, 200),

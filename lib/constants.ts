@@ -10,9 +10,19 @@ export const ADMINISTRATION_REFRESH_TOKEN_KEY =
 export const PROVIDER_ACTIVE_ID_KEY = 'nexus.provider.active_id';
 export const LOCALE_KEY = 'nexus.locale';
 
-export const LOCALES = ['en', 'vi'] as const;
-export type Locale = (typeof LOCALES)[number];
-export const DEFAULT_LOCALE = 'vi';
+export const SUPPORTED_LOCALES = ['en', 'vi'] as const;
+export type Locale = (typeof SUPPORTED_LOCALES)[number];
+export const DEFAULT_LOCALE: Locale = 'en';
+
+export function isLocale(value: unknown): value is Locale {
+  return (
+    typeof value === 'string' && SUPPORTED_LOCALES.includes(value as Locale)
+  );
+}
+
+export function normalizeLocale(value: unknown): Locale {
+  return isLocale(value) ? value : DEFAULT_LOCALE;
+}
 
 export const ROUTES = {
   home: '/',

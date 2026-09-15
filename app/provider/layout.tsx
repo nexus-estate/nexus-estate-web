@@ -48,9 +48,17 @@ export default function ProviderLayout({
     <PortalShell
       platform={t('title')}
       items={[
-        { label: t('nav.overview'), href: '/provider' },
-        { label: t('nav.account'), href: '/provider/account' },
-        { label: t('nav.authorization'), href: '/provider/authorization' },
+        { label: t('nav.overview'), href: '/provider', match: 'exact' },
+        {
+          label: t('nav.account'),
+          href: '/provider/account',
+          match: 'prefix',
+        },
+        {
+          label: t('nav.authorization'),
+          href: '/provider/authorization',
+          match: 'exact',
+        },
       ]}
       identity={identity}
       footer={

@@ -5,9 +5,9 @@ import {
   useLocale,
   useTranslations as useNextIntlTranslations,
 } from 'next-intl';
-import { LOCALE_KEY, LOCALES, type Locale } from '@/lib/constants';
+import { LOCALE_KEY, SUPPORTED_LOCALES, type Locale } from '@/lib/constants';
 
-export { LOCALE_KEY as LOCALE_COOKIE, LOCALES };
+export { LOCALE_KEY as LOCALE_COOKIE, SUPPORTED_LOCALES };
 export type { Locale };
 
 /** Compatibility hook for legacy screens; catalogues live only under messages/. */
@@ -16,7 +16,7 @@ export function useTranslations() {
   const router = useRouter();
   const translate = useNextIntlTranslations();
   const setLocale = (next: Locale) => {
-    if (!LOCALES.includes(next)) return;
+    if (!SUPPORTED_LOCALES.includes(next)) return;
     document.cookie = `${LOCALE_KEY}=${next}; path=/; max-age=31536000; samesite=lax`;
     localStorage.setItem(LOCALE_KEY, next);
     router.refresh();

@@ -1,3 +1,9 @@
+import {
+  DEFAULT_LOCALE,
+  LOCALE_KEY,
+  normalizeLocale,
+  type Locale,
+} from '@/lib/constants';
 import { ApiError, createApiError, isRecord } from './error';
 import { coordinateRefresh } from './refresh-coordinator';
 import {
@@ -18,8 +24,6 @@ export interface ApiClientOptions {
 }
 const DEFAULT_API_URL = 'http://localhost:50001/api/v1';
 const DEFAULT_TIMEOUT_MS = 15_000;
-export const SUPPORTED_LOCALES = ['en', 'vi'] as const;
-export type Locale = (typeof SUPPORTED_LOCALES)[number];
 const tokenMemory = new Map<string, string | null>();
 export function setRealmAccessToken(realm: Realm, token: string | null) {
   tokenMemory.set(realm, token);
@@ -32,10 +36,13 @@ export function getRealmAccessToken(realm: Realm) {
   return localStorage.getItem(`nexus.${realm}.access_token`);
 }
 export function getLocale(): Locale {
-  if (typeof window === 'undefined') return 'en';
-  const cookie = document.cookie.match(/(?:^|; )nexus\.locale=([^;]+)/)?.[1];
-  const stored = cookie ?? localStorage.getItem('nexus.locale');
-  return stored === 'vi' || stored === 'en' ? stored : 'en';
+  if (typeof window === 'undefined') return DEFAULT_LOCALE;
+  const cookie = document.cookie
+    .split('; ')
+    .find((entry) => entry.startsWith(`${LOCALE_KEY}=`))
+    ?.slice(LOCALE_KEY.length + 1);
+  const stored = cookie ?? localStorage.getItem(LOCALE_KEY);
+  return normalizeLocale(stored);
 }
 function unwrap<T>(payload: unknown): T {
   if (
