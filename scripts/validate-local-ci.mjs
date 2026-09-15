@@ -26,6 +26,42 @@ function gitValue(args, label) {
   }
 }
 
+function remoteBranchRef(ref) {
+  if (ref.startsWith('refs/heads/')) return ref;
+  if (ref.startsWith('origin/'))
+    return `refs/heads/${ref.slice('origin/'.length)}`;
+  return null;
+}
+
+function resolveExpectedApiRevision() {
+  const branchRef = remoteBranchRef(expectedApiRef);
+  if (!branchRef) {
+    return {
+      sha: gitValue(
+        ['rev-parse', '--verify', `${expectedApiRef}^{commit}`],
+        `Unable to resolve expected API ref ${expectedApiRef}`,
+      ),
+      source: 'local checkout',
+    };
+  }
+
+  const remoteResult = gitValue(
+    ['ls-remote', '--exit-code', '--refs', 'origin', branchRef],
+    `Unable to query expected API ref ${expectedApiRef} from origin`,
+  );
+  const [sha] = remoteResult.split(/\s+/);
+  if (!/^[0-9a-f]{40}$/i.test(sha)) {
+    throw new Error(
+      `Unexpected SHA returned for expected API ref ${expectedApiRef}: ${sha || '(missing)'}`,
+    );
+  }
+
+  return {
+    sha,
+    source: `origin ${branchRef}`,
+  };
+}
+
 function validateApiRevision() {
   if (!existsSync(resolve(apiRoot, 'package.json'))) {
     throw new Error(
@@ -58,10 +94,8 @@ function validateApiRevision() {
     ['rev-parse', '--verify', 'HEAD^{commit}'],
     'Unable to resolve API HEAD',
   );
-  const expected = gitValue(
-    ['rev-parse', '--verify', `${expectedApiRef}^{commit}`],
-    `Unable to resolve expected API ref ${expectedApiRef}`,
-  );
+  const { sha: expected, source: expectedSource } =
+    resolveExpectedApiRevision();
   let remote = '(not configured)';
   try {
     remote = gitValue(
@@ -77,6 +111,7 @@ function validateApiRevision() {
   log(`[local-ci] API branch: ${branch}`);
   log(`[local-ci] API SHA: ${head}`);
   log(`[local-ci] Expected CI ref: ${expectedApiRef}`);
+  log(`[local-ci] Expected CI source: ${expectedSource}`);
   log(`[local-ci] Expected CI SHA: ${expected}`);
 
   if (head !== expected) {
