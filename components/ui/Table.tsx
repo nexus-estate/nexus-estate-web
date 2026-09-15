@@ -1,5 +1,7 @@
+'use client';
 import { useMemo, useState } from 'react';
 import clsx from 'clsx';
+import { useTranslations } from 'next-intl';
 
 export interface Column<T> {
   key: string;
@@ -41,6 +43,7 @@ export function Table<T>({
   emptyState,
   pageSize = 10,
 }: TableProps<T>) {
+  const t = useTranslations('common');
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -93,7 +96,7 @@ export function Table<T>({
                 d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
               />
             </svg>
-            <p className="text-sm font-medium">No data available</p>
+            <p className="text-sm font-medium">{t('status.empty')}</p>
           </div>
         )}
       </div>
@@ -115,17 +118,34 @@ export function Table<T>({
                       'cursor-pointer select-none transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
                     col.headerClassName,
                   )}
-                  onClick={() => col.sortable && handleSort(col.key)}
+                  aria-sort={
+                    col.sortable && sortKey === col.key
+                      ? sortDirection === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : col.sortable
+                        ? 'none'
+                        : undefined
+                  }
                 >
                   <div className="flex items-center gap-1.5">
-                    <span>{col.header}</span>
-                    {col.sortable && sortKey === col.key && (
-                      <span
-                        className="text-[var(--primary)]"
-                        aria-hidden="true"
+                    {col.sortable ? (
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1.5 text-left font-inherit"
+                        onClick={() => handleSort(col.key)}
                       >
-                        {sortDirection === 'asc' ? '↑' : '↓'}
-                      </span>
+                        <span>{col.header}</span>
+                        <span aria-hidden="true">
+                          {sortKey === col.key
+                            ? sortDirection === 'asc'
+                              ? '↑'
+                              : '↓'
+                            : '↕'}
+                        </span>
+                      </button>
+                    ) : (
+                      <span>{col.header}</span>
                     )}
                   </div>
                 </th>
@@ -174,17 +194,20 @@ export function Table<T>({
             disabled={currentPage === 1}
             className="rounded-[var(--radius-sm)] border border-transparent px-3 py-1.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-45"
           >
-            Previous
+            {t('pagination.previous')}
           </button>
           <span className="text-xs font-medium text-[var(--text-muted)]">
-            Page {currentPage} of {totalPages}
+            {t('pagination.pageOf', {
+              current: currentPage,
+              total: totalPages,
+            })}
           </span>
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
             className="rounded-[var(--radius-sm)] border border-transparent px-3 py-1.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-45"
           >
-            Next
+            {t('pagination.next')}
           </button>
         </div>
       )}

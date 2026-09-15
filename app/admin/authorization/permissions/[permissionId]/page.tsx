@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 import type { Platform } from '@/lib/api/administration/types';
 
@@ -48,28 +49,32 @@ export default function PermissionDetailPage() {
         <section className="border border-[var(--border)] bg-white p-6">
           <dl className="grid gap-4 text-sm sm:grid-cols-3">
             <div>
-              <dt className="text-[var(--text-muted)]">Category</dt>
+              <dt className="text-[var(--text-muted)]">{t('category')}</dt>
               <dd>{item.category}</dd>
             </div>
             <div>
-              <dt className="text-[var(--text-muted)]">Resource</dt>
+              <dt className="text-[var(--text-muted)]">{t('resource')}</dt>
               <dd>{item.resource}</dd>
             </div>
             <div>
-              <dt className="text-[var(--text-muted)]">Action</dt>
+              <dt className="text-[var(--text-muted)]">{t('action')}</dt>
               <dd>{item.action}</dd>
             </div>
             <div>
-              <dt className="text-[var(--text-muted)]">Risk</dt>
-              <dd>{item.riskLevel}</dd>
+              <dt className="text-[var(--text-muted)]">{t('risk')}</dt>
+              <dd>
+                {t(
+                  `risk${item.riskLevel[0]}${item.riskLevel.slice(1).toLowerCase()}`,
+                )}
+              </dd>
             </div>
             <div>
-              <dt className="text-[var(--text-muted)]">Assignable</dt>
-              <dd>{item.isAssignable ? 'Yes' : 'No'}</dd>
+              <dt className="text-[var(--text-muted)]">{t('assignable')}</dt>
+              <dd>{item.isAssignable ? t('yes') : t('no')}</dd>
             </div>
             <div>
-              <dt className="text-[var(--text-muted)]">Deprecated</dt>
-              <dd>{item.isDeprecated ? 'Yes' : 'No'}</dd>
+              <dt className="text-[var(--text-muted)]">{t('deprecated')}</dt>
+              <dd>{item.isDeprecated ? t('yes') : t('no')}</dd>
             </div>
           </dl>
           <p className="mt-5 text-sm text-[var(--text-muted)]">
@@ -77,7 +82,7 @@ export default function PermissionDetailPage() {
           </p>
         </section>
         <section className="border border-[var(--border)] bg-white p-6">
-          <h2 className="font-semibold">Roles granting this permission</h2>
+          <h2 className="font-semibold">{t('rolesGrantingPermission')}</h2>
           <div className="mt-3 divide-y">
             {roles.data?.items.map((role) => (
               <div className="py-2 text-sm" key={role.id}>
@@ -88,8 +93,16 @@ export default function PermissionDetailPage() {
                   {role.name}
                 </Link>
                 <span className="ml-2 text-[var(--text-muted)]">
-                  {role.code} · {role.status} ·{' '}
-                  {role.isSystem ? 'System' : 'Custom'}
+                  {role.code} ·{' '}
+                  <StatusBadge
+                    status={role.status}
+                    label={
+                      role.status === 'ACTIVE'
+                        ? t('statusActive')
+                        : t('statusDisabled')
+                    }
+                  />{' '}
+                  · {role.isSystem ? t('system') : t('custom')}
                 </span>
               </div>
             ))}

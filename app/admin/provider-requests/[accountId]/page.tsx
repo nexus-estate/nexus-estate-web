@@ -3,9 +3,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
+import { Panel } from '@/components/ui/Panel';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { providerReviewApi } from '@/lib/api/administration/provider-review.api';
 export default function ProviderRequestDetailPage() {
   const t = useTranslations('administration.providerReview');
+  const providerT = useTranslations('provider');
   const params = useParams<{ accountId: string }>();
   const router = useRouter();
   const qc = useQueryClient();
@@ -37,7 +40,7 @@ export default function ProviderRequestDetailPage() {
         description={t('detailDescription')}
       />
       <div className="grid gap-6 md:grid-cols-2">
-        <section className="border border-[var(--border)] bg-[var(--surface)] p-6">
+        <Panel className="p-6">
           <h2 className="font-semibold">{t('request')}</h2>
           <dl className="mt-4 space-y-3 text-sm">
             <div>
@@ -46,19 +49,26 @@ export default function ProviderRequestDetailPage() {
             </div>
             <div>
               <dt>{t('type')}</dt>
-              <dd>{data.providerAccount.type}</dd>
+              <dd>{providerT(`types.${data.providerAccount.type}`)}</dd>
             </div>
             <div>
               <dt>{t('status')}</dt>
-              <dd>{data.providerAccount.verificationStatus}</dd>
+              <dd>
+                <StatusBadge
+                  status={data.providerAccount.verificationStatus}
+                  label={providerT(
+                    `status.${data.providerAccount.verificationStatus.toLowerCase()}`,
+                  )}
+                />
+              </dd>
             </div>
             <div>
               <dt>{t('created')}</dt>
               <dd>{data.providerAccount.createdAt}</dd>
             </div>
           </dl>
-        </section>
-        <section className="border border-[var(--border)] bg-[var(--surface)] p-6">
+        </Panel>
+        <Panel className="p-6">
           <h2 className="font-semibold">{t('owner')}</h2>
           <dl className="mt-4 space-y-3 text-sm">
             <div>
@@ -79,7 +89,7 @@ export default function ProviderRequestDetailPage() {
           >
             {approve.isPending ? t('approving') : t('approve')}
           </button>
-        </section>
+        </Panel>
       </div>
     </>
   );

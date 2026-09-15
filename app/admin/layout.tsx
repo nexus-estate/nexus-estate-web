@@ -13,6 +13,7 @@ import {
 function Guard({ children }: { children: React.ReactNode }) {
   const session = useAdministrationSession();
   const t = useTranslations('administration');
+  const commonT = useTranslations('common');
   const pathname = usePathname();
   const search = useSearchParams();
   const router = useRouter();
@@ -26,7 +27,7 @@ function Guard({ children }: { children: React.ReactNode }) {
   if (session.status === 'restoring')
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-[var(--text-muted)]">
-        Loading administration…
+        {commonT('status.loading')}
       </div>
     );
   if (!session.isAuthenticated && pathname !== '/admin/login') return null;
@@ -78,7 +79,7 @@ function Guard({ children }: { children: React.ReactNode }) {
     });
   return (
     <PortalShell
-      platform="Administration / ERP"
+      platform={t('overview.title')}
       items={items}
       identity={
         <div className="mt-4 text-xs text-[var(--text-muted)]">

@@ -1,5 +1,8 @@
-import { useEffect, useCallback } from 'react';
+'use client';
+
+import { useEffect, useCallback, useId, useRef } from 'react';
 import clsx from 'clsx';
+import { useTranslations } from 'next-intl';
 import { createPortal } from 'react-dom';
 
 type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
@@ -13,6 +16,7 @@ interface ModalProps {
   size?: ModalSize;
   closeOnOverlay?: boolean;
   closeOnEscape?: boolean;
+  ariaLabel?: string;
 }
 
 const sizeClasses: Record<ModalSize, string> = {
@@ -32,7 +36,12 @@ export function Modal({
   size = 'md',
   closeOnOverlay = true,
   closeOnEscape = true,
+  ariaLabel,
 }: ModalProps) {
+  const t = useTranslations('common');
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocus = useRef<HTMLElement | null>(null);
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (closeOnEscape && event.key === 'Escape') {
@@ -44,11 +53,37 @@ export function Modal({
 
   useEffect(() => {
     if (!isOpen) return;
+    previousFocus.current = document.activeElement as HTMLElement | null;
+    const focusable = dialogRef.current?.querySelector<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    focusable?.focus();
+    const handleTab = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || !dialogRef.current) return;
+      const elements = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => !element.hasAttribute('disabled'));
+      if (!elements.length) return;
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', handleTab);
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keydown', handleTab);
       document.body.style.overflow = '';
+      previousFocus.current?.focus();
     };
   }, [isOpen, handleKeyDown]);
 
@@ -62,9 +97,11 @@ export function Modal({
         aria-hidden="true"
       />
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={title ? 'modal-title' : undefined}
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={!title ? ariaLabel : undefined}
         className={clsx(
           'relative flex max-h-[85vh] w-full flex-col overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface-raised)] shadow-[var(--shadow-lg)]',
           'transform transition-all duration-200 ease-out',
@@ -74,7 +111,7 @@ export function Modal({
         {title && (
           <div className="flex items-center justify-between border-b border-[var(--border-muted)] px-5 py-4 sm:px-6">
             <h2
-              id="modal-title"
+              id={titleId}
               className="text-base font-semibold text-[var(--text)]"
             >
               {title}
@@ -82,7 +119,8 @@ export function Modal({
             <button
               onClick={onClose}
               className="rounded-[var(--radius-sm)] p-1.5 text-[var(--text-subtle)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
-              aria-label="Close modal"
+              type="button"
+              aria-label={t('actions.close')}
             >
               <svg
                 className="h-5 w-5"

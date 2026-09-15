@@ -1,8 +1,10 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 export default function AuditPage() {
+  const t = useTranslations('administration.authorization');
   const query = useQuery({
     queryKey: ['administration', 'authorization', 'audit'],
     queryFn: () => administrationAuthorizationApi.audit(),
@@ -10,19 +12,16 @@ export default function AuditPage() {
   const items = query.data?.items ?? [];
   return (
     <>
-      <PageHeader
-        title="Authorization audit"
-        description="Immutable authorization changes across platform boundaries."
-      />
+      <PageHeader title={t('audit')} description={t('auditDescription')} />
       <div className="overflow-x-auto border border-[var(--border)] bg-[var(--surface)]">
         <table className="w-full text-left text-sm">
           <thead className="bg-[var(--surface-subtle)] text-xs uppercase text-[var(--text-muted)]">
             <tr>
-              <th className="px-4 py-3">Time</th>
-              <th>Actor</th>
-              <th>Platform</th>
-              <th>Action</th>
-              <th>Request ID</th>
+              <th className="px-4 py-3">{t('time')}</th>
+              <th>{t('actor')}</th>
+              <th>{t('platform')}</th>
+              <th>{t('action')}</th>
+              <th>{t('requestId')}</th>
             </tr>
           </thead>
           <tbody>
@@ -41,14 +40,10 @@ export default function AuditPage() {
           </tbody>
         </table>
         {query.isLoading && (
-          <p className="p-6 text-sm text-[var(--text-muted)]">
-            Loading audit events…
-          </p>
+          <p className="p-6 text-sm text-[var(--text-muted)]">{t('loading')}</p>
         )}
         {!query.isLoading && !items.length && (
-          <p className="p-6 text-sm text-[var(--text-muted)]">
-            No audit events found.
-          </p>
+          <p className="p-6 text-sm text-[var(--text-muted)]">{t('noAudit')}</p>
         )}
       </div>
     </>

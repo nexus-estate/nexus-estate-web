@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/portal/language-switcher';
 import { useAuth } from '@/hooks/use-auth';
@@ -8,6 +9,7 @@ import { useAuth } from '@/hooks/use-auth';
 export default function Header() {
   const t = useTranslations('customer.nav');
   const { user, status, logout } = useAuth();
+  const pathname = usePathname();
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const nav = [
@@ -37,6 +39,7 @@ export default function Header() {
               key={href}
               href={href}
               className="text-sm text-white/75 transition-colors hover:text-white"
+              aria-current={pathname === href ? 'page' : undefined}
             >
               {label}
             </Link>
@@ -105,7 +108,15 @@ export default function Header() {
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen(!mobileOpen)}
           >
-            ☰
+            <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+              <path
+                d="M4 6h16M4 12h16M4 18h16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
           </button>
         </div>
       </div>

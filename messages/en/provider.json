@@ -20,6 +20,16 @@
     "rejected": "Rejected",
     "removed": "Removed"
   },
+  "state": {
+    "loading": "Loading",
+    "error": "Unable to load Provider status",
+    "noProvider": "No Provider account",
+    "pendingVerification": "Pending verification",
+    "rejected": "Rejected",
+    "suspended": "Suspended",
+    "activeVerified": "Active and verified",
+    "contextRequired": "Provider context required"
+  },
   "lifecycle": {
     "pending_verification": "Provider review is in progress.",
     "rejected": "This Provider application was rejected.",
@@ -68,6 +78,14 @@
   "authorization": {
     "title": "Provider authorization",
     "description": "Effective permissions for this Provider membership.",
-    "permissions": "Effective permissions"
+    "permissions": "Effective permissions",
+    "scopeNote": "These roles apply to this Provider membership, not to your Customer account globally.",
+    "membership": "Membership",
+    "providerId": "Provider ID",
+    "state": "State"
+  },
+  "account": {
+    "providerId": "Provider ID",
+    "created": "Created"
   }
 }

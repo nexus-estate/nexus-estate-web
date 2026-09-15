@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 import type { Platform } from '@/lib/api/administration/types';
@@ -99,7 +100,16 @@ export default function RoleDetailPage() {
           <dl className="grid gap-4 sm:grid-cols-3 text-sm">
             <div>
               <dt>{t('status')}</dt>
-              <dd>{item.status}</dd>
+              <dd>
+                <StatusBadge
+                  status={item.status}
+                  label={
+                    item.status === 'ACTIVE'
+                      ? t('statusActive')
+                      : t('statusDisabled')
+                  }
+                />
+              </dd>
             </div>
             <div>
               <dt>{t('type')}</dt>
@@ -153,8 +163,8 @@ export default function RoleDetailPage() {
                     setStatus(e.target.value as 'ACTIVE' | 'DISABLED')
                   }
                 >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="DISABLED">DISABLED</option>
+                  <option value="ACTIVE">{t('statusActive')}</option>
+                  <option value="DISABLED">{t('statusDisabled')}</option>
                 </select>
               </label>
             )}
@@ -197,7 +207,17 @@ export default function RoleDetailPage() {
               <div className="py-2 text-sm" key={subject.id}>
                 <span className="font-medium">{subject.displayName}</span>
                 <span className="ml-2 text-[var(--text-muted)]">
-                  {subject.subjectType} · {subject.status}
+                  {subject.subjectType} ·{' '}
+                  <StatusBadge
+                    status={subject.status}
+                    label={
+                      subject.status === 'ACTIVE'
+                        ? t('statusActive')
+                        : subject.status === 'DISABLED'
+                          ? t('statusDisabled')
+                          : subject.status
+                    }
+                  />
                 </span>
               </div>
             ))}

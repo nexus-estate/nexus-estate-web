@@ -55,7 +55,9 @@ export default function ProviderAccountPage() {
         {account.data && (
           <dl className="mt-6 grid gap-3 border-t border-[var(--border)] pt-5 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-[var(--text-muted)]">Provider ID</dt>
+              <dt className="text-[var(--text-muted)]">
+                {t('account.providerId')}
+              </dt>
               <dd className="break-all font-mono text-xs">{account.data.id}</dd>
             </div>
             <div>
@@ -73,7 +75,9 @@ export default function ProviderAccountPage() {
               </dd>
             </div>
             <div>
-              <dt className="text-[var(--text-muted)]">Created</dt>
+              <dt className="text-[var(--text-muted)]">
+                {t('account.created')}
+              </dt>
               <dd>
                 {new Intl.DateTimeFormat(undefined, {
                   dateStyle: 'medium',

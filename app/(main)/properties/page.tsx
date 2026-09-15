@@ -1,118 +1,45 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { PropertyCard } from '@/components/customer/property-card';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { propertyApi } from '@/lib/api/property/property.api';
 import type {
   Property,
   PropertyListResponse,
 } from '@/lib/api/property/property.types';
 
-const PROPERTY_TYPES = [
-  { value: '', label: 'Tất cả loại' },
-  { value: 'apartment', label: 'Căn hộ' },
-  { value: 'house', label: 'Nhà phố' },
-  { value: 'villa', label: 'Biệt thự' },
-  { value: 'land', label: 'Đất nền' },
-  { value: 'office', label: 'Văn phòng' },
-];
+const types = ['apartment', 'house', 'villa', 'land', 'office'] as const;
+const purposes = ['buy', 'rent'] as const;
 
-const PURPOSES = [
-  { value: '', label: 'Tất cả' },
-  { value: 'buy', label: 'Bán' },
-  { value: 'rent', label: 'Cho thuê' },
-];
-
-const THUMBNAIL_GRADIENTS = [
-  'from-blue-400 to-blue-600',
-  'from-emerald-400 to-emerald-600',
-  'from-purple-400 to-purple-600',
-  'from-amber-400 to-amber-600',
-] as const;
-
-function formatPrice(price: number): string {
-  if (price >= 1_000_000_000) return `${(price / 1_000_000_000).toFixed(1)} tỷ`;
-  if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(0)} triệu`;
-  return price.toLocaleString('vi-VN');
-}
-
-function getThumbnailGradient(id: string): string {
-  const index =
-    id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) %
-    THUMBNAIL_GRADIENTS.length;
-  return THUMBNAIL_GRADIENTS[index];
-}
-
-function PropertyCard({ property }: { property: Property }) {
-  const colorClass = getThumbnailGradient(property.id);
-
-  return (
-    <Link
-      href={`/properties/${property.id}`}
-      className="group overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:shadow-lg"
-    >
-      <div className={`relative h-48 bg-gradient-to-br ${colorClass}`}>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-5xl opacity-30">
-            {property.type === 'apartment'
-              ? '🏢'
-              : property.type === 'house'
-                ? '🏠'
-                : property.type === 'villa'
-                  ? '🏡'
-                  : '🗺️'}
-          </span>
-        </div>
-        <div className="absolute bottom-3 left-3">
-          <span className="rounded-lg bg-white/90 px-2.5 py-1 text-xs font-semibold text-gray-900">
-            {property.purpose === 'buy' ? 'Bán' : 'Cho thuê'}
-          </span>
-        </div>
-      </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 line-clamp-1">
-          {property.title}
-        </h3>
-        <p className="mt-1 text-lg font-bold text-blue-600">
-          {property.price != null ? formatPrice(property.price) : 'Liên hệ'}
-        </p>
-        <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
-          {property.area != null && property.area > 0 && (
-            <span>{property.area} m²</span>
-          )}
-          {property.bedrooms != null && property.bedrooms > 0 && (
-            <span>{property.bedrooms} PN</span>
-          )}
-          {property.bathrooms != null && property.bathrooms > 0 && (
-            <span>{property.bathrooms} WC</span>
-          )}
-        </div>
-        <p className="mt-1.5 text-xs text-gray-400">
-          {property.city}
-          {property.district ? `, ${property.district}` : ''}
-        </p>
-      </div>
-    </Link>
-  );
+function items(response: PropertyListResponse | Property[]): Property[] {
+  if (Array.isArray(response)) return response;
+  return response.data ?? response.properties ?? response.items ?? [];
 }
 
 export default function PropertiesPage() {
+  const t = useTranslations('customer');
+  const commonT = useTranslations('common');
   const searchParams = useSearchParams();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [filters, setFilters] = useState({
-    type: searchParams.get('type') || '',
-    purpose: searchParams.get('purpose') || '',
-    city: searchParams.get('city') || '',
-    query: searchParams.get('query') || '',
+    type: searchParams.get('type') ?? '',
+    purpose: searchParams.get('purpose') ?? '',
+    city: searchParams.get('city') ?? '',
+    query: searchParams.get('query') ?? '',
     page: 1,
   });
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    async function fetchData() {
+    let cancelled = false;
+    void (async () => {
       setLoading(true);
+      setError(false);
       try {
         const response = await propertyApi.list({
           page: filters.page,
@@ -122,149 +49,135 @@ export default function PropertiesPage() {
           city: filters.city,
           q: filters.query,
         });
-        const items = Array.isArray(response)
-          ? response
-          : ((response as PropertyListResponse).data ??
-            (response as PropertyListResponse).properties ??
-            (response as PropertyListResponse).items ??
-            []);
-        const itemsArray = Array.isArray(items) ? items : [];
-        setProperties(itemsArray);
-        setTotal(
-          !Array.isArray(response) && 'total' in response
-            ? (response.total ?? itemsArray.length)
-            : itemsArray.length,
-        );
+        const result = items(response);
+        if (!cancelled) {
+          setProperties(result);
+          setTotal(
+            !Array.isArray(response) && 'total' in response
+              ? (response.total ?? result.length)
+              : result.length,
+          );
+        }
       } catch {
-        setProperties([]);
-        setTotal(0);
+        if (!cancelled) {
+          setProperties([]);
+          setTotal(0);
+          setError(true);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    }
-    fetchData();
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [filters]);
 
-  const handleFilterChange = useCallback((key: string, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
-  }, []);
+  const change = useCallback(
+    (key: 'type' | 'purpose' | 'city' | 'query', value: string) => {
+      setFilters((current) => ({ ...current, [key]: value, page: 1 }));
+    },
+    [],
+  );
+  const reset = () =>
+    setFilters({ type: '', purpose: '', city: '', query: '', page: 1 });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Filters */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="flex-1 min-w-[200px]">
-              <label
-                className="block text-xs font-medium text-gray-500 mb-1"
-                htmlFor="search-query"
-              >
-                Tìm kiếm
-              </label>
-              <input
-                id="search-query"
-                type="text"
-                value={filters.query}
-                onChange={(e) => handleFilterChange('query', e.target.value)}
-                placeholder="Địa điểm, dự án..."
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
-              />
-            </div>
-            <div className="w-40">
-              <label
-                className="block text-xs font-medium text-gray-500 mb-1"
-                htmlFor="filter-purpose"
-              >
-                Mục đích
-              </label>
-              <select
-                id="filter-purpose"
-                value={filters.purpose}
-                onChange={(e) => handleFilterChange('purpose', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 outline-none"
-              >
-                {PURPOSES.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="w-44">
-              <label
-                className="block text-xs font-medium text-gray-500 mb-1"
-                htmlFor="filter-type"
-              >
-                Loại
-              </label>
-              <select
-                id="filter-type"
-                value={filters.type}
-                onChange={(e) => handleFilterChange('type', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 outline-none"
-              >
-                {PROPERTY_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="w-44">
-              <label
-                className="block text-xs font-medium text-gray-500 mb-1"
-                htmlFor="filter-city"
-              >
-                Thành phố
-              </label>
-              <input
-                id="filter-city"
-                type="text"
-                value={filters.city}
-                onChange={(e) => handleFilterChange('city', e.target.value)}
-                placeholder="Hồ Chí Minh..."
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Results */}
-        <div className="mt-6 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">
+    <div className="bg-[var(--background)]">
+      <div className="mx-auto max-w-[var(--content-max)] px-5 py-10 sm:px-8 lg:px-10 lg:py-14">
+        <div className="max-w-2xl">
+          <p className="eyebrow">{t('home.eyebrow')}</p>
+          <h1 className="mt-4 font-display text-5xl tracking-[-.03em] text-[var(--brand-strong)]">
             {filters.purpose === 'rent'
-              ? 'Bất động sản cho thuê'
-              : 'Bất động sản'}
+              ? t('properties.titleRent')
+              : t('properties.title')}
           </h1>
-          {total > 0 && (
-            <p className="text-sm text-gray-500">{total} kết quả</p>
+          <p className="mt-4 text-base leading-7 text-[var(--text-muted)]">
+            {t('properties.description')}
+          </p>
+        </div>
+        <form
+          className="app-panel mt-9 grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_auto] lg:items-end"
+          onSubmit={(event) => event.preventDefault()}
+        >
+          <label className="block text-sm font-semibold text-[var(--text)] lg:col-span-1">
+            {t('properties.search')}
+            <input
+              type="search"
+              value={filters.query}
+              onChange={(event) => change('query', event.target.value)}
+              placeholder={t('properties.searchPlaceholder')}
+              className="app-control mt-2 px-3 py-2 text-sm font-normal"
+            />
+          </label>
+          <label className="block text-sm font-semibold text-[var(--text)]">
+            {t('properties.purpose')}
+            <select
+              value={filters.purpose}
+              onChange={(event) => change('purpose', event.target.value)}
+              className="app-control mt-2 px-3 py-2 text-sm font-normal"
+            >
+              <option value="">{t('properties.all')}</option>
+              {purposes.map((purpose) => (
+                <option key={purpose} value={purpose}>
+                  {t(`properties.${purpose}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm font-semibold text-[var(--text)]">
+            {t('properties.type')}
+            <select
+              value={filters.type}
+              onChange={(event) => change('type', event.target.value)}
+              className="app-control mt-2 px-3 py-2 text-sm font-normal"
+            >
+              <option value="">{t('properties.allTypes')}</option>
+              {types.map((type) => (
+                <option key={type} value={type}>
+                  {t(`home.propertyTypes.${type}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm font-semibold text-[var(--text)]">
+            {t('home.quickSearch')}
+            <input
+              value={filters.city}
+              onChange={(event) => change('city', event.target.value)}
+              placeholder={t('properties.allCities')}
+              className="app-control mt-2 px-3 py-2 text-sm font-normal"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={reset}
+            className="min-h-10 rounded-[var(--radius-md)] border border-[var(--border)] px-4 text-sm font-semibold text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
+          >
+            {t('properties.reset')}
+          </button>
+        </form>
+        <div className="mt-8 flex flex-col gap-2 border-b border-[var(--border-muted)] pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold text-[var(--text)]">
+            {t('properties.results', { count: total })}
+          </h2>
+          {error && (
+            <p role="alert" className="text-sm text-[var(--danger)]">
+              {commonT('status.error')}
+            </p>
           )}
         </div>
-
-        <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {loading
-            ? Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="rounded-xl border border-gray-200 bg-white overflow-hidden"
-                >
-                  <div className="skeleton h-48" />
-                  <div className="space-y-3 p-4">
-                    <div className="skeleton h-4 w-3/4 rounded" />
-                    <div className="skeleton h-4 w-1/2 rounded" />
-                    <div className="skeleton h-3 w-2/3 rounded" />
-                  </div>
-                </div>
-              ))
-            : properties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))}
-        </div>
-
-        {!loading && properties.length === 0 && (
-          <div className="py-20 text-center">
-            <p className="text-gray-500">Không tìm thấy bất động sản nào.</p>
+        {loading ? (
+          <LoadingState label={commonT('status.loading')} />
+        ) : properties.length ? (
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {properties.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+        ) : (
+          <div className="app-panel-muted mt-6 px-6 py-16 text-center text-sm text-[var(--text-muted)]">
+            {t('properties.empty')}
           </div>
         )}
       </div>

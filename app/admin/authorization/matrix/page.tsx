@@ -24,6 +24,7 @@ const sameSet = (left: string[], right: string[]) =>
   left.length === right.length && left.every((value) => right.includes(value));
 export default function MatrixPage() {
   const t = useTranslations('common');
+  const adminT = useTranslations('administration.authorization');
   const { platform, setPlatform } = useAuthorizationPlatform();
   const qc = useQueryClient();
   const { hasPermission } = useAdministrationSession();
@@ -84,8 +85,8 @@ export default function MatrixPage() {
   return (
     <>
       <PageHeader
-        title="Permission matrix"
-        description="Edit one role at a time and save its complete permission set atomically."
+        title={adminT('matrix')}
+        description={adminT('matrixDescription')}
         actions={
           <>
             <button
@@ -93,7 +94,7 @@ export default function MatrixPage() {
               onClick={() => save.mutate()}
               className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
             >
-              {save.isPending ? 'Saving…' : 'Save changes'}
+              {save.isPending ? t('status.saving') : adminT('saveChanges')}
             </button>
             <button
               type="button"
@@ -103,7 +104,7 @@ export default function MatrixPage() {
               }}
               className="ml-2 rounded-md border border-[var(--border)] px-4 py-2 text-sm disabled:opacity-50"
             >
-              Reset
+              {adminT('reset')}
             </button>
           </>
         }
@@ -116,7 +117,7 @@ export default function MatrixPage() {
           className="text-xs font-medium text-[var(--text-muted)]"
           htmlFor="matrix-role"
         >
-          Role
+          {adminT('role')}
         </label>
         <select
           id="matrix-role"
@@ -136,8 +137,7 @@ export default function MatrixPage() {
       </div>
       {!query.isLoading && data?.roles?.length === 0 && (
         <p className="border border-dashed border-[var(--border)] p-6 text-sm text-[var(--text-muted)]">
-          No roles are available for this platform. Create a role first to
-          manage its permission matrix.
+          {adminT('noRolesForMatrix')}
         </p>
       )}
       <div className="space-y-5">
@@ -173,7 +173,11 @@ export default function MatrixPage() {
                     </span>
                     <span className="text-xs text-[var(--text-muted)]">
                       {permission.code}
-                      {permission.riskLevel ? ` · ${permission.riskLevel}` : ''}
+                      {permission.riskLevel
+                        ? ` · ${adminT(
+                            `risk${permission.riskLevel[0]}${permission.riskLevel.slice(1).toLowerCase()}`,
+                          )}`
+                        : ''}
                     </span>
                   </span>
                 </label>
@@ -188,10 +192,14 @@ export default function MatrixPage() {
         </p>
       )}
       {query.isLoading && (
-        <p className="text-sm text-[var(--text-muted)]">Loading matrix…</p>
+        <p className="text-sm text-[var(--text-muted)]">
+          {adminT('loadingMatrix')}
+        </p>
       )}
       {query.error && (
-        <p className="text-sm text-red-700">Unable to load matrix.</p>
+        <p className="text-sm text-[var(--danger)]">
+          {adminT('unableToLoadMatrix')}
+        </p>
       )}
     </>
   );

@@ -14,6 +14,32 @@
     "overview": "Overview",
     "signedInWorkspace": "Signed-in workspace"
   },
+  "navigation": {
+    "portal": "Portal navigation",
+    "platformNavigation": "{platform} navigation",
+    "overview": "Overview",
+    "openNavigation": "Open navigation",
+    "closeNavigation": "Close navigation",
+    "home": "Marketplace",
+    "provider": "Provider overview",
+    "providerAccount": "Provider account",
+    "providerAuthorization": "Provider authorization",
+    "admin": "Administration overview",
+    "providerReview": "Provider review",
+    "authorization": "Authorization workspace",
+    "roles": "Role details",
+    "permissions": "Permission catalogue",
+    "permission": "Permission details",
+    "matrix": "Permission matrix",
+    "subjects": "Authorization subjects",
+    "subject": "Subject details",
+    "audit": "Authorization audit"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {current} of {total}"
+  },
   "language": { "vietnamese": "Tiếng Việt", "english": "English" },
   "errors": {
     "unexpected": "Something went wrong. Please try again.",
@@ -25,5 +51,41 @@
     "lastOwnerProtection": "The last Owner cannot be removed.",
     "providerContextRequired": "Select a Provider context before continuing.",
     "providerAccountNotFound": "Provider account was not found."
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "description": "Please try again or return to the home page.",
+    "retry": "Try again",
+    "home": "Back to home",
+    "adminHome": "Back to administration"
+  },
+  "footer": {
+    "explore": "Explore",
+    "forSale": "Properties for sale",
+    "forRent": "Properties for rent",
+    "curatedProjects": "Curated projects",
+    "villas": "Villas",
+    "nexusEstate": "Nexus Estate",
+    "about": "About us",
+    "becomeProvider": "Become a Provider",
+    "consultation": "Request a consultation",
+    "signIn": "Sign in",
+    "connect": "Stay connected",
+    "newsletter": "Receive our latest selection and market perspectives.",
+    "newsletterLabel": "Newsletter email",
+    "newsletterPlaceholder": "Your email address",
+    "newsletterSubmit": "Subscribe to newsletter",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "tagline": "A considered real-estate platform for people seeking a different quality of life and assets built to last.",
+    "rights": "All rights reserved."
+  },
+  "upload": {
+    "click": "Click to upload",
+    "drop": "or drag and drop",
+    "anyFile": "Any file",
+    "upTo": "up to {size} MB",
+    "remove": "Remove {name}",
+    "fileTooLarge": "File {name} exceeds the {size} MB limit"
   }
 }

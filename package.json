@@ -9,6 +9,7 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "type-check": "tsc --noEmit",
+    "i18n:check": "node scripts/check-message-parity.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "jest",

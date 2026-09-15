@@ -9,6 +9,7 @@ import { providerApi } from '@/lib/api/provider/provider.api';
 import type { ProviderAccount } from '@/lib/api/provider/types';
 export default function ProviderOnboardingPage() {
   const t = useTranslations('provider.onboarding');
+  const providerT = useTranslations('provider');
   const router = useRouter();
   const [type, setType] = useState<ProviderAccount['type']>('INDIVIDUAL');
   const [displayName, setDisplayName] = useState('');
@@ -37,11 +38,7 @@ export default function ProviderOnboardingPage() {
             });
             router.push('/provider');
           } catch (cause) {
-            setError(
-              cause instanceof Error
-                ? cause.message
-                : 'Unable to submit onboarding.',
-            );
+            setError(cause instanceof Error ? cause.message : t('error'));
           } finally {
             setSaving(false);
           }
@@ -54,9 +51,9 @@ export default function ProviderOnboardingPage() {
             value={type}
             onChange={(e) => setType(e.target.value as ProviderAccount['type'])}
           >
-            <option value="INDIVIDUAL">Individual</option>
-            <option value="BROKER">Broker</option>
-            <option value="AGENCY">Agency</option>
+            <option value="INDIVIDUAL">{providerT('types.INDIVIDUAL')}</option>
+            <option value="BROKER">{providerT('types.BROKER')}</option>
+            <option value="AGENCY">{providerT('types.AGENCY')}</option>
           </select>
         </label>
         <label className="mb-4 block text-sm">

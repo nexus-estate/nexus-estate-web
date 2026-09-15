@@ -11,30 +11,8 @@ export const PROVIDER_ACTIVE_ID_KEY = 'nexus.provider.active_id';
 export const LOCALE_KEY = 'nexus.locale';
 
 export const LOCALES = ['en', 'vi'] as const;
+export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE = 'vi';
-
-export const SORT_OPTIONS = [
-  { value: 'price-asc', label: 'Giá: Thấp đến Cao' },
-  { value: 'price-desc', label: 'Giá: Cao đến Thấp' },
-  { value: 'newest', label: 'Mới nhất' },
-  { value: 'area-asc', label: 'Diện tích: Nhỏ đến Lớn' },
-  { value: 'area-desc', label: 'Diện tích: Lớn đến Nhỏ' },
-];
-
-export const PROPERTY_TYPES = [
-  { value: '', label: 'Tất cả loại' },
-  { value: 'apartment', label: 'Căn hộ' },
-  { value: 'house', label: 'Nhà phố' },
-  { value: 'villa', label: 'Biệt thự' },
-  { value: 'land', label: 'Đất nền' },
-  { value: 'office', label: 'Văn phòng' },
-];
-
-export const PURPOSES: { value: string; label: string }[] = [
-  { value: '', label: 'Tất cả' },
-  { value: 'buy', label: 'Bán' },
-  { value: 'rent', label: 'Cho thuê' },
-];
 
 export const ROUTES = {
   home: '/',

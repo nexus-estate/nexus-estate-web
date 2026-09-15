@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 import type {
@@ -107,43 +108,66 @@ export default function SubjectDetailPage() {
   if (subject.isError || !subject.data)
     return <p className="text-sm text-red-700">{t('error')}</p>;
   const item = subject.data;
+  const subjectTypeLabel =
+    item.subjectType === 'CUSTOMER'
+      ? t('subjectCustomer')
+      : item.subjectType === 'PROVIDER_MEMBERSHIP'
+        ? t('subjectProviderMembership')
+        : item.subjectType === 'ADMINISTRATOR'
+          ? t('subjectAdministrator')
+          : item.subjectType;
   return (
     <>
       <PageHeader
         title={item.displayName}
-        description={item.secondaryText ?? item.subjectType}
+        description={item.secondaryText ?? subjectTypeLabel}
       />
       <div className="max-w-4xl space-y-6">
         <section className="border border-[var(--border)] bg-white p-6">
-          <h2 className="font-semibold">Identity / Context</h2>
+          <h2 className="font-semibold">{t('identity')}</h2>
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
             <div>
-              <dt className="text-[var(--text-muted)]">Subject type</dt>
-              <dd>{item.subjectType}</dd>
+              <dt className="text-[var(--text-muted)]">{t('subjectType')}</dt>
+              <dd>{subjectTypeLabel}</dd>
             </div>
             <div>
-              <dt className="text-[var(--text-muted)]">Status</dt>
-              <dd>{item.status}</dd>
+              <dt className="text-[var(--text-muted)]">{t('status')}</dt>
+              <dd>
+                <StatusBadge
+                  status={item.status}
+                  label={
+                    item.status === 'ACTIVE'
+                      ? t('statusActive')
+                      : item.status === 'DISABLED'
+                        ? t('statusDisabled')
+                        : item.status
+                  }
+                />
+              </dd>
             </div>
             <div>
-              <dt className="text-[var(--text-muted)]">Secondary</dt>
+              <dt className="text-[var(--text-muted)]">{t('secondary')}</dt>
               <dd>{item.secondaryText ?? '—'}</dd>
             </div>
             {item.providerDisplayName && (
               <div>
-                <dt className="text-[var(--text-muted)]">Provider business</dt>
+                <dt className="text-[var(--text-muted)]">
+                  {t('providerBusiness')}
+                </dt>
                 <dd>{item.providerDisplayName}</dd>
               </div>
             )}
             {item.customerEmail && (
               <div>
-                <dt className="text-[var(--text-muted)]">Customer email</dt>
+                <dt className="text-[var(--text-muted)]">
+                  {t('customerEmail')}
+                </dt>
                 <dd>{item.customerEmail}</dd>
               </div>
             )}
           </dl>
           <details className="mt-4 text-xs text-[var(--text-muted)]">
-            <summary>Technical details</summary>
+            <summary>{t('technicalDetails')}</summary>
             <pre className="mt-2 overflow-auto">
               {JSON.stringify(
                 {
@@ -158,7 +182,7 @@ export default function SubjectDetailPage() {
           </details>
         </section>
         <section className="border border-[var(--border)] bg-white p-6">
-          <h2 className="font-semibold">Assigned roles</h2>
+          <h2 className="font-semibold">{t('assignedSubjects')}</h2>
           <div className="mt-3 space-y-2">
             {item.roles.map((role) => (
               <div key={role.id} className="border-b py-2 text-sm">
@@ -169,14 +193,24 @@ export default function SubjectDetailPage() {
                   {role.name}
                 </Link>
                 <span className="ml-2 text-[var(--text-muted)]">
-                  {role.code} · {role.status}
+                  {role.code} ·{' '}
+                  <StatusBadge
+                    status={role.status}
+                    label={
+                      role.status === 'ACTIVE'
+                        ? t('statusActive')
+                        : role.status === 'DISABLED'
+                          ? t('statusDisabled')
+                          : role.status
+                    }
+                  />
                 </span>
               </div>
             ))}
           </div>
           {canManageAssignments && (
             <div className="mt-5 border-t pt-4">
-              <p className="text-sm font-medium">Replace role assignment</p>
+              <p className="text-sm font-medium">{t('replaceAssignment')}</p>
               <div className="mt-2 grid gap-2">
                 {assignmentOptions.map((role) => (
                   <label className="flex gap-2 text-sm" key={role.id}>
@@ -199,21 +233,22 @@ export default function SubjectDetailPage() {
                     </code>
                     <span className="text-xs text-[var(--text-muted)]">
                       {role.status === 'DISABLED'
-                        ? 'DISABLED — remove before saving'
-                        : 'ACTIVE'}
+                        ? t('disabledRoleWarning')
+                        : t('statusActive')}
                     </span>
                   </label>
                 ))}
               </div>
               <textarea
                 className="mt-3 w-full border px-3 py-2 text-sm"
-                placeholder="Reason (optional)"
+                placeholder={t('reasonOptional')}
+                aria-label={t('reasonOptional')}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
               />
               {selectedDisabledRoles.length > 0 && (
                 <p className="mt-2 text-sm text-amber-700">
-                  Remove disabled assigned roles before saving.
+                  {t('removeDisabledRoles')}
                 </p>
               )}
               <button
@@ -226,15 +261,13 @@ export default function SubjectDetailPage() {
                 }
                 onClick={() => {
                   if (selectedDisabledRoles.length > 0) {
-                    setValidationError(
-                      'Remove disabled assigned roles before saving.',
-                    );
+                    setValidationError(t('removeDisabledRoles'));
                     return;
                   }
                   assign.mutate();
                 }}
               >
-                Save assignments
+                {t('saveAssignments')}
               </button>
               {validationError && (
                 <p className="mt-2 text-sm text-red-700">{validationError}</p>
@@ -248,7 +281,7 @@ export default function SubjectDetailPage() {
           )}
         </section>
         <section className="border border-[var(--border)] bg-white p-6">
-          <h2 className="font-semibold">Effective permissions</h2>
+          <h2 className="font-semibold">{t('effectivePermissions')}</h2>
           <div className="mt-3 space-y-4">
             {permissionsByCategory.map(([category, permissions]) => (
               <div key={category}>

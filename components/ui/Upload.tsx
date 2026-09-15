@@ -1,6 +1,9 @@
+'use client';
+
 import { useCallback, useState, useRef } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
+import { useTranslations } from 'next-intl';
 
 interface UploadedFile {
   file: File;
@@ -23,6 +26,7 @@ export function Upload({
   onUpload,
   className,
 }: UploadProps) {
+  const t = useTranslations('common.upload');
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +41,7 @@ export function Upload({
       for (const file of fileArray) {
         if (file.size > maxSize) {
           setError(
-            `File "${file.name}" exceeds ${maxSize / 1024 / 1024}MB limit`,
+            t('fileTooLarge', { name: file.name, size: maxSize / 1024 / 1024 }),
           );
           return;
         }
@@ -56,7 +60,7 @@ export function Upload({
       );
       onUpload(validFiles);
     },
-    [maxSize, multiple, onUpload],
+    [maxSize, multiple, onUpload, t],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -123,13 +127,13 @@ export function Upload({
         </svg>
         <p className="mb-1 text-sm text-[var(--text-muted)]">
           <span className="font-semibold text-[var(--primary)]">
-            Click to upload
+            {t('click')}
           </span>{' '}
-          or drag and drop
+          {t('drop')}
         </p>
         <p className="text-xs text-[var(--text-subtle)]">
-          {accept ? accept.replace(/,/g, ', ') : 'Any file'} up to{' '}
-          {maxSize / 1024 / 1024}MB
+          {accept ? accept.replace(/,/g, ', ') : t('anyFile')}{' '}
+          {t('upTo', { size: maxSize / 1024 / 1024 })}
         </p>
         <input
           ref={inputRef}
@@ -198,7 +202,7 @@ export function Upload({
                   removeFile(index);
                 }}
                 className="ml-2 rounded-[var(--radius-sm)] p-1.5 text-[var(--text-subtle)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
-                aria-label={`Remove ${file.file.name}`}
+                aria-label={t('remove', { name: file.file.name })}
               >
                 <svg
                   className="h-4 w-4"

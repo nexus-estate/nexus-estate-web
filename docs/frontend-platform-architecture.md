@@ -21,3 +21,18 @@ membership APIs are not used by Provider UI.
 Customer navigation stays consumer-facing. Provider owns supply operations.
 Administration navigation is permission-based and manages authorization across
 Marketplace, ProviderMembership, and Administration subject types.
+
+## UI architecture
+
+`components/ui` owns generic primitives and accessible interaction patterns
+(controls, panels, tables, loading and status states). `components/portal` owns
+the shared responsive application shell; Provider and Administration supply
+their own translated navigation and identity context. Marketplace uses the
+same tokens and primitives but keeps a consumer-oriented composition with
+property imagery and more whitespace.
+
+Pages follow `PageHeader → actions/context → content surface → loading, empty,
+error, or success state`. New navigation items should be added to the owning
+layout configuration and have a localized label in both catalogues. Raw route
+segments, permission codes, IDs, and user-created names are never presented as
+translated UI copy.

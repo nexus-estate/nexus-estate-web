@@ -20,6 +20,16 @@
     "rejected": "Bị từ chối",
     "removed": "Đã gỡ"
   },
+  "state": {
+    "loading": "Đang tải",
+    "error": "Không thể tải trạng thái Provider",
+    "noProvider": "Chưa có Provider account",
+    "pendingVerification": "Đang chờ xác minh",
+    "rejected": "Bị từ chối",
+    "suspended": "Tạm ngưng",
+    "activeVerified": "Đang hoạt động và đã xác minh",
+    "contextRequired": "Cần chọn ngữ cảnh Provider"
+  },
   "lifecycle": {
     "pending_verification": "Hồ sơ Provider đang được xét duyệt.",
     "rejected": "Hồ sơ Provider đã bị từ chối.",
@@ -68,6 +78,14 @@
   "authorization": {
     "title": "Phân quyền Provider",
     "description": "Quyền hiệu lực của membership hiện tại.",
-    "permissions": "Quyền hiệu lực"
+    "permissions": "Quyền hiệu lực",
+    "scopeNote": "Các vai trò này chỉ áp dụng cho membership Provider, không áp dụng trên toàn bộ tài khoản Customer.",
+    "membership": "Membership",
+    "providerId": "Mã Provider",
+    "state": "Trạng thái"
+  },
+  "account": {
+    "providerId": "Mã Provider",
+    "created": "Ngày tạo"
   }
 }

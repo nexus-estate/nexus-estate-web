@@ -14,7 +14,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   return (
-    <div className="mx-auto mt-20 max-w-md rounded-xl bg-white p-8 shadow">
+    <div className="app-panel mx-auto mt-12 max-w-md p-6 sm:mt-20 sm:p-8">
       <p className="eyebrow">{t('title')}</p>
       <h1 className="mt-3 text-3xl font-bold text-[#102f2d]">{t('title')}</h1>
       <form
@@ -33,22 +33,28 @@ export default function AdminLoginPage() {
           }
         }}
       >
-        <input
-          className="auth-input"
-          type="email"
-          required
-          placeholder={t('email')}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="auth-input"
-          type="password"
-          required
-          placeholder={t('password')}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <label className="block text-sm font-semibold text-[var(--text)]">
+          <span>{t('email')}</span>
+          <input
+            className="auth-input mt-2 px-3"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </label>
+        <label className="block text-sm font-semibold text-[var(--text)]">
+          <span>{t('password')}</span>
+          <input
+            className="auth-input mt-2 px-3"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
         {error && (
           <p role="alert" className="text-sm text-red-700">
             {error}

@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/use-auth';
 
 export default function SignUpPage() {
   const router = useRouter();
   const { register } = useAuth();
+  const t = useTranslations('auth.customer');
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -26,21 +28,16 @@ export default function SignUpPage() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
-    if (form.password.length < 8)
-      return setError('Mật khẩu phải có ít nhất 8 ký tự.');
+    if (form.password.length < 8) return setError(t('passwordLength'));
     if (form.password !== form.confirmPassword)
-      return setError('Mật khẩu xác nhận không khớp.');
+      return setError(t('passwordMismatch'));
     setLoading(true);
     try {
       await register({ email: form.email, password: form.password });
       setSuccess(true);
       setTimeout(() => router.push('/signin'), 1800);
     } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Không thể tạo tài khoản. Vui lòng thử lại.',
-      );
+      setError(err instanceof Error ? err.message : t('registerFailed'));
     } finally {
       setLoading(false);
     }
@@ -63,21 +60,20 @@ export default function SignUpPage() {
             />
           </svg>
         </div>
-        <p className="eyebrow mt-8">Hoàn tất đăng ký</p>
+        <p className="eyebrow mt-8">{t('successEyebrow')}</p>
         <h1 className="mt-5 font-display text-5xl leading-none text-[#102f2d]">
-          Chào mừng bạn đến
+          {t('successTitle')}
           <br />
-          <span className="italic text-[#9a7b4f]">Nexus Estate.</span>
+          <span className="italic text-[#9a7b4f]">{t('successAccent')}</span>
         </h1>
         <p className="mt-6 text-sm leading-6 text-[#75807d]">
-          Tài khoản đã được tạo. Chúng tôi đang chuyển bạn đến trang đăng
-          nhập...
+          {t('successDescription')}
         </p>
         <Link
           href="/signin"
           className="mt-8 inline-flex border-b border-[#9a7b4f] pb-2 text-xs font-bold uppercase tracking-[.15em] text-[#173b38]"
         >
-          Đăng nhập ngay →
+          {t('signInNow')} →
         </Link>
       </div>
     );
@@ -85,15 +81,14 @@ export default function SignUpPage() {
 
   return (
     <div className="animate-fade-up pt-12 lg:pt-0">
-      <p className="eyebrow">Trở thành thành viên</p>
+      <p className="eyebrow">{t('signupEyebrow')}</p>
       <h1 className="mt-5 font-display text-5xl leading-none tracking-[-.03em] text-[#102f2d]">
-        Bắt đầu hành trình
+        {t('signupTitle')}
         <br />
-        <span className="italic text-[#9a7b4f]">tìm chốn riêng.</span>
+        <span className="italic text-[#9a7b4f]">{t('signupAccent')}</span>
       </h1>
       <p className="mt-5 text-sm leading-6 text-[#75807d]">
-        Tạo tài khoản để lưu tài sản yêu thích và nhận tư vấn phù hợp với nhu
-        cầu của bạn.
+        {t('signupDescription')}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
@@ -106,7 +101,7 @@ export default function SignUpPage() {
           </div>
         )}
         <label className="block">
-          <span className="auth-label">Địa chỉ email</span>
+          <span className="auth-label">{t('email')}</span>
           <div className="relative mt-2">
             <svg
               viewBox="0 0 24 24"
@@ -126,13 +121,13 @@ export default function SignUpPage() {
               required
               value={form.email}
               onChange={update('email')}
-              placeholder="name@example.com"
+              placeholder={t('emailPlaceholder')}
               className="auth-input pl-11"
             />
           </div>
         </label>
         <label className="block">
-          <span className="auth-label">Mật khẩu</span>
+          <span className="auth-label">{t('password')}</span>
           <div className="relative mt-2">
             <svg
               viewBox="0 0 24 24"
@@ -162,14 +157,14 @@ export default function SignUpPage() {
               minLength={8}
               value={form.password}
               onChange={update('password')}
-              placeholder="Tối thiểu 8 ký tự"
+              placeholder={t('passwordPlaceholder')}
               className="auth-input px-11"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute inset-y-0 right-0 grid w-11 place-items-center text-[#89918f]"
-              aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+              aria-label={showPassword ? t('hidePassword') : t('showPassword')}
             >
               <svg
                 viewBox="0 0 24 24"
@@ -194,7 +189,7 @@ export default function SignUpPage() {
           </div>
         </label>
         <label className="block">
-          <span className="auth-label">Xác nhận mật khẩu</span>
+          <span className="auth-label">{t('confirmPassword')}</span>
           <div className="relative mt-2">
             <svg
               viewBox="0 0 24 24"
@@ -224,7 +219,7 @@ export default function SignUpPage() {
               minLength={8}
               value={form.confirmPassword}
               onChange={update('confirmPassword')}
-              placeholder="Nhập lại mật khẩu"
+              placeholder={t('confirmPlaceholder')}
               className="auth-input pl-11"
             />
           </div>
@@ -236,25 +231,25 @@ export default function SignUpPage() {
             className="mt-0.5 h-4 w-4 shrink-0 accent-[#173b38]"
           />
           <span>
-            Tôi đồng ý với{' '}
+            {t('termsPrefix')}{' '}
             <Link
               href="/"
               className="font-semibold text-[#8e7043] underline underline-offset-2"
             >
-              Điều khoản dịch vụ
+              {t('terms')}
             </Link>{' '}
-            và{' '}
+            {` ${t('and')} `}
             <Link
               href="/"
               className="font-semibold text-[#8e7043] underline underline-offset-2"
             >
-              Chính sách bảo mật
+              {t('privacy')}
             </Link>
             .
           </span>
         </label>
         <button type="submit" disabled={loading} className="auth-submit">
-          <span>{loading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}</span>
+          <span>{loading ? t('creating') : t('create')}</span>
           {loading ? (
             <span className="h-4 w-4 animate-spin rounded-full border border-white/40 border-t-white" />
           ) : (

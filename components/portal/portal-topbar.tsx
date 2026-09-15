@@ -2,6 +2,23 @@
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
+const routeKeys = [
+  ['admin/authorization/permissions/', 'permission'],
+  ['admin/authorization/roles/', 'roles'],
+  ['admin/authorization/subjects/', 'subject'],
+  ['admin/authorization/permissions', 'permissions'],
+  ['admin/authorization/matrix', 'matrix'],
+  ['admin/authorization/subjects', 'subjects'],
+  ['admin/authorization/audit', 'audit'],
+  ['admin/provider-requests', 'providerReview'],
+  ['admin/authorization', 'authorization'],
+  ['admin', 'admin'],
+  ['provider/authorization', 'providerAuthorization'],
+  ['provider/account', 'providerAccount'],
+  ['provider', 'provider'],
+  ['', 'home'],
+] as const;
+
 export function PortalTopbar({
   onMenu,
   context,
@@ -11,20 +28,34 @@ export function PortalTopbar({
 }) {
   const pathname = usePathname();
   const t = useTranslations('common');
-  const crumbs = pathname.split('/').filter(Boolean).join(' / ');
+  const routeKey =
+    routeKeys.find(([path]) =>
+      path === ''
+        ? pathname === '/'
+        : pathname === `/${path}` || pathname.startsWith(`/${path}/`),
+    )?.[1] ?? 'overview';
 
   return (
     <header className="sticky top-0 z-20 flex min-h-14 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)]/96 px-4 shadow-[var(--shadow-xs)] backdrop-blur sm:px-6">
       <div className="flex min-w-0 items-center gap-2">
         <button
-          aria-label="Open navigation"
+          type="button"
+          aria-label={t('navigation.openNavigation')}
           className="mr-1 rounded-[var(--radius-md)] p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)] lg:hidden"
           onClick={onMenu}
         >
-          ☰
+          <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+            <path
+              d="M4 6h16M4 12h16M4 18h16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
         <div className="truncate text-xs font-medium text-[var(--text-muted)]">
-          {crumbs || t('status.overview')}
+          {t(`navigation.${routeKey}`)}
         </div>
       </div>
       {context && <div className="ml-4 shrink-0">{context}</div>}

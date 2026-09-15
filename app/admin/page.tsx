@@ -1,43 +1,44 @@
 'use client';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { PageHeader } from '@/components/portal/page-header';
+import { Panel } from '@/components/ui/Panel';
 import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
 export default function AdminPage() {
   const { authorization, hasPermission, logout } = useAdministrationSession();
+  const t = useTranslations('administration');
   return (
     <div>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="eyebrow">Internal operations</p>
-          <h1 className="mt-2 text-3xl font-bold text-[#102f2d]">
-            Administration
-          </h1>
-          <p className="mt-2 text-gray-500">
-            Your navigation and actions are driven by effective permissions.
-          </p>
-        </div>
-        <button
-          className="rounded border px-4 py-2 text-sm"
-          onClick={() => void logout()}
-        >
-          Sign out
-        </button>
-      </div>
+      <PageHeader
+        title={t('overview.title')}
+        description={t('overview.description')}
+        actions={
+          <button
+            className="rounded-[var(--radius-md)] border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
+            onClick={() => void logout()}
+          >
+            {t('nav.signOut')}
+          </button>
+        }
+      />
       <div className="mt-8 grid gap-6 md:grid-cols-2">
-        <div className="rounded-xl bg-white p-6 shadow">
-          <h2 className="font-semibold">Effective authorization</h2>
-          <p className="mt-2 text-3xl font-bold text-[#173b38]">
+        <Panel className="p-6">
+          <h2 className="font-semibold">{t('authorization.title')}</h2>
+          <p className="mt-2 text-3xl font-bold text-[var(--brand)]">
             {authorization?.permissions.length ?? 0}
           </p>
-          <p className="text-sm text-gray-500">permissions available</p>
-        </div>
+          <p className="text-sm text-[var(--text-muted)]">
+            {t('authorization.permissions')}
+          </p>
+        </Panel>
         {hasPermission('authorization:role:read') && (
           <Link
             href="/admin/authorization"
-            className="rounded-xl bg-[#173b38] p-6 text-white shadow"
+            className="rounded-[var(--radius-lg)] bg-[var(--brand)] p-6 text-white shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5"
           >
-            <h2 className="font-semibold">Authorization workspace</h2>
+            <h2 className="font-semibold">{t('authorization.title')}</h2>
             <p className="mt-2 text-sm text-white/70">
-              Manage roles, permissions, subjects and audit history.
+              {t('authorization.description')}
             </p>
           </Link>
         )}

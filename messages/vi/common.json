@@ -14,6 +14,32 @@
     "overview": "Tổng quan",
     "signedInWorkspace": "Không gian đã đăng nhập"
   },
+  "navigation": {
+    "portal": "Điều hướng portal",
+    "platformNavigation": "Điều hướng {platform}",
+    "overview": "Tổng quan",
+    "openNavigation": "Mở điều hướng",
+    "closeNavigation": "Đóng điều hướng",
+    "home": "Marketplace",
+    "provider": "Tổng quan Provider",
+    "providerAccount": "Tài khoản Provider",
+    "providerAuthorization": "Phân quyền Provider",
+    "admin": "Tổng quan Administration",
+    "providerReview": "Duyệt Provider",
+    "authorization": "Không gian phân quyền",
+    "roles": "Chi tiết vai trò",
+    "permissions": "Danh mục permission",
+    "permission": "Chi tiết permission",
+    "matrix": "Ma trận permission",
+    "subjects": "Đối tượng phân quyền",
+    "subject": "Chi tiết đối tượng",
+    "audit": "Audit phân quyền"
+  },
+  "pagination": {
+    "previous": "Trước",
+    "next": "Sau",
+    "pageOf": "Trang {current} / {total}"
+  },
   "language": { "vietnamese": "Tiếng Việt", "english": "English" },
   "errors": {
     "unexpected": "Đã xảy ra lỗi. Vui lòng thử lại.",
@@ -25,5 +51,41 @@
     "lastOwnerProtection": "Không thể xóa Owner cuối cùng.",
     "providerContextRequired": "Cần chọn Provider context trước khi tiếp tục.",
     "providerAccountNotFound": "Không tìm thấy Provider account."
+  },
+  "errorPage": {
+    "title": "Đã xảy ra lỗi",
+    "description": "Vui lòng thử lại hoặc quay về trang chủ.",
+    "retry": "Thử lại",
+    "home": "Về trang chủ",
+    "adminHome": "Về trang quản trị"
+  },
+  "footer": {
+    "explore": "Khám phá",
+    "forSale": "Bất động sản bán",
+    "forRent": "Bất động sản thuê",
+    "curatedProjects": "Dự án tuyển chọn",
+    "villas": "Biệt thự",
+    "nexusEstate": "Nexus Estate",
+    "about": "Về chúng tôi",
+    "becomeProvider": "Trở thành Provider",
+    "consultation": "Đăng ký tư vấn",
+    "signIn": "Đăng nhập",
+    "connect": "Kết nối cùng chúng tôi",
+    "newsletter": "Nhận bản tin tuyển chọn và những góc nhìn mới nhất về thị trường.",
+    "newsletterLabel": "Email nhận bản tin",
+    "newsletterPlaceholder": "Email của bạn",
+    "newsletterSubmit": "Đăng ký nhận bản tin",
+    "privacy": "Quyền riêng tư",
+    "terms": "Điều khoản",
+    "tagline": "Nền tảng bất động sản tuyển chọn dành cho những người tìm kiếm giá trị sống khác biệt và tài sản trường tồn.",
+    "rights": "Đã đăng ký bản quyền."
+  },
+  "upload": {
+    "click": "Nhấn để tải lên",
+    "drop": "hoặc kéo thả tệp",
+    "anyFile": "Mọi loại tệp",
+    "upTo": "tối đa {size} MB",
+    "remove": "Xóa {name}",
+    "fileTooLarge": "Tệp {name} vượt quá giới hạn {size} MB"
   }
 }

@@ -33,12 +33,15 @@ export function PortalSidebar({
     <>
       <button
         type="button"
-        aria-label="Close navigation"
+        aria-label={t('navigation.closeNavigation')}
+        aria-hidden={!open}
+        tabIndex={open ? 0 : -1}
         onClick={onClose}
         className={`fixed inset-0 z-30 bg-[var(--overlay)] transition-opacity lg:hidden ${open ? 'block' : 'hidden'}`}
       />
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-[var(--portal-sidebar-width)] border-r border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-xs)] transition-transform duration-200 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        aria-label={t('navigation.portal')}
       >
         <div className="flex h-full flex-col px-3 py-4">
           <div className="border-b border-[var(--border-muted)] px-3 pb-5">
@@ -53,11 +56,12 @@ export function PortalSidebar({
 
           <nav
             className="mt-4 space-y-0.5"
-            aria-label={`${platform} navigation`}
+            aria-label={t('navigation.platformNavigation', { platform })}
           >
             {items.map((item, index) => {
+              const itemPath = item.href.split('?')[0];
               const active =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
+                pathname === itemPath || pathname.startsWith(`${itemPath}/`);
               const showSection =
                 item.section &&
                 (index === 0 || items[index - 1]?.section !== item.section);
@@ -91,7 +95,7 @@ export function PortalSidebar({
           <div className="mt-auto border-t border-[var(--border-muted)] pt-4">
             {footer}
             <div className="px-3 text-xs text-[var(--text-muted)]">
-              <span className="sr-only">Portal</span>
+              <span className="sr-only">{t('navigation.portal')}</span>
               {t('status.signedInWorkspace')}
             </div>
             <LanguageSwitcher />

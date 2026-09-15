@@ -1,27 +1,31 @@
+'use client';
+
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 const groups = [
   {
-    title: 'Khám phá',
+    titleKey: 'explore',
     links: [
-      ['Bất động sản bán', '/properties?purpose=buy'],
-      ['Bất động sản thuê', '/properties?purpose=rent'],
-      ['Dự án tuyển chọn', '/properties'],
-      ['Biệt thự', '/properties?type=villa'],
+      ['forSale', '/properties?purpose=buy'],
+      ['forRent', '/properties?purpose=rent'],
+      ['curatedProjects', '/properties'],
+      ['villas', '/properties?type=villa'],
     ],
   },
   {
-    title: 'Nexus Estate',
+    titleKey: 'nexusEstate',
     links: [
-      ['Về chúng tôi', '/'],
-      ['Trở thành Provider', '/provider/onboarding'],
-      ['Đăng ký tư vấn', '/signup'],
-      ['Đăng nhập', '/signin'],
+      ['about', '/'],
+      ['becomeProvider', '/provider/onboarding'],
+      ['consultation', '/signup'],
+      ['signIn', '/signin'],
     ],
   },
 ];
 
 export default function Footer() {
+  const t = useTranslations('common.footer');
   return (
     <footer className="bg-[var(--brand-strong)] text-[var(--text-on-dark)]">
       <div className="mx-auto max-w-[var(--content-max)] px-5 pb-8 pt-14 sm:px-8 lg:px-10 lg:pt-16">
@@ -55,14 +59,13 @@ export default function Footer() {
               </span>
             </Link>
             <p className="mt-6 text-sm leading-7 text-white/55">
-              Nền tảng bất động sản tuyển chọn dành cho những người tìm kiếm giá
-              trị sống khác biệt và tài sản trường tồn.
+              {t('tagline')}
             </p>
           </div>
           {groups.map((group) => (
-            <div key={group.title}>
+            <div key={group.titleKey}>
               <h2 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-accent)]">
-                {group.title}
+                {t(group.titleKey)}
               </h2>
               <ul className="mt-5 space-y-3">
                 {group.links.map(([label, href]) => (
@@ -71,7 +74,7 @@ export default function Footer() {
                       href={href}
                       className="text-sm text-white/55 transition-colors hover:text-white"
                     >
-                      {label}
+                      {t(label)}
                     </Link>
                   </li>
                 ))}
@@ -80,20 +83,24 @@ export default function Footer() {
           ))}
           <div>
             <h2 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-accent)]">
-              Kết nối cùng chúng tôi
+              {t('connect')}
             </h2>
             <p className="mt-5 text-sm leading-6 text-white/55">
-              Nhận bản tin tuyển chọn và những góc nhìn mới nhất về thị trường.
+              {t('newsletter')}
             </p>
-            <form className="mt-5 flex border-b border-white/25 focus-within:border-[var(--brand-accent)]">
+            <form
+              onSubmit={(event) => event.preventDefault()}
+              className="mt-5 flex border-b border-white/25 focus-within:border-[var(--brand-accent)]"
+            >
               <input
                 type="email"
-                aria-label="Email nhận bản tin"
-                placeholder="Email của bạn"
+                aria-label={t('newsletterLabel')}
+                placeholder={t('newsletterPlaceholder')}
                 className="min-w-0 flex-1 bg-transparent py-3 text-sm text-white outline-none placeholder:text-white/35"
               />
               <button
-                aria-label="Đăng ký nhận bản tin"
+                type="submit"
+                aria-label={t('newsletterSubmit')}
                 className="px-3 text-[var(--brand-accent)] transition-colors hover:text-white"
               >
                 →
@@ -107,13 +114,15 @@ export default function Footer() {
           </div>
         </div>
         <div className="flex flex-col gap-4 pt-7 text-[10px] uppercase tracking-[0.12em] text-white/35 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Nexus Estate. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} Nexus Estate. {t('rights')}
+          </p>
           <div className="flex gap-6">
             <Link className="transition-colors hover:text-white/70" href="/">
-              Quyền riêng tư
+              {t('privacy')}
             </Link>
             <Link className="transition-colors hover:text-white/70" href="/">
-              Điều khoản
+              {t('terms')}
             </Link>
           </div>
         </div>

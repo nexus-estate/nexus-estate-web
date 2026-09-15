@@ -2,12 +2,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import {
   PlatformSelector,
   useAuthorizationPlatform,
 } from '@/components/administration/platform-selector';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 export default function PermissionsPage() {
+  const t = useTranslations('administration.authorization');
   const { platform, setPlatform } = useAuthorizationPlatform();
   const [q, setQ] = useState('');
   const [riskLevel, setRiskLevel] = useState('');
@@ -26,13 +28,14 @@ export default function PermissionsPage() {
       }),
   });
   return (
-    <section className="rounded-xl bg-white p-6 shadow">
+    <section className="app-panel p-5 sm:p-6">
       <PlatformSelector platform={platform} onChange={setPlatform} />
-      <h1 className="text-2xl font-bold">Permission catalogue</h1>
+      <h1 className="mt-5 text-2xl font-bold">{t('permissions')}</h1>
       <div className="mt-4 flex flex-wrap gap-2">
         <input
           className="rounded border px-3 py-2 text-sm"
-          placeholder="Search permissions"
+          placeholder={t('searchPermissions')}
+          aria-label={t('searchPermissions')}
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
@@ -41,11 +44,11 @@ export default function PermissionsPage() {
           value={riskLevel}
           onChange={(e) => setRiskLevel(e.target.value)}
         >
-          <option value="">All risks</option>
-          <option value="LOW">LOW</option>
-          <option value="MEDIUM">MEDIUM</option>
-          <option value="HIGH">HIGH</option>
-          <option value="CRITICAL">CRITICAL</option>
+          <option value="">{t('allRisks')}</option>
+          <option value="LOW">{t('riskLow')}</option>
+          <option value="MEDIUM">{t('riskMedium')}</option>
+          <option value="HIGH">{t('riskHigh')}</option>
+          <option value="CRITICAL">{t('riskCritical')}</option>
         </select>
       </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -59,7 +62,8 @@ export default function PermissionsPage() {
             </Link>
             <code className="mt-1 block text-xs text-gray-500">{p.code}</code>
             <p className="text-sm text-gray-500">
-              {p.category} · {p.resource} · {p.action}
+              {p.category ?? t('general')} · {p.resource ?? '—'} ·{' '}
+              {p.action ?? '—'}
             </p>
             <p className="mt-1 text-xs">{p.description}</p>
           </article>

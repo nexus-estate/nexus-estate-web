@@ -1,38 +1,62 @@
 'use client';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
+import { Panel } from '@/components/ui/Panel';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import type { ProviderAuthorization } from '@/lib/api/provider/types';
 export default function ProviderAuthorizationPage() {
   const t = useTranslations('provider');
   const auth = useProviderAuthorization();
+  const stateLabel = {
+    LOADING: t('state.loading'),
+    ERROR: t('state.error'),
+    NO_PROVIDER: t('state.noProvider'),
+    PENDING_VERIFICATION: t('state.pendingVerification'),
+    REJECTED: t('state.rejected'),
+    SUSPENDED: t('state.suspended'),
+    ACTIVE_VERIFIED: t('state.activeVerified'),
+    CONTEXT_REQUIRED: t('state.contextRequired'),
+  }[auth.state];
   return (
     <>
       <PageHeader
         title={t('authorization.title')}
         description={t('authorization.description')}
       />
-      <div className="border border-[var(--border)] bg-[var(--surface)] p-6">
+      <Panel className="p-6">
         <p className="mb-6 text-sm text-[var(--text-muted)]">
-          These roles apply to this Provider membership, not to your Customer
-          account globally.
+          {t('authorization.scopeNote')}
         </p>
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
-            <span className="text-xs text-[var(--text-muted)]">Membership</span>
+            <span className="text-xs text-[var(--text-muted)]">
+              {t('authorization.membership')}
+            </span>
             <p className="mt-1 font-medium">
-              {auth.data?.membershipStatus ?? '—'}
+              {auth.data?.membershipStatus ? (
+                <StatusBadge
+                  status={auth.data.membershipStatus}
+                  label={t(
+                    `status.${auth.data.membershipStatus.toLowerCase()}`,
+                  )}
+                />
+              ) : (
+                '—'
+              )}
             </p>
           </div>
           <div>
             <span className="text-xs text-[var(--text-muted)]">
-              Provider ID
+              {t('authorization.providerId')}
             </span>
             <p className="mt-1 font-medium">{auth.data?.providerId ?? '—'}</p>
           </div>
           <div>
-            <span className="text-xs text-[var(--text-muted)]">State</span>
-            <p className="mt-1 font-medium">{auth.state}</p>
+            <span className="text-xs text-[var(--text-muted)]">
+              {t('authorization.state')}
+            </span>
+            <p className="mt-1 font-medium">{stateLabel}</p>
           </div>
         </div>
         <h2 className="mt-8 text-sm font-medium">
@@ -68,7 +92,7 @@ export default function ProviderAuthorizationPage() {
             </div>
           ))}
         </div>
-      </div>
+      </Panel>
     </>
   );
 }
