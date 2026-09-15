@@ -1,4 +1,10 @@
-import { apiClient, setAccessToken } from './client';
+import {
+  administrationApiClient,
+  customerApiClient,
+  providerApiClient,
+  publicApiClient,
+  setRealmAccessToken,
+} from './client';
 import { ApiError } from './errors';
 
 const fetchMock = jest.fn();
@@ -22,22 +28,24 @@ describe('apiClient', () => {
     jest.restoreAllMocks();
     fetchMock.mockReset();
     globalThis.fetch = fetchMock as typeof fetch;
+    process.env.NEXT_PUBLIC_API_URL = 'http://localhost:50001/api/v1';
     localStorage.clear();
-    setAccessToken(null);
+    document.cookie = 'nexus.locale=; Max-Age=0; Path=/';
+    setRealmAccessToken('customer', null);
+    setRealmAccessToken('administration', null);
   });
 
-  it('serializes JSON and attaches the stored bearer token', async () => {
-    localStorage.setItem('nexus_access_token', 'token-123');
+  it('serializes JSON and keeps the public client unauthenticated', async () => {
     fetchMock.mockResolvedValue(mockResponse({ id: 'user-1' }, 200));
 
     await expect(
-      apiClient.post<{ id: string }>('/users', { name: 'Nexus' }),
+      publicApiClient.post<{ id: string }>('/users', { name: 'Nexus' }),
     ).resolves.toEqual({
       id: 'user-1',
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:3001/api/users',
+      'http://localhost:50001/api/v1/users',
       expect.objectContaining({
         method: 'POST',
         credentials: 'same-origin',
@@ -48,7 +56,60 @@ describe('apiClient', () => {
     const headers = new Headers(request.headers);
     expect(headers.get('Accept')).toBe('application/json');
     expect(headers.get('Content-Type')).toBe('application/json');
-    expect(headers.get('Authorization')).toBe('Bearer token-123');
+    expect(headers.get('Authorization')).toBeNull();
+    expect(headers.get('x-lang')).toBe('en');
+  });
+
+  it('propagates the shared locale independently across realm clients', async () => {
+    document.cookie = 'nexus.locale=vi; Path=/';
+    setRealmAccessToken('customer', 'customer-token');
+    setRealmAccessToken('administration', 'admin-token');
+    localStorage.setItem('nexus.provider.active_id', 'provider-1');
+    fetchMock.mockResolvedValue(mockResponse({}, 200));
+
+    await customerApiClient.get('/customers/me');
+    await providerApiClient.get('/providers/me');
+    await administrationApiClient.get('/administration/me/authorization');
+
+    const customerHeaders = new Headers(fetchMock.mock.calls[0][1].headers);
+    const providerHeaders = new Headers(fetchMock.mock.calls[1][1].headers);
+    const adminHeaders = new Headers(fetchMock.mock.calls[2][1].headers);
+    expect(customerHeaders.get('Authorization')).toBe('Bearer customer-token');
+    expect(customerHeaders.get('x-lang')).toBe('vi');
+    expect(providerHeaders.get('Authorization')).toBe('Bearer customer-token');
+    expect(providerHeaders.get('X-Provider-Id')).toBe('provider-1');
+    expect(providerHeaders.get('x-lang')).toBe('vi');
+    expect(adminHeaders.get('Authorization')).toBe('Bearer admin-token');
+    expect(adminHeaders.get('X-Provider-Id')).toBeNull();
+    expect(adminHeaders.get('x-lang')).toBe('vi');
+  });
+
+  it('falls back to the canonical locale for missing and invalid preferences', async () => {
+    fetchMock.mockResolvedValue(mockResponse({}, 200));
+
+    await publicApiClient.get('/health');
+    expect(new Headers(fetchMock.mock.calls[0][1].headers).get('x-lang')).toBe(
+      'en',
+    );
+
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue(mockResponse({}, 200));
+    document.cookie = 'nexus.locale=fr; Path=/';
+    await publicApiClient.get('/health');
+    expect(new Headers(fetchMock.mock.calls[0][1].headers).get('x-lang')).toBe(
+      'en',
+    );
+  });
+
+  it('does not let a localStorage-only locale diverge from SSR locale', async () => {
+    localStorage.setItem('nexus.locale', 'vi');
+    fetchMock.mockResolvedValue(mockResponse({}, 200));
+
+    await publicApiClient.get('/health');
+
+    expect(new Headers(fetchMock.mock.calls[0][1].headers).get('x-lang')).toBe(
+      'en',
+    );
   });
 
   it('unwraps the current API envelope and handles no-content responses', async () => {
@@ -57,11 +118,13 @@ describe('apiClient', () => {
     );
     fetchMock.mockResolvedValueOnce(mockResponse(undefined, 204));
 
-    await expect(apiClient.get<{ ok: boolean }>('/health')).resolves.toEqual({
+    await expect(
+      publicApiClient.get<{ ok: boolean }>('/health'),
+    ).resolves.toEqual({
       ok: true,
     });
     await expect(
-      apiClient.delete<void>('/sessions/current'),
+      publicApiClient.delete<void>('/sessions/current'),
     ).resolves.toBeUndefined();
   });
 
@@ -83,7 +146,7 @@ describe('apiClient', () => {
     );
 
     await expect(
-      apiClient.get('/users/user-1'),
+      publicApiClient.get('/users/user-1'),
     ).rejects.toMatchObject<ApiError>({
       name: 'ApiError',
       status: 404,
@@ -106,10 +169,48 @@ describe('apiClient', () => {
       ),
     );
 
-    await expect(apiClient.post('/auth/login', {})).rejects.toMatchObject({
+    await expect(
+      publicApiClient.post('/customers/auth/login', {}),
+    ).rejects.toMatchObject({
       name: 'ApiError',
       status: 400,
       message: 'email must be an email, password is too short',
     });
+  });
+
+  it('emits one realm-specific expiry signal after refresh failure', async () => {
+    const expired: string[] = [];
+    const listener = (event: Event) => {
+      expired.push((event as CustomEvent<{ realm: string }>).detail.realm);
+    };
+    window.addEventListener('nexus:realm-session-expired', listener);
+    setRealmAccessToken('customer', 'expired-customer-token');
+    setRealmAccessToken('administration', 'expired-admin-token');
+    localStorage.setItem(
+      'nexus.customer.refresh_token',
+      'bad-customer-refresh',
+    );
+    localStorage.setItem(
+      'nexus.administration.refresh_token',
+      'bad-admin-refresh',
+    );
+    fetchMock
+      .mockResolvedValueOnce(mockResponse({ error_code: 'EXPIRED' }, 401))
+      .mockResolvedValueOnce(mockResponse({ error_code: 'EXPIRED' }, 401))
+      .mockResolvedValueOnce(mockResponse({ error_code: 'EXPIRED' }, 401))
+      .mockResolvedValueOnce(mockResponse({ error_code: 'EXPIRED' }, 401));
+
+    await expect(customerApiClient.get('/customers/me')).rejects.toBeInstanceOf(
+      ApiError,
+    );
+    await expect(
+      administrationApiClient.get('/administration/me/authorization'),
+    ).rejects.toBeInstanceOf(ApiError);
+    window.removeEventListener('nexus:realm-session-expired', listener);
+    expect(expired).toEqual(['customer', 'administration']);
+    expect(localStorage.getItem('nexus.customer.access_token')).toBeNull();
+    expect(
+      localStorage.getItem('nexus.administration.access_token'),
+    ).toBeNull();
   });
 });

@@ -1,37 +1,41 @@
+'use client';
+
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 const groups = [
   {
-    title: 'Khám phá',
+    titleKey: 'explore',
     links: [
-      ['Bất động sản bán', '/properties?purpose=buy'],
-      ['Bất động sản thuê', '/properties?purpose=rent'],
-      ['Dự án tuyển chọn', '/properties'],
-      ['Biệt thự', '/properties?type=villa'],
+      ['forSale', '/properties?purpose=buy'],
+      ['forRent', '/properties?purpose=rent'],
+      ['curatedProjects', '/properties'],
+      ['villas', '/properties?type=villa'],
     ],
   },
   {
-    title: 'Nexus Estate',
+    titleKey: 'nexusEstate',
     links: [
-      ['Về chúng tôi', '/'],
-      ['Dành cho chủ nhà', '/dashboard/listings/new'],
-      ['Đăng ký tư vấn', '/signup'],
-      ['Đăng nhập', '/signin'],
+      ['about', '/'],
+      ['becomeProvider', '/provider/onboarding'],
+      ['consultation', '/signup'],
+      ['signIn', '/signin'],
     ],
   },
 ];
 
 export default function Footer() {
+  const t = useTranslations('common.footer');
   return (
-    <footer className="bg-[#061d1c] text-white">
-      <div className="mx-auto max-w-[1440px] px-5 pb-8 pt-16 sm:px-8 lg:px-14 lg:pt-20">
-        <div className="grid gap-12 border-b border-white/10 pb-14 lg:grid-cols-[1.35fr_.65fr_.65fr_1fr]">
+    <footer className="bg-[var(--brand-strong)] text-[var(--text-on-dark)]">
+      <div className="mx-auto max-w-[var(--content-max)] px-5 pb-8 pt-14 sm:px-8 lg:px-10 lg:pt-16">
+        <div className="grid gap-12 border-b border-white/10 pb-12 lg:grid-cols-[1.35fr_.65fr_.65fr_1fr]">
           <div className="max-w-sm">
             <Link href="/" className="flex items-center gap-3">
               <svg
                 viewBox="0 0 42 42"
                 fill="none"
-                className="h-9 w-9 text-[#d2b477]"
+                className="h-9 w-9 text-[var(--brand-accent)]"
                 aria-hidden="true"
               >
                 <path
@@ -49,29 +53,28 @@ export default function Footer() {
                 <strong className="block font-display text-xl font-normal tracking-[0.04em]">
                   NEXUS
                 </strong>
-                <small className="block text-[8px] uppercase tracking-[0.34em] text-white/45">
+                <small className="block text-[8px] uppercase tracking-[0.28em] text-white/45">
                   Estate Collection
                 </small>
               </span>
             </Link>
-            <p className="mt-6 text-sm leading-7 text-white/50">
-              Nền tảng bất động sản tuyển chọn dành cho những người tìm kiếm giá
-              trị sống khác biệt và tài sản trường tồn.
+            <p className="mt-6 text-sm leading-7 text-white/55">
+              {t('tagline')}
             </p>
           </div>
           {groups.map((group) => (
-            <div key={group.title}>
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#caae77]">
-                {group.title}
+            <div key={group.titleKey}>
+              <h2 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-accent)]">
+                {t(group.titleKey)}
               </h2>
-              <ul className="mt-6 space-y-3">
+              <ul className="mt-5 space-y-3">
                 {group.links.map(([label, href]) => (
                   <li key={label}>
                     <Link
                       href={href}
-                      className="text-sm text-white/55 transition hover:text-white"
+                      className="text-sm text-white/55 transition-colors hover:text-white"
                     >
-                      {label}
+                      {t(label)}
                     </Link>
                   </li>
                 ))}
@@ -79,22 +82,26 @@ export default function Footer() {
             </div>
           ))}
           <div>
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#caae77]">
-              Kết nối cùng chúng tôi
+            <h2 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-accent)]">
+              {t('connect')}
             </h2>
-            <p className="mt-6 text-sm leading-6 text-white/55">
-              Nhận bản tin tuyển chọn và những góc nhìn mới nhất về thị trường.
+            <p className="mt-5 text-sm leading-6 text-white/55">
+              {t('newsletter')}
             </p>
-            <form className="mt-5 flex border-b border-white/30">
+            <form
+              onSubmit={(event) => event.preventDefault()}
+              className="mt-5 flex border-b border-white/25 focus-within:border-[var(--brand-accent)]"
+            >
               <input
                 type="email"
-                aria-label="Email nhận bản tin"
-                placeholder="Email của bạn"
-                className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none placeholder:text-white/35"
+                aria-label={t('newsletterLabel')}
+                placeholder={t('newsletterPlaceholder')}
+                className="min-w-0 flex-1 bg-transparent py-3 text-sm text-white outline-none placeholder:text-white/35"
               />
               <button
-                aria-label="Đăng ký nhận bản tin"
-                className="px-3 text-[#d2b477]"
+                type="submit"
+                aria-label={t('newsletterSubmit')}
+                className="px-3 text-[var(--brand-accent)] transition-colors hover:text-white"
               >
                 →
               </button>
@@ -106,11 +113,17 @@ export default function Footer() {
             </p>
           </div>
         </div>
-        <div className="flex flex-col gap-4 pt-7 text-[10px] uppercase tracking-[0.15em] text-white/35 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Nexus Estate. All rights reserved.</p>
+        <div className="flex flex-col gap-4 pt-7 text-[10px] uppercase tracking-[0.12em] text-white/35 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {new Date().getFullYear()} Nexus Estate. {t('rights')}
+          </p>
           <div className="flex gap-6">
-            <Link href="/">Quyền riêng tư</Link>
-            <Link href="/">Điều khoản</Link>
+            <Link className="transition-colors hover:text-white/70" href="/">
+              {t('privacy')}
+            </Link>
+            <Link className="transition-colors hover:text-white/70" href="/">
+              {t('terms')}
+            </Link>
           </div>
         </div>
       </div>

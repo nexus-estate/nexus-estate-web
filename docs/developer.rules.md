@@ -78,11 +78,13 @@ bodies itself.
 
 ## Authentication
 
-The current browser behavior is preserved: the access token is stored under
-`nexus_access_token`, the refresh token under `nexus_refresh_token`, and the
-cached user under `nexus_user`. `hooks/use-auth.ts` owns the browser session;
-the shared client attaches the access token to requests. Authentication
-storage changes require a separate security decision.
+Browser bearer storage is currently namespaced by realm: Customer uses
+`nexus.customer.access_token` / `nexus.customer.refresh_token`, while
+Administration uses `nexus.administration.access_token` /
+`nexus.administration.refresh_token`. Provider has no token and only persists
+`nexus.provider.active_id`. The shared transport attaches only the token for
+the client being used. A future improvement is an HttpOnly secure cookie/BFF
+session boundary.
 
 ## UI and state rules
 

@@ -3,12 +3,15 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/use-auth';
 import { listingApi } from '@/lib/api/listing/listing.api';
 
 export default function NewListingPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
+  const t = useTranslations('customer.listing');
+  const customerT = useTranslations('customer');
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -65,7 +68,7 @@ export default function NewListingPage() {
       setSuccess(true);
       setTimeout(() => router.push('/dashboard'), 1500);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Đăng tin thất bại.');
+      setError(err instanceof Error ? err.message : t('failed'));
     } finally {
       setSubmitting(false);
     }
@@ -92,11 +95,9 @@ export default function NewListingPage() {
               </svg>
             </div>
             <h2 className="mt-4 text-xl font-bold text-gray-900">
-              Đăng tin thành công!
+              {t('success')}
             </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              Đang chuyển về Dashboard...
-            </p>
+            <p className="mt-2 text-sm text-gray-500">{t('redirecting')}</p>
           </div>
         </div>
       </div>
@@ -111,14 +112,12 @@ export default function NewListingPage() {
             href="/dashboard"
             className="text-sm text-blue-600 hover:underline"
           >
-            &larr; Quay lại Dashboard
+            &larr; {t('back')}
           </Link>
           <h1 className="mt-2 text-2xl font-bold text-gray-900">
-            Đăng tin mới
+            {t('title')}
           </h1>
-          <p className="text-sm text-gray-500">
-            Nhập thông tin bất động sản cần đăng
-          </p>
+          <p className="text-sm text-gray-500">{t('description')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -130,19 +129,19 @@ export default function NewListingPage() {
 
           <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-5">
             <h2 className="text-lg font-semibold text-gray-900">
-              Thông tin cơ bản
+              {t('basicInfo')}
             </h2>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Tiêu đề
+                {t('listingTitle')}
               </label>
               <input
                 type="text"
                 required
                 value={form.title}
                 onChange={handleChange('title')}
-                placeholder="Ví dụ: Căn hộ chung cư The Sun Avenue"
+                placeholder={t('titlePlaceholder')}
                 className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
@@ -150,45 +149,55 @@ export default function NewListingPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Loại
+                  {t('type')}
                 </label>
                 <select
                   value={form.type}
                   onChange={handleChange('type')}
                   className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
                 >
-                  <option value="apartment">Căn hộ</option>
-                  <option value="house">Nhà phố</option>
-                  <option value="villa">Biệt thự</option>
-                  <option value="land">Đất nền</option>
-                  <option value="office">Văn phòng</option>
+                  <option value="apartment">
+                    {customerT('home.propertyTypes.apartment')}
+                  </option>
+                  <option value="house">
+                    {customerT('home.propertyTypes.house')}
+                  </option>
+                  <option value="villa">
+                    {customerT('home.propertyTypes.villa')}
+                  </option>
+                  <option value="land">
+                    {customerT('home.propertyTypes.land')}
+                  </option>
+                  <option value="office">
+                    {customerT('home.propertyTypes.office')}
+                  </option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Mục đích
+                  {t('purpose')}
                 </label>
                 <select
                   value={form.purpose}
                   onChange={handleChange('purpose')}
                   className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
                 >
-                  <option value="buy">Bán</option>
-                  <option value="rent">Cho thuê</option>
+                  <option value="buy">{customerT('properties.buy')}</option>
+                  <option value="rent">{customerT('properties.rent')}</option>
                 </select>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Giá
+                {t('price')}
               </label>
               <input
                 type="number"
                 required
                 value={form.price}
                 onChange={handleChange('price')}
-                placeholder="Giá tính bằng VND"
+                placeholder={t('pricePlaceholder')}
                 className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
@@ -196,7 +205,7 @@ export default function NewListingPage() {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Diện tích (m²)
+                  {t('area')}
                 </label>
                 <input
                   type="number"
@@ -207,7 +216,7 @@ export default function NewListingPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Phòng ngủ
+                  {t('bedrooms')}
                 </label>
                 <input
                   type="number"
@@ -218,7 +227,7 @@ export default function NewListingPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Phòng tắm
+                  {t('bathrooms')}
                 </label>
                 <input
                   type="number"
@@ -231,44 +240,44 @@ export default function NewListingPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Mô tả
+                {t('descriptionLabel')}
               </label>
               <textarea
                 rows={4}
                 value={form.description}
                 onChange={handleChange('description')}
-                placeholder="Mô tả chi tiết về bất động sản..."
+                placeholder={t('descriptionPlaceholder')}
                 className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"
               />
             </div>
 
             <h2 className="text-lg font-semibold text-gray-900 pt-2">
-              Địa chỉ
+              {t('address')}
             </h2>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Thành phố
+                  {t('city')}
                 </label>
                 <input
                   type="text"
                   required
                   value={form.city}
                   onChange={handleChange('city')}
-                  placeholder="Hồ Chí Minh"
+                  placeholder={t('cityPlaceholder')}
                   className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Quận/Huyện
+                  {t('district')}
                 </label>
                 <input
                   type="text"
                   value={form.district}
                   onChange={handleChange('district')}
-                  placeholder="Quận 2"
+                  placeholder={t('districtPlaceholder')}
                   className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
                 />
               </div>
@@ -276,13 +285,13 @@ export default function NewListingPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Địa chỉ cụ thể
+                {t('addressDetail')}
               </label>
               <input
                 type="text"
                 value={form.address}
                 onChange={handleChange('address')}
-                placeholder="12 Mai Chí Thọ"
+                placeholder={t('addressPlaceholder')}
                 className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
@@ -294,13 +303,13 @@ export default function NewListingPage() {
               disabled={submitting}
               className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              {submitting ? 'Đang đăng...' : 'Đăng tin'}
+              {submitting ? t('submitting') : t('submit')}
             </button>
             <Link
               href="/dashboard"
               className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              Hủy
+              {t('cancel')}
             </Link>
           </div>
         </form>

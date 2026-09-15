@@ -13,7 +13,7 @@ export function Form({ children, errors, className, ...props }: FormProps) {
       {errors?.form && (
         <div
           role="alert"
-          className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="rounded-[var(--radius-md)] border border-[var(--danger)]/20 bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger-strong)]"
         >
           {errors.form}
         </div>
@@ -40,14 +40,17 @@ export function FormField({
     <div>
       <label
         htmlFor={name}
-        className="mb-1 block text-sm font-medium text-gray-700"
+        className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]"
       >
         {label}
-        {required && <span className="ml-1 text-red-500">*</span>}
+        {required && <span className="ml-1 text-[var(--danger)]">*</span>}
       </label>
       {children}
       {error && (
-        <p role="alert" className="mt-1 text-sm text-red-600">
+        <p
+          role="alert"
+          className="mt-1.5 text-xs font-medium text-[var(--danger)]"
+        >
           {error}
         </p>
       )}
@@ -69,7 +72,10 @@ export function FormActions({
   };
   return (
     <div
-      className={clsx('flex items-center space-x-3 pt-4', alignClass[align])}
+      className={clsx(
+        'flex items-center gap-3 border-t border-[var(--border-muted)] pt-5',
+        alignClass[align],
+      )}
     >
       {children}
     </div>
