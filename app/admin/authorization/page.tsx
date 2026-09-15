@@ -143,7 +143,7 @@ export default function AuthorizationPage() {
                     <td className="py-3 font-medium">
                       <a
                         className="hover:underline"
-                        href={`/admin/authorization/roles/${role.id}?platform=${platform}`}
+                        href={`/admin/authorization/roles/${encodeURIComponent(role.id)}?platform=${encodeURIComponent(platform)}`}
                       >
                         {role.name}
                       </a>
