@@ -22,6 +22,70 @@ Customer navigation stays consumer-facing. Provider owns supply operations.
 Administration navigation is permission-based and manages authorization across
 Marketplace, ProviderMembership, and Administration subject types.
 
+## Runtime platform boundary
+
+The application is built once and published once per source SHA. The same
+immutable image is started with one of these runtime values:
+
+```text
+WEB_PLATFORM=marketplace
+WEB_PLATFORM=provider
+WEB_PLATFORM=admin
+```
+
+`lib/platform/config.ts` is the only application abstraction that reads
+`process.env.WEB_PLATFORM`. Invalid values fail immediately. A missing value
+has a temporary Marketplace fallback in development/test to support the
+frontend-first rollout, but production throws instead of silently selecting a
+platform.
+
+`proxy.ts` enforces route ownership at the request boundary. The audited
+ownership is:
+
+| Platform       | Root                    | Owned routes                                                           |
+| -------------- | ----------------------- | ---------------------------------------------------------------------- |
+| Marketplace    | `/`                     | `/`, `/properties/*`, `/profile`, `/dashboard/*`, `/signin`, `/signup` |
+| Provider       | redirect to `/provider` | `/provider/*` and Customer auth landing                                |
+| Administration | redirect to `/admin`    | `/admin/*`                                                             |
+
+The conceptual Provider `/dashboard/*` route is not present in this source
+tree; `/dashboard/*` is Customer-owned and is blocked from Provider. Foreign
+and unknown application routes return 404 from the request layer. `/_next/*`,
+public assets, `favicon.ico`, `robots.txt`, `sitemap.xml`, and `/api/healthz`
+remain shared. Hostnames are intentionally absent from this logic; deployment
+infrastructure chooses them.
+
+## Infrastructure handoff contract
+
+| Platform    | `WEB_PLATFORM` | Root behavior               | Owned routes                             |
+| ----------- | -------------- | --------------------------- | ---------------------------------------- |
+| Marketplace | `marketplace`  | render Marketplace at `/`   | customer/marketplace routes listed above |
+| Provider    | `provider`     | redirect `/` to `/provider` | `/provider/*` plus Customer auth landing |
+| Admin       | `admin`        | redirect `/` to `/admin`    | `/admin/*`                               |
+
+- Health path: `GET /api/healthz` (HTTP 200, no backend dependency).
+- Container port: `3000`.
+- Required runtime env: `WEB_PLATFORM` in production; `NODE_ENV=production` is
+  expected. `NEXT_PUBLIC_API_URL` remains the browser API URL build contract
+  and is embedded during the image build.
+- The shared API transport remains the owner of timeout, error parsing, locale,
+  bearer attachment, and refresh coordination.
+- Auth storage caveat: Customer access/refresh tokens are in
+  `localStorage` under `nexus.customer.access_token` and
+  `nexus.customer.refresh_token`; Administrator tokens are in
+  `localStorage` under `nexus.administration.access_token` and
+  `nexus.administration.refresh_token`. Provider only stores
+  `nexus.provider.active_id` and sends the Customer token with
+  `X-Provider-Id`. `localStorage` is origin-scoped, so Customer sessions do
+  not automatically share between Marketplace and Provider hostnames. No
+  cookie sharing is currently involved; a future HttpOnly/BFF session would be
+  a separate auth migration.
+
+Rollout order is frontend support with the temporary fallback, infrastructure
+runtime creation, endpoint verification, legacy runtime removal, then removal
+of the fallback in a later frontend change. This repository does not encode a
+production hostname and does not modify the infrastructure repository.
+
 ## UI architecture
 
 `components/ui` owns generic primitives and accessible interaction patterns

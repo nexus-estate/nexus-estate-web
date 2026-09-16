@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import type { Property } from '@/lib/api/property/property.types';
+import type { Listing } from '@/lib/api/listing/listing.types';
 import { PropertyCard } from './property-card';
 
 const types = ['apartment', 'house', 'villa', 'land', 'office'] as const;
@@ -12,8 +12,8 @@ export function MarketplaceHome({
   featured,
   properties,
 }: {
-  featured: Property[];
-  properties: Property[];
+  featured: Listing[];
+  properties: Listing[];
 }) {
   const t = useTranslations('customer');
   return (
@@ -49,7 +49,7 @@ export function MarketplaceHome({
               </label>
               <input
                 id="home-query"
-                name="query"
+                name="q"
                 type="search"
                 placeholder={t('home.searchPlaceholder')}
                 className="min-h-12 rounded-[var(--radius-md)] border-0 bg-white px-4 text-sm text-[var(--text)] shadow-[var(--shadow-xs)] outline-none placeholder:text-[var(--text-subtle)] focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]"
@@ -67,7 +67,7 @@ export function MarketplaceHome({
               >
                 <option value="">{t('home.allTypes')}</option>
                 {types.map((type) => (
-                  <option key={type} value={type}>
+                  <option key={type} value={type.toUpperCase()}>
                     {t(`home.propertyTypes.${type}`)}
                   </option>
                 ))}
@@ -91,7 +91,7 @@ export function MarketplaceHome({
             {cities.map((city) => (
               <Link
                 key={city}
-                href={`/properties?city=${encodeURIComponent(city)}`}
+                href={`/properties?q=${encodeURIComponent(city)}`}
                 className="shrink-0 rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--text-muted)] transition-colors hover:border-[var(--brand-accent)] hover:text-[var(--brand)]"
               >
                 {city}
@@ -120,7 +120,7 @@ export function MarketplaceHome({
         </div>
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {featured.map((property) => (
-            <PropertyCard key={property.id} property={property} />
+            <PropertyCard key={property.id} listing={property} />
           ))}
         </div>
       </section>
@@ -136,7 +136,7 @@ export function MarketplaceHome({
           {properties.length ? (
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {properties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+                <PropertyCard key={property.id} listing={property} />
               ))}
             </div>
           ) : (

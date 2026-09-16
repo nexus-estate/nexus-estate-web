@@ -104,6 +104,66 @@ export interface ReplaceSubjectRolesRequest {
 }
 export type RoleListResponse = Paginated<AuthorizationRole>;
 export type PermissionListResponse = Paginated<AuthorizationPermission>;
+
+export interface AuthorizationRoleFilters {
+  page?: number;
+  limit?: number;
+  q?: string;
+  status?: RoleStatus;
+  isSystem?: boolean;
+  permissionCode?: string;
+  sort?:
+    | 'name'
+    | 'code'
+    | 'createdAt'
+    | 'updatedAt'
+    | 'assignmentCount'
+    | 'permissionCount';
+  order?: 'asc' | 'desc';
+}
+
+export interface AuthorizationPermissionFilters {
+  page?: number;
+  limit?: number;
+  q?: string;
+  category?: string;
+  resource?: string;
+  action?: string;
+  riskLevel?: RiskLevel;
+  isAssignable?: boolean;
+  includeDeprecated?: boolean;
+  sort?:
+    | 'name'
+    | 'code'
+    | 'category'
+    | 'resource'
+    | 'action'
+    | 'createdAt'
+    | 'updatedAt';
+  order?: 'asc' | 'desc';
+}
+
+export interface AuthorizationSubjectFilters {
+  page?: number;
+  limit?: number;
+  q?: string;
+  roleId?: string;
+  status?: string;
+}
+
+export interface AuthorizationAuditFilters {
+  page?: number;
+  limit?: number;
+  platform?: Platform;
+  actorAdministratorId?: string;
+  action?: string;
+  targetType?: string;
+  targetId?: string;
+  from?: string;
+  to?: string;
+}
+
+export type ProviderMemberFilters = AuthorizationSubjectFilters;
 export interface MatrixResponse {
   roles: AuthorizationRole[];
   permissionGroups: Array<{

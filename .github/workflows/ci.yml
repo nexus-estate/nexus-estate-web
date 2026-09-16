@@ -85,6 +85,21 @@ jobs:
         run: npm run test:e2e
         env:
           NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          WEB_PLATFORM: marketplace
+
+      - name: Run Provider platform smoke
+        run: npm run test:e2e -- e2e/platform-boundary.spec.ts
+        env:
+          E2E_PORT: 3001
+          NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          WEB_PLATFORM: provider
+
+      - name: Run Administration platform smoke
+        run: npm run test:e2e -- e2e/platform-boundary.spec.ts
+        env:
+          E2E_PORT: 3002
+          NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          WEB_PLATFORM: admin
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
@@ -105,12 +120,33 @@ jobs:
       - name: Checkout web
         uses: actions/checkout@v4
 
+      - name: Resolve API ref
+        id: api-ref
+        env:
+          API_REPOSITORY: nexus-estate/nexus-estate-api
+          API_BRANCH: ${{ github.head_ref || github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          api_url="https://x-access-token:${GITHUB_TOKEN}@github.com/${API_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads "$api_url" "refs/heads/${API_BRANCH}" >/dev/null 2>&1; then
+            echo "ref=${API_BRANCH}" >> "$GITHUB_OUTPUT"
+            echo "source=matching API branch" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=develop" >> "$GITHUB_OUTPUT"
+            echo "source=API develop fallback" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Using API ref '${API_BRANCH}' when available; otherwise falling back to 'develop'."
+
       - name: Checkout API
         uses: actions/checkout@v4
         with:
           repository: nexus-estate/nexus-estate-api
-          ref: develop
+          ref: ${{ steps.api-ref.outputs.ref }}
           path: api
+
+      - name: Report API ref
+        run: |
+          echo "API checkout source: ${{ steps.api-ref.outputs.source }}; ref: ${{ steps.api-ref.outputs.ref }}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -162,7 +198,7 @@ jobs:
           ADMIN_JWT_REFRESH_SECRET: ci-lifecycle-admin-refresh-secret-32
           INITIAL_ADMIN_EMAIL: superadmin@nexus-estate.local
           INITIAL_ADMIN_PASSWORD: NexusEstate#SuperAdmin2026!
-          CORS_ORIGINS: http://localhost:3000
+          CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
           SWAGGER_ENABLED: 'false'
         run: npm run migration:run:prod
 
@@ -180,7 +216,7 @@ jobs:
           CUSTOMER_JWT_REFRESH_SECRET: ci-lifecycle-customer-refresh-secret-32
           ADMIN_JWT_ACCESS_SECRET: ci-lifecycle-admin-access-secret-32
           ADMIN_JWT_REFRESH_SECRET: ci-lifecycle-admin-refresh-secret-32
-          CORS_ORIGINS: http://localhost:3000
+          CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
           SWAGGER_ENABLED: 'false'
         run: nohup npm run start:prod > /tmp/nexus-estate-api.log 2>&1 &
 
@@ -204,7 +240,12 @@ jobs:
       - name: Run full-stack lifecycle E2E
         env:
           E2E_INTEGRATION: 'true'
+          E2E_MULTI_PLATFORM: 'true'
+          E2E_PORT: '3000'
+          E2E_PROVIDER_PORT: '3001'
+          E2E_ADMIN_PORT: '3002'
           NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          WEB_PLATFORM: marketplace
         run: npm run test:e2e -- platform-lifecycle.spec.ts
 
       - name: Upload lifecycle diagnostics

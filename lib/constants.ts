@@ -37,5 +37,5 @@ export const ROUTES = {
 
 export const NAV_LINKS = [
   { href: ROUTES.properties, labelKey: 'nav.properties' },
-  { href: `${ROUTES.properties}?purpose=rent`, labelKey: 'nav.forRent' },
+  { href: `${ROUTES.properties}?purpose=RENT`, labelKey: 'nav.forRent' },
 ] as const;

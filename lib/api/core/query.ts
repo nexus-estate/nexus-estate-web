@@ -18,6 +18,8 @@ export interface ApiFilters {
   sort?: string;
   order?: 'asc' | 'desc';
   roleId?: string;
+  platform?: 'MARKETPLACE' | 'PROVIDER' | 'ADMINISTRATION';
+  isAssignable?: boolean;
 }
 export function buildSearchParams(filters: ApiFilters = {}): string {
   const params = new URLSearchParams();

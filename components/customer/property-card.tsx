@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import type { Property } from '@/lib/api/property/property.types';
+import type { Listing } from '@/lib/api/listing/listing.types';
 
 const fallbackImages = {
   apartment: '/images/properties/residence-danang.webp',
@@ -13,13 +13,12 @@ const fallbackImages = {
   office: '/images/properties/residence-danang.webp',
 } as const;
 
-export function PropertyCard({ property }: { property: Property }) {
+export function PropertyCard({ listing }: { listing: Listing }) {
   const locale = useLocale();
   const t = useTranslations('customer');
+  const property = listing.estate;
   const type = property.type.toLowerCase() as keyof typeof fallbackImages;
-  const image = property.images?.[0]?.startsWith('/')
-    ? property.images[0]
-    : (fallbackImages[type] ?? fallbackImages.house);
+  const image = fallbackImages[type] ?? fallbackImages.house;
   const price = property.price
     ? new Intl.NumberFormat(locale, {
         style: 'currency',
@@ -30,7 +29,7 @@ export function PropertyCard({ property }: { property: Property }) {
 
   return (
     <Link
-      href={`/properties/${property.id}`}
+      href={`/properties/${listing.id}`}
       className="group block overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-xs)] transition-[box-shadow,transform,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-md)] focus-visible:outline-none"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface-muted)]">
@@ -42,7 +41,7 @@ export function PropertyCard({ property }: { property: Property }) {
           className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
         <span className="absolute left-3 top-3 rounded-full bg-[var(--surface)]/90 px-2.5 py-1 text-[11px] font-semibold text-[var(--text)] shadow-[var(--shadow-xs)] backdrop-blur">
-          {property.purpose === 'rent'
+          {property.purpose === 'RENT'
             ? t('properties.listingRent')
             : t('properties.listingBuy')}
         </span>
@@ -58,23 +57,23 @@ export function PropertyCard({ property }: { property: Property }) {
           {price}
         </p>
         <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--text-muted)]">
-          {property.area > 0 && (
+          {property.area !== null && property.area > 0 && (
             <span>{t('properties.area', { value: property.area })}</span>
           )}
-          {property.bedrooms > 0 && (
+          {property.bedrooms !== null && property.bedrooms > 0 && (
             <span>
               {t('properties.bedrooms', { value: property.bedrooms })}
             </span>
           )}
-          {property.bathrooms > 0 && (
+          {property.bathrooms !== null && property.bathrooms > 0 && (
             <span>
               {t('properties.bathrooms', { value: property.bathrooms })}
             </span>
           )}
         </div>
         <p className="mt-3 truncate text-xs text-[var(--text-subtle)]">
-          {property.city}
-          {property.district ? `, ${property.district}` : ''}
+          {property.province.name}
+          {property.ward ? `, ${property.ward.name}` : ''}
         </p>
       </div>
     </Link>

@@ -1,2 +1,4 @@
 npx lint-staged
-npm run test:precommit
+# Local commits may validate the API feature checkout currently in use.
+# Keep an explicit override available for CI-parity checks.
+NEXUS_API_EXPECTED_REF="${NEXUS_API_EXPECTED_REF:-HEAD}" npm run test:precommit
