@@ -36,6 +36,12 @@ export interface RegisterProviderFromCustomerRequest {
   type: ProviderType;
   displayName: string;
 }
+export interface RegisterProviderRequest {
+  email: string;
+  password: string;
+  type: ProviderType;
+  displayName: string;
+}
 export type CreateProviderAccountRequest = RegisterProviderFromCustomerRequest;
 export interface UpdateProviderAccountRequest {
   displayName?: string;

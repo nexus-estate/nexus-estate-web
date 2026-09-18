@@ -14,6 +14,7 @@ services:
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: '1'
+      WEB_PLATFORM: ${WEB_PLATFORM:-marketplace}
     init: true
     restart: unless-stopped
     healthcheck:
@@ -22,7 +23,7 @@ services:
         - node
         - -e
         - >-
-          require('http').get('http://127.0.0.1:3000', (response) =>
+          require('http').get('http://127.0.0.1:3000/api/healthz', (response) =>
           process.exit(response.statusCode < 500 ? 0 : 1)).on('error', () =>
           process.exit(1))
       interval: 30s

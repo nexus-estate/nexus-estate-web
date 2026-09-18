@@ -192,3 +192,72 @@ test('loads all pages when building a complete role catalogue', async () => {
     '/administration/authorization/PROVIDER/roles?status=ACTIVE&limit=100&page=2',
   );
 });
+
+test('uses the finalized estate marketplace wire contract', async () => {
+  jest.restoreAllMocks();
+  const { publicApiClient, providerApiClient } = await import('./client');
+  const { estateApi, locationApi } = await import('./estate/estate.api');
+  const { listingApi } = await import('./listing/listing.api');
+  const { leadApi } = await import('./lead/lead.api');
+  const publicGet = jest
+    .spyOn(publicApiClient, 'get')
+    .mockResolvedValue({} as never);
+  const publicPost = jest
+    .spyOn(publicApiClient, 'post')
+    .mockResolvedValue({} as never);
+  const providerGet = jest
+    .spyOn(providerApiClient, 'get')
+    .mockResolvedValue({} as never);
+  const providerPost = jest
+    .spyOn(providerApiClient, 'post')
+    .mockResolvedValue({} as never);
+  const providerEstate = {
+    title: 'New estate',
+    type: 'APARTMENT' as const,
+    purpose: 'SALE' as const,
+    price: 250000,
+    addressLine: '1 Main Street',
+    provinceId: 'province-id',
+    wardId: 'ward-id',
+  };
+
+  await locationApi.wards('province-id');
+  await estateApi.create(providerEstate);
+  await estateApi.listMine();
+  await listingApi.list({
+    q: 'main',
+    type: 'APARTMENT',
+    purpose: 'SALE',
+    provinceId: 'province-id',
+    page: 2,
+    limit: 10,
+    sort: 'newest',
+  });
+  await listingApi.mine();
+  await listingApi.create({ estateId: 'estate-id' });
+  await leadApi.create('listing-id', {
+    name: 'Jane Doe',
+    phone: '0900000000',
+    message: 'Please call me',
+  });
+
+  expect(publicGet).toHaveBeenNthCalledWith(
+    1,
+    '/locations/provinces/province-id/wards',
+  );
+  expect(publicGet).toHaveBeenNthCalledWith(
+    2,
+    '/listings?q=main&type=APARTMENT&purpose=SALE&provinceId=province-id&page=2&limit=10&sort=newest',
+  );
+  expect(providerGet).toHaveBeenCalledWith('/estates/mine');
+  expect(providerGet).toHaveBeenCalledWith('/listings/mine');
+  expect(providerPost).toHaveBeenCalledWith('/estates', providerEstate);
+  expect(providerPost).toHaveBeenCalledWith('/listings', {
+    estateId: 'estate-id',
+  });
+  expect(publicPost).toHaveBeenCalledWith('/listings/listing-id/leads', {
+    name: 'Jane Doe',
+    phone: '0900000000',
+    message: 'Please call me',
+  });
+});

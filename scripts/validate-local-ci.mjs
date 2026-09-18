@@ -136,7 +136,8 @@ const lifecycleEnv = {
   ADMIN_JWT_REFRESH_SECRET: 'ci-lifecycle-admin-refresh-secret-32',
   INITIAL_ADMIN_EMAIL: 'superadmin@nexus-estate.local',
   INITIAL_ADMIN_PASSWORD: 'NexusEstate#SuperAdmin2026!',
-  CORS_ORIGINS: 'http://localhost:3000',
+  CORS_ORIGINS:
+    'http://localhost:3000,http://localhost:3001,http://localhost:3002',
   SWAGGER_ENABLED: 'false',
 };
 
@@ -306,8 +307,26 @@ async function main() {
     env: { NEXT_PUBLIC_API_URL: apiUrl },
   });
   await run('Web E2E', 'npm', ['run', 'test:e2e'], {
-    env: { CI: '1', NEXT_PUBLIC_API_URL: apiUrl },
+    env: { CI: '1', NEXT_PUBLIC_API_URL: apiUrl, WEB_PLATFORM: 'marketplace' },
   });
+  for (const [platform, port] of [
+    ['provider', '3001'],
+    ['admin', '3002'],
+  ]) {
+    await run(
+      `Web ${platform} platform smoke`,
+      'npm',
+      ['run', 'test:e2e', '--', 'e2e/platform-boundary.spec.ts'],
+      {
+        env: {
+          CI: '1',
+          E2E_PORT: port,
+          NEXT_PUBLIC_API_URL: apiUrl,
+          WEB_PLATFORM: platform,
+        },
+      },
+    );
+  }
   await run('Docker Compose validation', 'docker', ['compose', 'config']);
   await run('Docker image build', 'docker', [
     'build',
@@ -335,7 +354,12 @@ async function main() {
         env: {
           CI: '1',
           E2E_INTEGRATION: 'true',
+          E2E_MULTI_PLATFORM: 'true',
+          E2E_PORT: '3000',
+          E2E_PROVIDER_PORT: '3001',
+          E2E_ADMIN_PORT: '3002',
           NEXT_PUBLIC_API_URL: apiUrl,
+          WEB_PLATFORM: 'marketplace',
         },
       },
     );

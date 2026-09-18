@@ -7,10 +7,10 @@ const groups = [
   {
     titleKey: 'explore',
     links: [
-      ['forSale', '/properties?purpose=buy'],
-      ['forRent', '/properties?purpose=rent'],
+      ['forSale', '/properties?purpose=SALE'],
+      ['forRent', '/properties?purpose=RENT'],
       ['curatedProjects', '/properties'],
-      ['villas', '/properties?type=villa'],
+      ['villas', '/properties?type=VILLA'],
     ],
   },
   {

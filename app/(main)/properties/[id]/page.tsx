@@ -4,19 +4,16 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { PropertyCard } from '@/components/customer/property-card';
 import { leadApi } from '@/lib/api/lead/lead.api';
-import { propertyApi } from '@/lib/api/property/property.api';
-import type { Property } from '@/lib/api/property/property.types';
-import { searchApi } from '@/lib/api/search/search.api';
+import { listingApi } from '@/lib/api/listing/listing.api';
+import type { Listing } from '@/lib/api/listing/listing.types';
 
 export default function PropertyDetailPage() {
   const locale = useLocale();
   const t = useTranslations('customer.propertyDetail');
   const customerT = useTranslations('customer');
   const params = useParams();
-  const [property, setProperty] = useState<Property | null>(null);
-  const [similar, setSimilar] = useState<Property[]>([]);
+  const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [leadForm, setLeadForm] = useState({
     name: '',
@@ -30,12 +27,7 @@ export default function PropertyDetailPage() {
   useEffect(() => {
     async function fetch() {
       try {
-        const [propData, simData] = await Promise.all([
-          propertyApi.getById(params.id as string),
-          searchApi.similarProperties(params.id as string, 3).catch(() => []),
-        ]);
-        setProperty(propData);
-        setSimilar(Array.isArray(simData) ? simData : []);
+        setListing(await listingApi.getById(params.id as string));
       } catch (err) {
         console.error('Failed to fetch property:', err);
       } finally {
@@ -50,8 +42,7 @@ export default function PropertyDetailPage() {
     setLeadLoading(true);
     setLeadError(false);
     try {
-      await leadApi.create({
-        listingId: params.id as string,
+      await leadApi.create(params.id as string, {
         name: leadForm.name,
         phone: leadForm.phone,
         message: leadForm.message,
@@ -78,7 +69,7 @@ export default function PropertyDetailPage() {
     );
   }
 
-  if (!property) {
+  if (!listing) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -94,7 +85,7 @@ export default function PropertyDetailPage() {
     );
   }
 
-  const p = property;
+  const p = listing.estate;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -139,7 +130,7 @@ export default function PropertyDetailPage() {
                   : t('contact')}
               </p>
               <p className="mt-1 text-sm text-gray-500">
-                {p.purpose === 'buy' ? t('forSale') : t('forRent')} ·{' '}
+                {p.purpose === 'SALE' ? t('forSale') : t('forRent')} ·{' '}
                 {customerT(`home.propertyTypes.${p.type.toLowerCase()}`)}
               </p>
 
@@ -182,23 +173,9 @@ export default function PropertyDetailPage() {
               <div className="mt-4">
                 <h2 className="font-semibold text-gray-900">{t('address')}</h2>
                 <p className="mt-1 text-sm text-gray-600">
-                  {p.city}
-                  {p.district ? `, ${p.district}` : ''}
-                  {p.address ? ` - ${p.address}` : ''}
+                  {p.province.name}, {p.ward.name} - {p.addressLine}
                 </p>
               </div>
-
-              {p.broker && (
-                <div className="mt-6 rounded-xl bg-gray-50 p-4">
-                  <h2 className="font-semibold text-gray-900">{t('broker')}</h2>
-                  <p className="mt-1 text-sm text-gray-600">
-                    {p.broker.fullName}
-                  </p>
-                  {p.broker.phone && (
-                    <p className="text-sm text-blue-600">{p.broker.phone}</p>
-                  )}
-                </div>
-              )}
             </div>
           </div>
 
@@ -270,18 +247,6 @@ export default function PropertyDetailPage() {
             </div>
           </div>
         </div>
-
-        {/* Similar properties */}
-        {similar.length > 0 && (
-          <section className="mt-12">
-            <h2 className="text-xl font-bold text-gray-900">{t('similar')}</h2>
-            <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {similar.map((s) => (
-                <PropertyCard key={s.id} property={s} />
-              ))}
-            </div>
-          </section>
-        )}
       </div>
     </div>
   );

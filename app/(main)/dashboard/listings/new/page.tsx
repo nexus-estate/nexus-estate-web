@@ -1,10 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/use-auth';
+import { estateApi, locationApi } from '@/lib/api/estate/estate.api';
+import type {
+  EstatePurpose,
+  EstateType,
+  Province,
+  Ward,
+} from '@/lib/api/estate/estate.types';
 import { listingApi } from '@/lib/api/listing/listing.api';
 
 export default function NewListingPage() {
@@ -15,19 +22,36 @@ export default function NewListingPage() {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    type: 'apartment',
-    purpose: 'buy',
+    type: 'APARTMENT' as EstateType,
+    purpose: 'SALE' as EstatePurpose,
     price: '',
     area: '',
     bedrooms: '',
     bathrooms: '',
-    city: '',
-    district: '',
-    address: '',
+    provinceId: '',
+    wardId: '',
+    addressLine: '',
   });
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    void locationApi
+      .provinces()
+      .then(setProvinces)
+      .catch(() => setProvinces([]));
+  }, []);
+
+  useEffect(() => {
+    if (!form.provinceId) return;
+    void locationApi
+      .wards(form.provinceId)
+      .then(setWards)
+      .catch(() => setWards([]));
+  }, [form.provinceId]);
 
   if (!isLoading && !isAuthenticated) {
     router.push('/signin');
@@ -50,21 +74,21 @@ export default function NewListingPage() {
     setError('');
 
     try {
-      await listingApi.create({
-        property: {
-          title: form.title,
-          description: form.description,
-          type: form.type,
-          purpose: form.purpose,
-          price: parseFloat(form.price) || 0,
-          area: parseFloat(form.area) || 0,
-          bedrooms: parseInt(form.bedrooms) || 0,
-          bathrooms: parseInt(form.bathrooms) || 0,
-          city: form.city,
-          district: form.district,
-          address: form.address,
-        },
+      const estate = await estateApi.create({
+        title: form.title,
+        description: form.description || undefined,
+        type: form.type,
+        purpose: form.purpose,
+        price: parseFloat(form.price) || 0,
+        area: form.area ? parseFloat(form.area) : undefined,
+        bedrooms: form.bedrooms ? parseInt(form.bedrooms, 10) : undefined,
+        bathrooms: form.bathrooms ? parseInt(form.bathrooms, 10) : undefined,
+        addressLine: form.addressLine,
+        provinceId: form.provinceId,
+        wardId: form.wardId,
       });
+      const listing = await listingApi.create({ estateId: estate.id });
+      await listingApi.publish(listing.id);
       setSuccess(true);
       setTimeout(() => router.push('/dashboard'), 1500);
     } catch (err: unknown) {
@@ -156,19 +180,19 @@ export default function NewListingPage() {
                   onChange={handleChange('type')}
                   className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
                 >
-                  <option value="apartment">
+                  <option value="APARTMENT">
                     {customerT('home.propertyTypes.apartment')}
                   </option>
-                  <option value="house">
+                  <option value="HOUSE">
                     {customerT('home.propertyTypes.house')}
                   </option>
-                  <option value="villa">
+                  <option value="VILLA">
                     {customerT('home.propertyTypes.villa')}
                   </option>
-                  <option value="land">
+                  <option value="LAND">
                     {customerT('home.propertyTypes.land')}
                   </option>
-                  <option value="office">
+                  <option value="OFFICE">
                     {customerT('home.propertyTypes.office')}
                   </option>
                 </select>
@@ -182,8 +206,8 @@ export default function NewListingPage() {
                   onChange={handleChange('purpose')}
                   className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
                 >
-                  <option value="buy">{customerT('properties.buy')}</option>
-                  <option value="rent">{customerT('properties.rent')}</option>
+                  <option value="SALE">{customerT('properties.buy')}</option>
+                  <option value="RENT">{customerT('properties.rent')}</option>
                 </select>
               </div>
             </div>
@@ -260,26 +284,43 @@ export default function NewListingPage() {
                 <label className="block text-sm font-medium text-gray-700">
                   {t('city')}
                 </label>
-                <input
-                  type="text"
+                <select
                   required
-                  value={form.city}
-                  onChange={handleChange('city')}
-                  placeholder={t('cityPlaceholder')}
+                  value={form.provinceId}
+                  onChange={(e) =>
+                    setForm((current) => ({
+                      ...current,
+                      provinceId: e.target.value,
+                      wardId: '',
+                    }))
+                  }
                   className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
-                />
+                >
+                  <option value="">{t('cityPlaceholder')}</option>
+                  {provinces.map((province) => (
+                    <option key={province.id} value={province.id}>
+                      {province.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   {t('district')}
                 </label>
-                <input
-                  type="text"
-                  value={form.district}
-                  onChange={handleChange('district')}
-                  placeholder={t('districtPlaceholder')}
+                <select
+                  value={form.wardId}
+                  onChange={handleChange('wardId')}
+                  disabled={!form.provinceId}
                   className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
-                />
+                >
+                  <option value="">{t('districtPlaceholder')}</option>
+                  {wards.map((ward) => (
+                    <option key={ward.id} value={ward.id}>
+                      {ward.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -289,8 +330,8 @@ export default function NewListingPage() {
               </label>
               <input
                 type="text"
-                value={form.address}
-                onChange={handleChange('address')}
+                value={form.addressLine}
+                onChange={handleChange('addressLine')}
                 placeholder={t('addressPlaceholder')}
                 className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
