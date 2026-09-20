@@ -5,6 +5,14 @@ const integration = process.env.E2E_INTEGRATION === 'true';
 const multiPlatform = process.env.E2E_MULTI_PLATFORM === 'true';
 const providerPort = process.env.E2E_PROVIDER_PORT ?? '3001';
 const adminPort = process.env.E2E_ADMIN_PORT ?? '3002';
+const platformUrlEnv = {
+  NEXT_PUBLIC_MARKETPLACE_URL:
+    process.env.NEXT_PUBLIC_MARKETPLACE_URL ?? 'http://localhost:3000',
+  NEXT_PUBLIC_PROVIDER_URL:
+    process.env.NEXT_PUBLIC_PROVIDER_URL ?? 'http://localhost:3001',
+  NEXT_PUBLIC_ADMIN_URL:
+    process.env.NEXT_PUBLIC_ADMIN_URL ?? 'http://localhost:3002',
+};
 
 export default defineConfig({
   testDir: './e2e',
@@ -30,21 +38,33 @@ export default defineConfig({
         {
           command: 'npm run start',
           url: `http://localhost:${e2ePort}`,
-          env: { PORT: e2ePort, WEB_PLATFORM: 'marketplace' },
+          env: {
+            ...platformUrlEnv,
+            PORT: e2ePort,
+            WEB_PLATFORM: 'marketplace',
+          },
           reuseExistingServer: false,
           timeout: 120_000,
         },
         {
           command: 'npm run start',
           url: `http://localhost:${providerPort}`,
-          env: { PORT: providerPort, WEB_PLATFORM: 'provider' },
+          env: {
+            ...platformUrlEnv,
+            PORT: providerPort,
+            WEB_PLATFORM: 'provider',
+          },
           reuseExistingServer: false,
           timeout: 120_000,
         },
         {
           command: 'npm run start',
           url: `http://localhost:${adminPort}`,
-          env: { PORT: adminPort, WEB_PLATFORM: 'admin' },
+          env: {
+            ...platformUrlEnv,
+            PORT: adminPort,
+            WEB_PLATFORM: 'admin',
+          },
           reuseExistingServer: false,
           timeout: 120_000,
         },
@@ -53,6 +73,7 @@ export default defineConfig({
         command: 'npm run start',
         url: `http://localhost:${e2ePort}`,
         env: {
+          ...platformUrlEnv,
           PORT: e2ePort,
           WEB_PLATFORM: process.env.WEB_PLATFORM ?? 'marketplace',
         },
