@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { getProviderUrl } from '@/lib/platform/urls';
 
 const groups = [
   {
@@ -70,12 +71,21 @@ export default function Footer() {
               <ul className="mt-5 space-y-3">
                 {group.links.map(([label, href]) => (
                   <li key={label}>
-                    <Link
-                      href={href}
-                      className="text-sm text-white/55 transition-colors hover:text-white"
-                    >
-                      {t(label)}
-                    </Link>
+                    {href.startsWith('/provider') ? (
+                      <a
+                        href={getProviderUrl(href)}
+                        className="text-sm text-white/55 transition-colors hover:text-white"
+                      >
+                        {t(label)}
+                      </a>
+                    ) : (
+                      <Link
+                        href={href}
+                        className="text-sm text-white/55 transition-colors hover:text-white"
+                      >
+                        {t(label)}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

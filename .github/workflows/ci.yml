@@ -10,6 +10,9 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: nexus-estate/nexus-estate-web
+  NEXT_PUBLIC_MARKETPLACE_URL: http://localhost:3000
+  NEXT_PUBLIC_PROVIDER_URL: http://localhost:3001
+  NEXT_PUBLIC_ADMIN_URL: http://localhost:3002
 
 jobs:
   ci:
@@ -52,6 +55,9 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          NEXT_PUBLIC_MARKETPLACE_URL: http://localhost:3000
+          NEXT_PUBLIC_PROVIDER_URL: http://localhost:3001
+          NEXT_PUBLIC_ADMIN_URL: http://localhost:3002
 
   e2e:
     name: E2E Tests
@@ -80,11 +86,17 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          NEXT_PUBLIC_MARKETPLACE_URL: http://localhost:3000
+          NEXT_PUBLIC_PROVIDER_URL: http://localhost:3001
+          NEXT_PUBLIC_ADMIN_URL: http://localhost:3002
 
       - name: Run E2E tests
         run: npm run test:e2e
         env:
           NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          NEXT_PUBLIC_MARKETPLACE_URL: http://localhost:3000
+          NEXT_PUBLIC_PROVIDER_URL: http://localhost:3001
+          NEXT_PUBLIC_ADMIN_URL: http://localhost:3002
           WEB_PLATFORM: marketplace
 
       - name: Run Provider platform smoke
@@ -92,6 +104,9 @@ jobs:
         env:
           E2E_PORT: 3001
           NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          NEXT_PUBLIC_MARKETPLACE_URL: http://localhost:3000
+          NEXT_PUBLIC_PROVIDER_URL: http://localhost:3001
+          NEXT_PUBLIC_ADMIN_URL: http://localhost:3002
           WEB_PLATFORM: provider
 
       - name: Run Administration platform smoke
@@ -99,6 +114,9 @@ jobs:
         env:
           E2E_PORT: 3002
           NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          NEXT_PUBLIC_MARKETPLACE_URL: http://localhost:3000
+          NEXT_PUBLIC_PROVIDER_URL: http://localhost:3001
+          NEXT_PUBLIC_ADMIN_URL: http://localhost:3002
           WEB_PLATFORM: admin
 
       - name: Upload Playwright report
@@ -232,6 +250,9 @@ jobs:
       - name: Build web
         env:
           NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          NEXT_PUBLIC_MARKETPLACE_URL: http://localhost:3000
+          NEXT_PUBLIC_PROVIDER_URL: http://localhost:3001
+          NEXT_PUBLIC_ADMIN_URL: http://localhost:3002
         run: npm run build
 
       - name: Install Playwright browsers
@@ -245,8 +266,11 @@ jobs:
           E2E_PROVIDER_PORT: '3001'
           E2E_ADMIN_PORT: '3002'
           NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          NEXT_PUBLIC_MARKETPLACE_URL: http://localhost:3000
+          NEXT_PUBLIC_PROVIDER_URL: http://localhost:3001
+          NEXT_PUBLIC_ADMIN_URL: http://localhost:3002
           WEB_PLATFORM: marketplace
-        run: npm run test:e2e -- platform-lifecycle.spec.ts
+        run: npm run test:e2e -- platform-lifecycle.spec.ts cross-platform-navigation.spec.ts
 
       - name: Upload lifecycle diagnostics
         if: ${{ !cancelled() }}
@@ -279,6 +303,9 @@ jobs:
           push: false
           build-args: |
             NEXT_PUBLIC_API_URL=http://localhost:50001/api/v1
+            NEXT_PUBLIC_MARKETPLACE_URL=http://localhost:3000
+            NEXT_PUBLIC_PROVIDER_URL=http://localhost:3001
+            NEXT_PUBLIC_ADMIN_URL=http://localhost:3002
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -331,5 +358,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NEXT_PUBLIC_API_URL=${{ github.ref == 'refs/heads/develop' && 'https://api-staging.167.233.211.87.nip.io/api/v1' || 'https://api.167.233.211.87.nip.io/api/v1' }}
+            NEXT_PUBLIC_MARKETPLACE_URL=${{ github.ref == 'refs/heads/develop' && 'https://nexus-estate-staging.167.233.211.87.nip.io' || 'https://nexus-estate.167.233.211.87.nip.io' }}
+            NEXT_PUBLIC_PROVIDER_URL=${{ github.ref == 'refs/heads/develop' && 'https://provider-staging.167.233.211.87.nip.io' || 'https://provider.167.233.211.87.nip.io' }}
+            NEXT_PUBLIC_ADMIN_URL=${{ github.ref == 'refs/heads/develop' && 'https://admin-staging.167.233.211.87.nip.io' || 'https://admin.167.233.211.87.nip.io' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

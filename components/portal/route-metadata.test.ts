@@ -1,4 +1,8 @@
-import { getPortalBreadcrumbs, getPortalRouteMetadata } from './route-metadata';
+import {
+  getPortalBreadcrumbs,
+  getPortalRouteMetadata,
+  withAuthorizationPlatformQuery,
+} from './route-metadata';
 
 describe('portal route metadata', () => {
   it('uses localized semantic labels for nested authorization routes', () => {
@@ -16,5 +20,18 @@ describe('portal route metadata', () => {
     expect(breadcrumbs.map(({ labelKey }) => labelKey).join('/')).not.toContain(
       'role-1',
     );
+  });
+
+  it('preserves the authorization platform context in breadcrumb links', () => {
+    const breadcrumbs = withAuthorizationPlatformQuery(
+      getPortalBreadcrumbs('/admin/authorization/roles/123'),
+      'platform=PROVIDER&unrelated=ignored',
+    );
+
+    expect(breadcrumbs.map(({ href }) => href)).toEqual([
+      '/admin',
+      '/admin/authorization?platform=PROVIDER',
+      '/admin/authorization?platform=PROVIDER',
+    ]);
   });
 });

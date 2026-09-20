@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { Listing } from '@/lib/api/listing/listing.types';
+import { getProviderUrl } from '@/lib/platform/urls';
 import { PropertyCard } from './property-card';
 
 const types = ['apartment', 'house', 'villa', 'land', 'office'] as const;
@@ -187,12 +188,12 @@ export function MarketplaceHome({
               {t('home.providerCtaDescription')}
             </p>
           </div>
-          <Link
-            href="/signup"
+          <a
+            href={getProviderUrl('/provider/onboarding')}
             className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--brand-accent)] px-5 text-sm font-semibold text-[var(--brand-strong)] hover:bg-[#c4a15f]"
           >
             {t('home.providerCtaAction')}
-          </Link>
+          </a>
         </div>
       </section>
     </div>

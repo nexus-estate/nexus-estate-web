@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/portal/language-switcher';
 import { useAuth } from '@/hooks/use-auth';
+import { getProviderUrl } from '@/lib/platform/urls';
 
 export default function Header() {
   const t = useTranslations('customer.nav');
@@ -13,10 +14,10 @@ export default function Header() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const nav = [
-    [t('home'), '/'],
-    [t('properties'), '/properties'],
-    [t('account'), '/profile'],
-    [t('provider'), '/provider'],
+    { label: t('home'), href: '/' },
+    { label: t('properties'), href: '/properties' },
+    { label: t('account'), href: '/profile' },
+    { label: t('provider'), href: getProviderUrl('/provider') },
   ];
   const signedIn = status === 'authenticated' && user;
 
@@ -34,16 +35,27 @@ export default function Header() {
           className="hidden items-center gap-7 lg:flex"
           aria-label={t('navigation')}
         >
-          {nav.map(([label, href]) => (
-            <Link
-              key={href}
-              href={href}
-              className="text-sm text-white/75 transition-colors hover:text-white"
-              aria-current={pathname === href ? 'page' : undefined}
-            >
-              {label}
-            </Link>
-          ))}
+          {nav.map(({ label, href }) =>
+            href.startsWith('http') ? (
+              <a
+                key={href}
+                href={href}
+                className="text-sm text-white/75 transition-colors hover:text-white"
+                aria-current={pathname === href ? 'page' : undefined}
+              >
+                {label}
+              </a>
+            ) : (
+              <Link
+                key={href}
+                href={href}
+                className="text-sm text-white/75 transition-colors hover:text-white"
+                aria-current={pathname === href ? 'page' : undefined}
+              >
+                {label}
+              </Link>
+            ),
+          )}
         </nav>
         <div className="flex items-center gap-3">
           <div className="hidden w-28 sm:block [&_button]:border-white/15 [&_button]:bg-white/5 [&_button]:text-white/75 [&_button:hover]:bg-white/10 [&_button:hover]:text-white">
@@ -67,12 +79,12 @@ export default function Header() {
                   >
                     {t('account')}
                   </Link>
-                  <Link
+                  <a
                     className="block px-3 py-2 text-sm transition-colors hover:bg-[var(--surface-hover)]"
-                    href="/provider"
+                    href={getProviderUrl('/provider')}
                   >
                     {t('provider')}
-                  </Link>
+                  </a>
                   <button
                     className="w-full border-t border-[var(--border-muted)] px-3 py-2 text-left text-sm font-medium text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)]"
                     onClick={() => {
@@ -125,16 +137,27 @@ export default function Header() {
           className="border-t border-white/10 bg-[var(--brand-strong)] px-5 py-4 shadow-[var(--shadow-md)] lg:hidden"
           aria-label={t('navigation')}
         >
-          {nav.map(([label, href]) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMobileOpen(false)}
-              className="block border-b border-white/10 py-3 text-sm text-white/80 transition-colors hover:text-white"
-            >
-              {label}
-            </Link>
-          ))}
+          {nav.map(({ label, href }) =>
+            href.startsWith('http') ? (
+              <a
+                key={href}
+                href={href}
+                onClick={() => setMobileOpen(false)}
+                className="block border-b border-white/10 py-3 text-sm text-white/80 transition-colors hover:text-white"
+              >
+                {label}
+              </a>
+            ) : (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMobileOpen(false)}
+                className="block border-b border-white/10 py-3 text-sm text-white/80 transition-colors hover:text-white"
+              >
+                {label}
+              </Link>
+            ),
+          )}
           {signedIn ? (
             <button
               className="py-3 text-left text-sm text-white/80"
