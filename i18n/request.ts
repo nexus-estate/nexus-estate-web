@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { getRequestConfig } from 'next-intl/server';
-import { LOCALE_KEY, normalizeLocale } from '@/lib/constants';
+import { APP_TIME_ZONE, LOCALE_KEY, normalizeLocale } from '@/lib/constants';
 import administrationEn from '@/messages/en/administration.json';
 import authEn from '@/messages/en/auth.json';
 import commonEn from '@/messages/en/common.json';
@@ -32,5 +32,9 @@ const messages = {
 export default getRequestConfig(async () => {
   const value = (await cookies()).get(LOCALE_KEY)?.value;
   const locale = normalizeLocale(value);
-  return { locale, messages: messages[locale] };
+  return {
+    locale,
+    messages: messages[locale],
+    timeZone: APP_TIME_ZONE,
+  };
 });
