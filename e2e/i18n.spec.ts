@@ -47,3 +47,23 @@ test('language switcher keeps the UI, cookie, and localStorage in sync', async (
     .poll(() => page.evaluate(() => localStorage.getItem('nexus.locale')))
     .toBe('en');
 });
+
+test('rendering never emits the next-intl ENVIRONMENT_FALLBACK error', async ({
+  page,
+}) => {
+  const runtimeErrors: string[] = [];
+  page.on('console', (message) => runtimeErrors.push(message.text()));
+  page.on('pageerror', (error) => runtimeErrors.push(error.message));
+
+  await page.goto('/');
+  await page
+    .context()
+    .addCookies([
+      { name: 'nexus.locale', value: 'vi', domain: 'localhost', path: '/' },
+    ]);
+  await page.goto('/');
+
+  expect(
+    runtimeErrors.filter((text) => text.includes('ENVIRONMENT_FALLBACK')),
+  ).toEqual([]);
+});
