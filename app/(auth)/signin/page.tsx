@@ -17,6 +17,9 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const next = safeCustomerNext(search.get('next'));
+  const signUpHref =
+    next === '/' ? '/signup' : `/signup?next=${encodeURIComponent(next)}`;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -166,7 +169,7 @@ export default function SignInPage() {
       <p className="mt-8 text-center text-sm text-[#75807d]">
         {t('noAccount')}{' '}
         <Link
-          href="/signup"
+          href={signUpHref}
           className="font-semibold text-[#8e7043] underline decoration-[#c8b087] underline-offset-4"
         >
           {t('createAccount')}

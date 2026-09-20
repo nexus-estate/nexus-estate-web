@@ -127,3 +127,21 @@ export function getPortalRouteMetadata(pathname: string) {
 export function getPortalBreadcrumbs(pathname: string) {
   return getPortalRouteMetadata(pathname)?.breadcrumbs ?? [];
 }
+
+export function withAuthorizationPlatformQuery(
+  breadcrumbs: readonly PortalBreadcrumb[],
+  search: string | URLSearchParams,
+) {
+  const params = new URLSearchParams(search);
+  const platform = params.get('platform');
+  if (!platform) return breadcrumbs;
+
+  return breadcrumbs.map((breadcrumb) => {
+    if (!breadcrumb.href?.startsWith('/admin/authorization')) return breadcrumb;
+    const separator = breadcrumb.href.includes('?') ? '&' : '?';
+    return {
+      ...breadcrumb,
+      href: `${breadcrumb.href}${separator}platform=${encodeURIComponent(platform)}`,
+    };
+  });
+}

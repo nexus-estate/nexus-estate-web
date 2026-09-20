@@ -5,6 +5,8 @@ test.each([
   ['', '/'],
   ['/provider', '/provider'],
   ['/provider/account', '/provider/account'],
+  ['/provider/onboarding', '/provider/onboarding'],
+  ['/provider/authorization', '/provider/authorization'],
   ['/profile?tab=security', '/profile?tab=security'],
   ['//evil.example', '/'],
   ['https://evil.example', '/'],

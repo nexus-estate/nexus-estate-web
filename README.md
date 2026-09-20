@@ -59,10 +59,20 @@ not a build argument. The stable liveness endpoint is `GET /api/healthz`; it
 returns HTTP 200 without calling the backend. The container listens on port
 `3000`.
 
+`NEXT_PUBLIC_MARKETPLACE_URL`, `NEXT_PUBLIC_PROVIDER_URL`, and
+`NEXT_PUBLIC_ADMIN_URL` are also embedded during image build. Build one
+immutable image with the three URLs for the environment, then run it with the
+three different `WEB_PLATFORM` values. Cross-platform navigation works across
+origins, but Customer tokens in `localStorage` remain origin-local; this does
+not provide SSO.
+
 Build one image for one source SHA, then run that same image three times:
 
 ```bash
 docker build --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
+  --build-arg NEXT_PUBLIC_MARKETPLACE_URL="$NEXT_PUBLIC_MARKETPLACE_URL" \
+  --build-arg NEXT_PUBLIC_PROVIDER_URL="$NEXT_PUBLIC_PROVIDER_URL" \
+  --build-arg NEXT_PUBLIC_ADMIN_URL="$NEXT_PUBLIC_ADMIN_URL" \
   -t ghcr.io/nexus-estate/nexus-estate-web:<SHA> .
 docker run -e WEB_PLATFORM=marketplace ...
 docker run -e WEB_PLATFORM=provider ...
