@@ -5,13 +5,6 @@ import { providerApi } from '@/lib/api/provider/provider.api';
 import { resolveProviderLifecycle } from '../provider-lifecycle';
 import { providerKeys } from '../query-keys';
 import { useProviderContext } from './provider-context.provider';
-export type ProviderLifecycleState =
-  | 'NO_PROVIDER'
-  | 'PENDING_VERIFICATION'
-  | 'REJECTED'
-  | 'SUSPENDED'
-  | 'ACTIVE_VERIFIED'
-  | 'CONTEXT_REQUIRED';
 export function useProviderAuthorization() {
   const { providerId } = useProviderContext();
   const query = useQuery({

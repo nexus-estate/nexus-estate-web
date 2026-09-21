@@ -5,6 +5,7 @@ import { ApiError } from '@/lib/api/core/error';
 import { providerApi } from '@/lib/api/provider/provider.api';
 import { useProviderContext } from './context/provider-context.provider';
 import { resolveProviderLifecycle } from './provider-lifecycle';
+import { providerKeys } from './query-keys';
 export type ProviderEntryState =
   | 'LOADING'
   | 'NO_PROVIDER'
@@ -18,12 +19,12 @@ export function useProviderEntryState(enabled = true) {
   const context = useProviderContext();
   const providerId = context.providerId;
   const account = useQuery({
-    queryKey: ['provider-workspace', providerId ?? 'implicit', 'account'],
+    queryKey: providerKeys.account(providerId),
     queryFn: providerApi.profile,
     enabled,
   });
   const authorization = useQuery({
-    queryKey: ['provider-workspace', providerId ?? 'implicit', 'authorization'],
+    queryKey: providerKeys.authorization(providerId),
     queryFn: providerApi.authorization,
     enabled: enabled && Boolean(account.data),
   });
