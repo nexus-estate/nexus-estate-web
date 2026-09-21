@@ -15,10 +15,23 @@ export type EstateType =
 
 export type EstatePurpose = 'SALE' | 'RENT' | 'SALE_OR_RENT';
 
+/** Location reference embedded in the Estate response contract. */
+export interface EstateLocation {
+  id: string;
+  code: string;
+  name: string;
+}
+
+/**
+ * Wire contract of the Estate endpoints (API `EstateResponse`).
+ *
+ * Provider is the canonical owner. Province and ward are NOT NULL relations,
+ * always hydrated by the API. The legacy customer ownership field and internal
+ * fields (`deletedAt`, `createdBy`, `updatedBy`) are never exposed.
+ */
 export interface Estate {
   id: string;
-  customerId: string;
-  providerId: string | null;
+  providerId: string;
   title: string;
   description: string | null;
   type: EstateType;
@@ -33,11 +46,10 @@ export interface Estate {
   wardId: string;
   latitude: number | null;
   longitude: number | null;
+  province: EstateLocation;
+  ward: EstateLocation;
   createdAt: string;
   updatedAt: string;
-  deletedAt: string | null;
-  createdBy: string | null;
-  updatedBy: string | null;
 }
 
 export interface CreateEstateRequest {

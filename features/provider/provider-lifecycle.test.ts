@@ -57,6 +57,35 @@ test.each([
     },
   ],
   [
+    'active from authorization only',
+    'ACTIVE_VERIFIED',
+    { loading: false, authorization: auth },
+  ],
+  [
+    'suspended from authorization only',
+    'SUSPENDED',
+    {
+      loading: false,
+      authorization: { ...auth, providerStatus: 'SUSPENDED' as const },
+    },
+  ],
+  [
+    'rejected from authorization only',
+    'REJECTED',
+    {
+      loading: false,
+      authorization: { ...auth, verificationStatus: 'REJECTED' as const },
+    },
+  ],
+  [
+    'pending from authorization only',
+    'PENDING_VERIFICATION',
+    {
+      loading: false,
+      authorization: { ...auth, verificationStatus: 'PENDING' as const },
+    },
+  ],
+  [
     'context',
     'CONTEXT_REQUIRED',
     {
@@ -65,6 +94,17 @@ test.each([
       authorizationError: new ApiError('', {
         status: 400,
         errorCode: 'PROVIDER_CONTEXT_REQUIRED',
+      }),
+    },
+  ],
+  [
+    'no provider from authorization error',
+    'NO_PROVIDER',
+    {
+      loading: false,
+      authorizationError: new ApiError('', {
+        status: 404,
+        errorCode: 'PROVIDER_ACCOUNT_NOT_FOUND',
       }),
     },
   ],

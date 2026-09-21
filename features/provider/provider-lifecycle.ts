@@ -26,8 +26,10 @@ export function resolveProviderLifecycle(input: {
   )
     return 'CONTEXT_REQUIRED';
   if (
-    input.accountError?.errorCode === 'PROVIDER_ACCOUNT_NOT_FOUND' &&
-    !input.account
+    (input.accountError?.errorCode === 'PROVIDER_ACCOUNT_NOT_FOUND' ||
+      input.authorizationError?.errorCode === 'PROVIDER_ACCOUNT_NOT_FOUND') &&
+    !input.account &&
+    !input.authorization
   )
     return 'NO_PROVIDER';
   const status = input.authorization?.providerStatus ?? input.account?.status;
@@ -37,16 +39,12 @@ export function resolveProviderLifecycle(input: {
   if (status === 'SUSPENDED') return 'SUSPENDED';
   if (verification === 'REJECTED') return 'REJECTED';
   if (
-    input.account &&
     verification === 'VERIFIED' &&
     status === 'ACTIVE' &&
     input.authorization?.membershipStatus === 'ACTIVE'
   )
     return 'ACTIVE_VERIFIED';
-  if (
-    input.account &&
-    (verification === 'UNVERIFIED' || verification === 'PENDING')
-  )
+  if (verification === 'UNVERIFIED' || verification === 'PENDING')
     return 'PENDING_VERIFICATION';
   return input.accountError || input.authorizationError ? 'ERROR' : 'ERROR';
 }

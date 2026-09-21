@@ -129,7 +129,9 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
       .getByRole('button', { name: /Submit for review|Gửi xét duyệt/ })
       .click();
     await expect(
-      providerPage.getByText(/Pending review|Đang chờ duyệt/),
+      providerPage
+        .locator('span.border')
+        .filter({ hasText: /^Pending review$|^Đang chờ duyệt$/ }),
     ).toBeVisible();
     await expect(
       providerPage.getByText(

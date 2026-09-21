@@ -91,6 +91,44 @@ export const PORTAL_ROUTE_METADATA: readonly PortalRouteMetadata[] = [
     breadcrumbs: [navigation('navigation.admin', '/admin')],
   },
   {
+    path: '/provider/properties/new',
+    labelKey: 'navigation.providerPropertyNew',
+    match: 'exact',
+    breadcrumbs: [
+      navigation('navigation.provider', '/provider'),
+      navigation('navigation.providerProperties', '/provider/properties'),
+      navigation('navigation.providerPropertyNew', '/provider/properties/new'),
+    ],
+  },
+  {
+    path: '/provider/properties',
+    labelKey: 'navigation.providerProperties',
+    match: 'prefix',
+    breadcrumbs: [
+      navigation('navigation.provider', '/provider'),
+      navigation('navigation.providerProperties', '/provider/properties'),
+    ],
+  },
+  {
+    path: '/provider/listings/new',
+    labelKey: 'navigation.providerListingNew',
+    match: 'exact',
+    breadcrumbs: [
+      navigation('navigation.provider', '/provider'),
+      navigation('navigation.providerListings', '/provider/listings'),
+      navigation('navigation.providerListingNew', '/provider/listings/new'),
+    ],
+  },
+  {
+    path: '/provider/listings',
+    labelKey: 'navigation.providerListings',
+    match: 'prefix',
+    breadcrumbs: [
+      navigation('navigation.provider', '/provider'),
+      navigation('navigation.providerListings', '/provider/listings'),
+    ],
+  },
+  {
     path: '/provider/authorization',
     labelKey: 'navigation.providerAuthorization',
     match: 'exact',
