@@ -31,6 +31,7 @@
     "contextRequired": "Provider context required"
   },
   "lifecycle": {
+    "no_provider": "No Provider account is available yet.",
     "pending_verification": "Provider review is in progress.",
     "rejected": "This Provider application was rejected.",
     "suspended": "Provider access is suspended.",
@@ -40,8 +41,82 @@
   },
   "nav": {
     "overview": "Overview",
+    "properties": "Properties",
+    "listings": "Listings",
     "account": "Account",
     "authorization": "Authorization"
+  },
+  "properties": {
+    "title": "Properties",
+    "description": "Supply inventory owned by the selected Provider.",
+    "new": "New Property",
+    "newTitle": "Create Property",
+    "newDescription": "Register a property owned by this Provider. Listing creation is a separate step.",
+    "create": "Create Property",
+    "cancel": "Cancel",
+    "submitting": "Creating…",
+    "loadFailed": "Properties could not be loaded.",
+    "createFailed": "The Property could not be created.",
+    "empty": "No Properties yet. Create your first Property to start supplying.",
+    "fields": {
+      "title": "Title",
+      "type": "Type",
+      "purpose": "Purpose",
+      "price": "Price (VND)",
+      "area": "Area (m²)",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "description": "Description",
+      "province": "City/Province",
+      "provincePlaceholder": "Select a city or province",
+      "ward": "Ward/District",
+      "wardPlaceholder": "Select a ward or district",
+      "addressLine": "Street address"
+    },
+    "types": {
+      "APARTMENT": "Apartment",
+      "HOUSE": "House",
+      "VILLA": "Villa",
+      "TOWNHOUSE": "Townhouse",
+      "LAND": "Land",
+      "OFFICE": "Office",
+      "SHOPHOUSE": "Shophouse",
+      "WAREHOUSE": "Warehouse",
+      "COMMERCIAL": "Commercial",
+      "HOTEL": "Hotel",
+      "RESORT": "Resort",
+      "FARM": "Farm",
+      "OTHER": "Other"
+    },
+    "purposes": {
+      "SALE": "For sale",
+      "RENT": "For rent",
+      "SALE_OR_RENT": "Sale or rent"
+    }
+  },
+  "listings": {
+    "title": "Listings",
+    "description": "Publication lifecycle for this Provider's supply.",
+    "new": "New Listing",
+    "newTitle": "Create Listing",
+    "newDescription": "Create a draft Listing from a Property owned by this Provider.",
+    "createDraft": "Create draft",
+    "cancel": "Cancel",
+    "submitting": "Creating…",
+    "loadFailed": "Listings could not be loaded.",
+    "createFailed": "The Listing could not be created.",
+    "empty": "No Listings yet. Create a draft Listing from one of your Properties.",
+    "draftNote": "The Listing is created as a draft. Publishing happens explicitly after the draft is reviewed.",
+    "noProperties": "This Provider has no Properties yet. Create a Property first.",
+    "fields": {
+      "property": "Property",
+      "propertyPlaceholder": "Select a Property"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "PUBLISHED": "Published",
+      "ARCHIVED": "Archived"
+    }
   },
   "labels": {
     "provider": "Provider",

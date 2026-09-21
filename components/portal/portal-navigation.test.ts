@@ -5,6 +5,8 @@ import {
 
 const providerItems = [
   { href: '/provider', match: 'exact' as const },
+  { href: '/provider/properties', match: 'prefix' as const },
+  { href: '/provider/listings', match: 'prefix' as const },
   { href: '/provider/account', match: 'prefix' as const },
   { href: '/provider/authorization', match: 'exact' as const },
 ];
@@ -34,6 +36,10 @@ const adminItems = [
 describe('portal navigation matching', () => {
   it.each([
     ['/provider', '/provider'],
+    ['/provider/properties', '/provider/properties'],
+    ['/provider/properties/new', '/provider/properties'],
+    ['/provider/listings', '/provider/listings'],
+    ['/provider/listings/new', '/provider/listings'],
     ['/provider/account', '/provider/account'],
     ['/provider/account?tab=billing', '/provider/account'],
   ])('selects one Provider target for %s', (pathname, expected) => {

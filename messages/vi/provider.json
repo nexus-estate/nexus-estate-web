@@ -31,6 +31,7 @@
     "contextRequired": "Cần chọn ngữ cảnh Provider"
   },
   "lifecycle": {
+    "no_provider": "Chưa có Provider account.",
     "pending_verification": "Hồ sơ Provider đang được xét duyệt.",
     "rejected": "Hồ sơ Provider đã bị từ chối.",
     "suspended": "Quyền Provider đang bị tạm ngưng.",
@@ -40,8 +41,82 @@
   },
   "nav": {
     "overview": "Tổng quan",
+    "properties": "Bất động sản",
+    "listings": "Tin đăng",
     "account": "Tài khoản",
     "authorization": "Phân quyền"
+  },
+  "properties": {
+    "title": "Bất động sản",
+    "description": "Nguồn cung thuộc sở hữu của Provider đang chọn.",
+    "new": "Bất động sản mới",
+    "newTitle": "Tạo bất động sản",
+    "newDescription": "Đăng ký bất động sản thuộc Provider này. Việc tạo tin đăng là bước riêng.",
+    "create": "Tạo bất động sản",
+    "cancel": "Hủy",
+    "submitting": "Đang tạo…",
+    "loadFailed": "Không thể tải bất động sản.",
+    "createFailed": "Không thể tạo bất động sản.",
+    "empty": "Chưa có bất động sản nào. Hãy tạo bất động sản đầu tiên để bắt đầu.",
+    "fields": {
+      "title": "Tiêu đề",
+      "type": "Loại",
+      "purpose": "Mục đích",
+      "price": "Giá (VND)",
+      "area": "Diện tích (m²)",
+      "bedrooms": "Phòng ngủ",
+      "bathrooms": "Phòng tắm",
+      "description": "Mô tả",
+      "province": "Tỉnh/Thành phố",
+      "provincePlaceholder": "Chọn tỉnh/thành phố",
+      "ward": "Phường/Quận",
+      "wardPlaceholder": "Chọn phường/quận",
+      "addressLine": "Địa chỉ"
+    },
+    "types": {
+      "APARTMENT": "Căn hộ",
+      "HOUSE": "Nhà",
+      "VILLA": "Biệt thự",
+      "TOWNHOUSE": "Nhà phố",
+      "LAND": "Đất",
+      "OFFICE": "Văn phòng",
+      "SHOPHOUSE": "Nhà phố thương mại",
+      "WAREHOUSE": "Nhà kho",
+      "COMMERCIAL": "Thương mại",
+      "HOTEL": "Khách sạn",
+      "RESORT": "Khu nghỉ dưỡng",
+      "FARM": "Nông trại",
+      "OTHER": "Khác"
+    },
+    "purposes": {
+      "SALE": "Bán",
+      "RENT": "Cho thuê",
+      "SALE_OR_RENT": "Bán hoặc cho thuê"
+    }
+  },
+  "listings": {
+    "title": "Tin đăng",
+    "description": "Vòng đời xuất bản cho nguồn cung của Provider này.",
+    "new": "Tin đăng mới",
+    "newTitle": "Tạo tin đăng",
+    "newDescription": "Tạo tin đăng bản nháp từ bất động sản thuộc Provider này.",
+    "createDraft": "Tạo bản nháp",
+    "cancel": "Hủy",
+    "submitting": "Đang tạo…",
+    "loadFailed": "Không thể tải tin đăng.",
+    "createFailed": "Không thể tạo tin đăng.",
+    "empty": "Chưa có tin đăng nào. Hãy tạo tin nháp từ một bất động sản.",
+    "draftNote": "Tin đăng được tạo dưới dạng bản nháp. Việc xuất bản sẽ được thực hiện rõ ràng sau khi rà soát.",
+    "noProperties": "Provider này chưa có bất động sản. Hãy tạo bất động sản trước.",
+    "fields": {
+      "property": "Bất động sản",
+      "propertyPlaceholder": "Chọn bất động sản"
+    },
+    "status": {
+      "DRAFT": "Bản nháp",
+      "PUBLISHED": "Đã xuất bản",
+      "ARCHIVED": "Đã lưu trữ"
+    }
   },
   "labels": {
     "provider": "Provider",

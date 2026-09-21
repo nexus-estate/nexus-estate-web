@@ -36,6 +36,15 @@ test.describe(`platform boundary: ${platform}`, () => {
       expect((await request.get('/admin')).status()).toBe(404);
       expect((await request.get('/dashboard')).status()).toBe(404);
     });
+
+    test('serves the Provider supply workspace routes', async ({ request }) => {
+      expect((await request.get('/provider/properties')).status()).toBe(200);
+      expect((await request.get('/provider/properties/new')).status()).toBe(
+        200,
+      );
+      expect((await request.get('/provider/listings')).status()).toBe(200);
+      expect((await request.get('/provider/listings/new')).status()).toBe(200);
+    });
   }
 
   if (platform === 'admin') {

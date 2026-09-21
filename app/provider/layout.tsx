@@ -55,6 +55,16 @@ export default function ProviderLayout({
       items={[
         { label: t('nav.overview'), href: '/provider', match: 'exact' },
         {
+          label: t('nav.properties'),
+          href: '/provider/properties',
+          match: 'prefix',
+        },
+        {
+          label: t('nav.listings'),
+          href: '/provider/listings',
+          match: 'prefix',
+        },
+        {
           label: t('nav.account'),
           href: '/provider/account',
           match: 'prefix',
