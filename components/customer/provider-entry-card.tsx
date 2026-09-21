@@ -1,7 +1,7 @@
 'use client';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useProviderEntryState } from '@/features/provider/use-provider-entry-state';
+import { getProviderUrl } from '@/lib/platform/urls';
 export function ProviderEntryCard() {
   const t = useTranslations('customer.providerEntry');
   const { account, authorization, state, isLoading } = useProviderEntryState();
@@ -35,12 +35,14 @@ export function ProviderEntryCard() {
           {authorization.data.providerDisplayName}
         </p>
       )}
-      <Link
-        href={state === 'NO_PROVIDER' ? '/provider/onboarding' : '/provider'}
+      <a
+        href={getProviderUrl(
+          state === 'NO_PROVIDER' ? '/provider/onboarding' : '/provider',
+        )}
         className="mt-5 inline-flex border border-[var(--border)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface-subtle)]"
       >
         {t(state === 'NO_PROVIDER' ? 'actions.become' : 'actions.open')}
-      </Link>
+      </a>
     </section>
   );
 }

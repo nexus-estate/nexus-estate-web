@@ -1,5 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 
+test.skip(
+  (process.env.WEB_PLATFORM ?? 'marketplace') !== 'provider',
+  'Provider auth return flow runs against the Provider runtime.',
+);
+
 const customer = {
   email: 'return-path@example.com',
   password: 'return-path-password',

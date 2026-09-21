@@ -1,20 +1,37 @@
-import { apiClient } from '../client';
-import type { CreateListingInput, Listing } from './listing.types';
+import { publicApiClient, providerApiClient } from '../client';
+import type {
+  CreateListingInput,
+  Listing,
+  ListingPageResponse,
+  ListingQuery,
+} from './listing.types';
 
 export const listingApi = {
-  list(page?: number, limit?: number) {
+  list(query: ListingQuery = {}) {
     const params = new URLSearchParams();
-    if (page !== undefined) params.set('page', String(page));
-    if (limit !== undefined) params.set('limit', String(limit));
-    const query = params.toString();
-    return apiClient.get<Listing[]>(`/listings${query ? `?${query}` : ''}`);
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '')
+        params.set(key, String(value));
+    });
+    const queryString = params.toString();
+    return publicApiClient.get<ListingPageResponse>(
+      `/listings${queryString ? `?${queryString}` : ''}`,
+    );
+  },
+
+  getById(id: string) {
+    return publicApiClient.get<Listing>(`/listings/${id}`);
   },
 
   create(data: CreateListingInput) {
-    return apiClient.post<Listing>('/listings', data);
+    return providerApiClient.post<Listing>('/listings', data);
   },
 
   publish(id: string) {
-    return apiClient.post<Listing>(`/listings/${id}/publish`);
+    return providerApiClient.post<Listing>(`/listings/${id}/publish`);
+  },
+
+  mine() {
+    return providerApiClient.get<Listing[]>('/listings/mine');
   },
 };

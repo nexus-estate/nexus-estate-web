@@ -1,24 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nexus Estate Web
+
+Nexus Estate Web is one Next.js application in one repository. A single
+immutable image runs three runtime platforms selected by `WEB_PLATFORM`:
+
+| Platform               | `WEB_PLATFORM` | Root behavior                | Owned routes                                                           |
+| ---------------------- | -------------- | ---------------------------- | ---------------------------------------------------------------------- |
+| Marketplace / Customer | `marketplace`  | `/` renders Marketplace      | `/`, `/properties/*`, `/profile`, `/dashboard/*`, `/signin`, `/signup` |
+| Provider / Supply      | `provider`     | `/` redirects to `/provider` | `/provider/*` plus Customer auth landing                               |
+| Administration / ERP   | `admin`        | `/` redirects to `/admin`    | `/admin/*`                                                             |
+
+The current route tree uses `/provider/*` for Supply. `/dashboard/*` is a
+Customer dashboard route, so it is blocked from Provider and Administration.
+The request-layer platform gate in `proxy.ts` returns 404 for foreign and
+unknown application routes; it is not a client-side navigation restriction.
+
+There are two auth realms: Marketplace and Provider use the Customer realm;
+Administration uses the independent Administrator realm. Provider context is
+selected separately and does not create a third auth realm. Backend
+authorization remains authoritative.
 
 ## Getting Started
 
-First, run the development server:
+Run a platform locally:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+WEB_PLATFORM=marketplace npm run dev
+WEB_PLATFORM=provider npm run dev
+WEB_PLATFORM=admin npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Outside production, a missing `WEB_PLATFORM` temporarily falls back to
+Marketplace for migration compatibility. Production requires a valid value
+and fails fast otherwise.
 
 ## Run with Docker Compose
 
@@ -38,8 +53,31 @@ Open [http://localhost:3000](http://localhost:3000). To stop the service:
 docker compose down
 ```
 
-`NEXT_PUBLIC_API_URL` is embedded into the browser bundle during image build.
-Rebuild the image after changing it.
+`NEXT_PUBLIC_API_URL` is embedded into the browser bundle during image build,
+so rebuild after changing it. `WEB_PLATFORM` is runtime configuration and is
+not a build argument. The stable liveness endpoint is `GET /api/healthz`; it
+returns HTTP 200 without calling the backend. The container listens on port
+`3000`.
+
+`NEXT_PUBLIC_MARKETPLACE_URL`, `NEXT_PUBLIC_PROVIDER_URL`, and
+`NEXT_PUBLIC_ADMIN_URL` are also embedded during image build. Build one
+immutable image with the three URLs for the environment, then run it with the
+three different `WEB_PLATFORM` values. Cross-platform navigation works across
+origins, but Customer tokens in `localStorage` remain origin-local; this does
+not provide SSO.
+
+Build one image for one source SHA, then run that same image three times:
+
+```bash
+docker build --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
+  --build-arg NEXT_PUBLIC_MARKETPLACE_URL="$NEXT_PUBLIC_MARKETPLACE_URL" \
+  --build-arg NEXT_PUBLIC_PROVIDER_URL="$NEXT_PUBLIC_PROVIDER_URL" \
+  --build-arg NEXT_PUBLIC_ADMIN_URL="$NEXT_PUBLIC_ADMIN_URL" \
+  -t ghcr.io/nexus-estate/nexus-estate-web:<SHA> .
+docker run -e WEB_PLATFORM=marketplace ...
+docker run -e WEB_PLATFORM=provider ...
+docker run -e WEB_PLATFORM=admin ...
+```
 
 ## API architecture
 
@@ -74,8 +112,15 @@ Husky runs `npm run test:precommit` before each commit. The gate mirrors the
 repository CI checks: formatting, i18n parity, linting, TypeScript, unit tests,
 production build, browser E2E, Docker validation, and the isolated
 API/PostgreSQL platform lifecycle. The lifecycle gate uses Docker and validates
-the sibling `../api` checkout against the live `origin/develop` branch using
-`git ls-remote` before starting the API. Set `NEXUS_API_ROOT` to override the
-API path or `NEXUS_API_EXPECTED_REF` to explicitly test another remote branch or
-API commit. The gate requires access to the API remote for the default branch
-check and does not check out, pull, reset, or clean the sibling repository.
+the sibling `../api` checkout before starting the API. The Husky hook defaults
+to the current local API `HEAD`, which supports committing the web changes
+alongside an API feature branch. Set `NEXUS_API_ROOT` to override the API path
+or `NEXUS_API_EXPECTED_REF` to explicitly test another remote branch or API
+commit. Running `npm run test:precommit` directly keeps the CI-parity default
+of checking the live `origin/develop` branch with `git ls-remote`. The gate
+does not check out, pull, reset, or clean the sibling repository.
+
+For pull requests, the integration workflow first looks for an API branch with
+the same name as the web branch and falls back to API `develop` when no matching
+branch exists. Push the API feature branch before opening the web PR when the
+E2E flow depends on backend changes that are not yet in `develop`.

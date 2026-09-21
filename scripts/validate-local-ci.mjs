@@ -8,6 +8,11 @@ const apiRoot = resolve(webRoot, process.env.NEXUS_API_ROOT ?? '../api');
 const expectedApiRef = process.env.NEXUS_API_EXPECTED_REF ?? 'origin/develop';
 const apiUrl = 'http://localhost:50001/api/v1';
 const apiHealthUrl = 'http://localhost:50001/health/live';
+const localPlatformUrls = {
+  NEXT_PUBLIC_MARKETPLACE_URL: 'http://localhost:3000',
+  NEXT_PUBLIC_PROVIDER_URL: 'http://localhost:3001',
+  NEXT_PUBLIC_ADMIN_URL: 'http://localhost:3002',
+};
 const postgresContainer = `nexus-estate-web-precommit-postgres-${process.pid}`;
 
 function log(message) {
@@ -136,7 +141,8 @@ const lifecycleEnv = {
   ADMIN_JWT_REFRESH_SECRET: 'ci-lifecycle-admin-refresh-secret-32',
   INITIAL_ADMIN_EMAIL: 'superadmin@nexus-estate.local',
   INITIAL_ADMIN_PASSWORD: 'NexusEstate#SuperAdmin2026!',
-  CORS_ORIGINS: 'http://localhost:3000',
+  CORS_ORIGINS:
+    'http://localhost:3000,http://localhost:3001,http://localhost:3002',
   SWAGGER_ENABLED: 'false',
 };
 
@@ -300,19 +306,49 @@ async function main() {
   await run('Lint', 'npm', ['run', 'lint']);
   await run('Type check', 'npm', ['run', 'type-check']);
   await run('Unit tests', 'npm', ['test', '--', '--ci', '--no-cache'], {
-    env: { NEXT_PUBLIC_API_URL: apiUrl },
+    env: { NEXT_PUBLIC_API_URL: apiUrl, ...localPlatformUrls },
   });
   await run('Production build', 'npm', ['run', 'build'], {
-    env: { NEXT_PUBLIC_API_URL: apiUrl },
+    env: { NEXT_PUBLIC_API_URL: apiUrl, ...localPlatformUrls },
   });
   await run('Web E2E', 'npm', ['run', 'test:e2e'], {
-    env: { CI: '1', NEXT_PUBLIC_API_URL: apiUrl },
+    env: {
+      CI: '1',
+      NEXT_PUBLIC_API_URL: apiUrl,
+      ...localPlatformUrls,
+      WEB_PLATFORM: 'marketplace',
+    },
   });
+  for (const [platform, port] of [
+    ['provider', '3001'],
+    ['admin', '3002'],
+  ]) {
+    await run(
+      `Web ${platform} platform smoke`,
+      'npm',
+      ['run', 'test:e2e', '--', 'e2e/platform-boundary.spec.ts'],
+      {
+        env: {
+          CI: '1',
+          E2E_PORT: port,
+          NEXT_PUBLIC_API_URL: apiUrl,
+          ...localPlatformUrls,
+          WEB_PLATFORM: platform,
+        },
+      },
+    );
+  }
   await run('Docker Compose validation', 'docker', ['compose', 'config']);
   await run('Docker image build', 'docker', [
     'build',
     '--build-arg',
     `NEXT_PUBLIC_API_URL=${apiUrl}`,
+    '--build-arg',
+    `NEXT_PUBLIC_MARKETPLACE_URL=${localPlatformUrls.NEXT_PUBLIC_MARKETPLACE_URL}`,
+    '--build-arg',
+    `NEXT_PUBLIC_PROVIDER_URL=${localPlatformUrls.NEXT_PUBLIC_PROVIDER_URL}`,
+    '--build-arg',
+    `NEXT_PUBLIC_ADMIN_URL=${localPlatformUrls.NEXT_PUBLIC_ADMIN_URL}`,
     '-t',
     'nexus-estate-web:local',
     '.',
@@ -330,12 +366,24 @@ async function main() {
     await run(
       'Full-stack Platform Lifecycle E2E',
       'npm',
-      ['run', 'test:e2e', '--', 'platform-lifecycle.spec.ts'],
+      [
+        'run',
+        'test:e2e',
+        '--',
+        'platform-lifecycle.spec.ts',
+        'cross-platform-navigation.spec.ts',
+      ],
       {
         env: {
           CI: '1',
           E2E_INTEGRATION: 'true',
+          E2E_MULTI_PLATFORM: 'true',
+          E2E_PORT: '3000',
+          E2E_PROVIDER_PORT: '3001',
+          E2E_ADMIN_PORT: '3002',
           NEXT_PUBLIC_API_URL: apiUrl,
+          ...localPlatformUrls,
+          WEB_PLATFORM: 'marketplace',
         },
       },
     );

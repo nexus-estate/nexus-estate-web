@@ -1,5 +1,5 @@
 import { administrationApiClient } from '../client';
-import { buildSearchParams, type ApiFilters } from '../core/query';
+import { buildSearchParams } from '../core/query';
 import type {
   AdministrationAuthorization,
   AuthorizationPermission,
@@ -19,6 +19,11 @@ import type {
   ProviderMemberListResponse,
   UpdateRoleRequest,
   AuthorizationSubjectDetailWire,
+  AuthorizationAuditFilters,
+  AuthorizationPermissionFilters,
+  AuthorizationRoleFilters,
+  AuthorizationSubjectFilters,
+  ProviderMemberFilters,
 } from './types';
 const base = (platform: Platform) =>
   `/administration/authorization/${platform}`;
@@ -40,15 +45,18 @@ export const administrationAuthorizationApi = {
     administrationApiClient.get<PlatformMetadataResponse>(
       '/administration/authorization/platforms',
     ),
-  audit: (filters: ApiFilters = {}) =>
+  audit: (filters: AuthorizationAuditFilters = {}) =>
     administrationApiClient.get<AuditListResponse>(
       `/administration/authorization/audit${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
-  roles: (platform: Platform, filters: ApiFilters = {}) =>
+  roles: (platform: Platform, filters: AuthorizationRoleFilters = {}) =>
     administrationApiClient.get<RoleListResponse>(
       `${base(platform)}/roles${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
-  rolesAll: async (platform: Platform, filters: ApiFilters = {}) => {
+  rolesAll: async (
+    platform: Platform,
+    filters: AuthorizationRoleFilters = {},
+  ) => {
     const { page: _page, ...rest } = filters;
     const limit = rest.limit ?? 100;
     const items: AuthorizationRole[] = [];
@@ -104,11 +112,18 @@ export const administrationAuthorizationApi = {
       `${base(platform)}/roles/${id}/permissions`,
       data,
     ),
-  roleSubjects: (platform: Platform, id: string, filters: ApiFilters = {}) =>
+  roleSubjects: (
+    platform: Platform,
+    id: string,
+    filters: AuthorizationSubjectFilters = {},
+  ) =>
     administrationApiClient.get<SubjectListResponse>(
       `${base(platform)}/roles/${id}/subjects${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
-  permissions: (platform: Platform, filters: ApiFilters = {}) =>
+  permissions: (
+    platform: Platform,
+    filters: AuthorizationPermissionFilters = {},
+  ) =>
     administrationApiClient.get<PermissionListResponse>(
       `${base(platform)}/permissions${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
@@ -122,7 +137,7 @@ export const administrationAuthorizationApi = {
     ),
   matrix: (platform: Platform) =>
     administrationApiClient.get<MatrixResponse>(`${base(platform)}/matrix`),
-  subjects: (platform: Platform, filters: ApiFilters = {}) =>
+  subjects: (platform: Platform, filters: AuthorizationSubjectFilters = {}) =>
     administrationApiClient.get<SubjectListResponse>(
       `${base(platform)}/subjects${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),
@@ -143,7 +158,7 @@ export const administrationAuthorizationApi = {
         data,
       ),
     ),
-  providerMembers: (providerId: string, filters: ApiFilters = {}) =>
+  providerMembers: (providerId: string, filters: ProviderMemberFilters = {}) =>
     administrationApiClient.get<ProviderMemberListResponse>(
       `/administration/providers/${providerId}/members${buildSearchParams(filters) ? `?${buildSearchParams(filters)}` : ''}`,
     ),

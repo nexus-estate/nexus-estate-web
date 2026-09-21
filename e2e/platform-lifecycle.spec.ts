@@ -5,6 +5,9 @@ const apiUrl =
 const customerPassword = 'lifecycle-customer-password';
 const adminEmail = 'superadmin@nexus-estate.local';
 const adminPassword = 'NexusEstate#SuperAdmin2026!';
+const marketplaceBaseURL = `http://localhost:${process.env.E2E_PORT ?? '3000'}`;
+const providerBaseURL = `http://localhost:${process.env.E2E_PROVIDER_PORT ?? '3001'}`;
+const adminBaseURL = `http://localhost:${process.env.E2E_ADMIN_PORT ?? '3002'}`;
 
 async function apiStatus(page: Page, path: string, tokenKey: string) {
   return page.evaluate(
@@ -32,19 +35,27 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
   const runKey = `${runId}-${testInfo.retry}`;
   const customerEmail = `lifecycle-customer-${runKey}@nexus.test`;
   const providerName = `Lifecycle Provider ${runKey}`;
-  const customerContext = await browser.newContext();
-  const adminContext = await browser.newContext();
+  const customerContext = await browser.newContext({
+    baseURL: marketplaceBaseURL,
+  });
+  const providerContext = await browser.newContext({
+    baseURL: providerBaseURL,
+  });
+  const adminContext = await browser.newContext({ baseURL: adminBaseURL });
   const customerPage = await customerContext.newPage();
+  const providerPage = await providerContext.newPage();
   const adminPage = await adminContext.newPage();
   const providerRequests: Record<string, string>[] = [];
   const customerRequests: Record<string, string>[] = [];
   const adminRequests: Record<string, string>[] = [];
 
   customerPage.on('request', (request) => {
-    if (request.url().includes('/api/v1/providers/'))
-      providerRequests.push(request.headers());
     if (request.url().includes('/api/v1/customers/'))
       customerRequests.push(request.headers());
+  });
+  providerPage.on('request', (request) => {
+    if (request.url().includes('/api/v1/providers/'))
+      providerRequests.push(request.headers());
   });
   adminPage.on('request', (request) => {
     if (request.url().includes('/api/v1/administration/'))
@@ -72,45 +83,58 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
       }),
     ).toBeVisible();
 
-    await customerPage.goto('/provider');
-    await expect(customerPage).toHaveURL(/\/signin\?/);
-    expect(new URL(customerPage.url()).searchParams.get('next')).toBe(
-      '/provider',
-    );
+    // Each browser context has its own storage. Authenticate the Customer
+    // context separately; the Provider context below intentionally owns a
+    // different Customer session for the cross-platform checks.
+    await customerPage.goto('/signin');
     await customerPage.locator('input[type="email"]').fill(customerEmail);
     await customerPage.locator('input[type="password"]').fill(customerPassword);
     await customerPage
       .getByRole('button', { name: /Đăng nhập|Sign in/ })
       .click();
-    await expect(customerPage).toHaveURL(/\/provider$/);
+    await expect(customerPage).toHaveURL(/\/$/);
+
+    await providerPage.goto('/provider');
+    await expect(providerPage).toHaveURL(/\/signin\?/);
+    expect(new URL(providerPage.url()).searchParams.get('next')).toBe(
+      '/provider',
+    );
+    await providerPage.locator('input[type="email"]').fill(customerEmail);
+    await providerPage.locator('input[type="password"]').fill(customerPassword);
+    await providerPage
+      .getByRole('button', { name: /Đăng nhập|Sign in/ })
+      .click();
+    await expect(providerPage).toHaveURL(/\/provider$/);
     await expect(
-      customerPage.getByRole('heading', {
+      providerPage.getByRole('heading', {
         name: /Start your Provider workspace|Bắt đầu workspace Provider/,
       }),
     ).toBeVisible();
 
     expect([401, 403]).toContain(
       await apiStatus(
-        customerPage,
+        providerPage,
         '/administration/me/authorization',
         'nexus.customer.access_token',
       ),
     );
 
-    await customerPage
+    await providerPage
       .getByRole('link', {
         name: /Start Provider onboarding|Bắt đầu onboarding Provider/,
       })
       .click();
-    await customerPage.locator('input').fill(providerName);
-    await customerPage
+    await providerPage.locator('input').fill(providerName);
+    await providerPage
       .getByRole('button', { name: /Submit for review|Gửi xét duyệt/ })
       .click();
     await expect(
-      customerPage.getByText(/Pending review|Đang chờ duyệt/),
+      providerPage
+        .locator('span.border')
+        .filter({ hasText: /^Pending review$|^Đang chờ duyệt$/ }),
     ).toBeVisible();
     await expect(
-      customerPage.getByText(
+      providerPage.getByText(
         /Provider review is in progress\.|Hồ sơ Provider đang được xét duyệt\./,
       ),
     ).toBeVisible();
@@ -131,29 +155,29 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
       adminPage.getByText(/No pending requests\.|Không có yêu cầu đang chờ\./),
     ).toBeVisible();
 
-    await customerPage.reload();
-    await customerPage.goto('/provider');
+    await providerPage.reload();
+    await providerPage.goto('/provider');
     await expect(
-      customerPage.getByText(
+      providerPage.getByText(
         /Supply access is active\.|Quyền Supply đang hoạt động\./,
       ),
     ).toBeVisible();
     await expect(
-      customerPage.getByText(/Active|Đang hoạt động/, { exact: true }).first(),
+      providerPage.getByText(/Active|Đang hoạt động/, { exact: true }).first(),
     ).toBeVisible();
     await expect(
-      customerPage.getByText(/Verified|Đã xác minh/, { exact: true }).first(),
+      providerPage.getByText(/Verified|Đã xác minh/, { exact: true }).first(),
     ).toBeVisible();
     await expect(
-      customerPage.getByText('Owner', { exact: true }),
+      providerPage.getByText('Owner', { exact: true }),
     ).toBeVisible();
-    await customerPage.goto('/provider/authorization');
+    await providerPage.goto('/provider/authorization');
     await expect(
-      customerPage.getByRole('heading', {
+      providerPage.getByRole('heading', {
         name: /Effective permissions|Quyền hiệu lực/,
       }),
     ).toBeVisible();
-    await expect(customerPage.locator('code').first()).toBeVisible();
+    await expect(providerPage.locator('code').first()).toBeVisible();
 
     const providerHeader = providerRequests.find(
       (headers) =>
@@ -189,26 +213,26 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     );
 
     // Each realm owns its logout state.
-    await customerPage.goto('/provider');
-    await customerPage
+    await providerPage.goto('/provider');
+    await providerPage
       .getByRole('button', { name: /Sign out|Đăng xuất/ })
       .click();
     await expect
-      .poll(() => token(customerPage, 'nexus.customer.access_token'))
+      .poll(() => token(providerPage, 'nexus.customer.access_token'))
       .toBeNull();
     expect(
       await token(adminPage, 'nexus.administration.access_token'),
     ).toBeTruthy();
 
     // Restore the Customer session to verify the inverse logout and expiry cases.
-    await customerPage.goto('/signin');
-    await customerPage.locator('input[type="email"]').fill(customerEmail);
-    await customerPage.locator('input[type="password"]').fill(customerPassword);
-    await customerPage
+    await providerPage.goto('/signin');
+    await providerPage.locator('input[type="email"]').fill(customerEmail);
+    await providerPage.locator('input[type="password"]').fill(customerPassword);
+    await providerPage
       .getByRole('button', { name: /Đăng nhập|Sign in/ })
       .click();
-    await expect(customerPage).toHaveURL(/\/$/);
-    await customerPage.goto('/provider');
+    await expect(providerPage).toHaveURL(/\/provider$/);
+    await providerPage.goto('/provider');
 
     await adminPage
       .getByRole('button', { name: /Sign out|Đăng xuất/ })
@@ -216,7 +240,7 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
       .click();
     await expect(adminPage).toHaveURL(/\/admin\/login/);
     expect(
-      await token(customerPage, 'nexus.customer.access_token'),
+      await token(providerPage, 'nexus.customer.access_token'),
     ).toBeTruthy();
 
     // Expiring one realm's refresh session must not touch the other realm.
@@ -224,7 +248,7 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     await adminPage.locator('input[type="password"]').fill(adminPassword);
     await adminPage.getByRole('button', { name: /Sign in|Đăng nhập/ }).click();
     await expect(adminPage).toHaveURL(/\/admin\/provider-requests(?:\?|$)/);
-    await customerPage.evaluate(() => {
+    await providerPage.evaluate(() => {
       localStorage.setItem(
         'nexus.customer.access_token',
         'expired-customer-access',
@@ -234,22 +258,22 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
         'expired-customer-refresh',
       );
     });
-    await customerPage.reload();
-    await customerPage.goto('/profile');
+    await providerPage.reload();
+    await providerPage.goto('/provider');
     await expect
-      .poll(() => token(customerPage, 'nexus.customer.access_token'))
+      .poll(() => token(providerPage, 'nexus.customer.access_token'))
       .toBeNull();
     expect(
       await token(adminPage, 'nexus.administration.access_token'),
     ).toBeTruthy();
 
-    await customerPage.goto('/signin');
-    await customerPage.locator('input[type="email"]').fill(customerEmail);
-    await customerPage.locator('input[type="password"]').fill(customerPassword);
-    await customerPage
+    await providerPage.goto('/signin');
+    await providerPage.locator('input[type="email"]').fill(customerEmail);
+    await providerPage.locator('input[type="password"]').fill(customerPassword);
+    await providerPage
       .getByRole('button', { name: /Đăng nhập|Sign in/ })
       .click();
-    await expect(customerPage).toHaveURL(/\/$/);
+    await expect(providerPage).toHaveURL(/\/provider$/);
     await adminPage.evaluate(() => {
       localStorage.setItem(
         'nexus.administration.access_token',
@@ -263,10 +287,11 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     await adminPage.reload();
     await expect(adminPage).toHaveURL(/\/admin\/login/);
     expect(
-      await token(customerPage, 'nexus.customer.access_token'),
+      await token(providerPage, 'nexus.customer.access_token'),
     ).toBeTruthy();
   } finally {
     await customerContext.close();
+    await providerContext.close();
     await adminContext.close();
   }
 });

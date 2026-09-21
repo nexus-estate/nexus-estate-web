@@ -104,7 +104,6 @@
     "title": "Create a listing",
     "description": "Enter the property details you want to publish.",
     "success": "Listing created successfully.",
-    "redirecting": "Returning to your dashboard…",
     "basicInfo": "Basic information",
     "listingTitle": "Title",
     "titlePlaceholder": "Example: The Sun Avenue apartment",

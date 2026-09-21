@@ -1,14 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { getPortalBreadcrumbs } from './route-metadata';
+import {
+  getPortalBreadcrumbs,
+  withAuthorizationPlatformQuery,
+} from './route-metadata';
 
 export function PortalBreadcrumbs() {
   const pathname = usePathname();
+  const search = useSearchParams();
   const t = useTranslations('common');
-  const breadcrumbs = getPortalBreadcrumbs(pathname);
+  const breadcrumbs = withAuthorizationPlatformQuery(
+    getPortalBreadcrumbs(pathname),
+    search,
+  );
 
   if (!breadcrumbs.length) return null;
 

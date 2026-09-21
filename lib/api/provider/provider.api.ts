@@ -1,6 +1,7 @@
-import { providerApiClient } from '../client';
+import { publicApiClient, providerApiClient } from '../client';
 import type {
   CreateProviderAccountRequest,
+  RegisterProviderRequest,
   RegisterProviderFromCustomerRequest,
   ProviderAccount,
   ProviderAuthorization,
@@ -8,8 +9,8 @@ import type {
   UpdateProviderAccountRequest,
 } from './types';
 export const providerApi = {
-  register: (data: CreateProviderAccountRequest) =>
-    providerApiClient.post<ProviderRegistrationResponse>(
+  register: (data: RegisterProviderRequest) =>
+    publicApiClient.post<ProviderRegistrationResponse>(
       '/providers/register',
       data,
     ),

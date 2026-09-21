@@ -2,15 +2,16 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { getProviderUrl } from '@/lib/platform/urls';
 
 const groups = [
   {
     titleKey: 'explore',
     links: [
-      ['forSale', '/properties?purpose=buy'],
-      ['forRent', '/properties?purpose=rent'],
+      ['forSale', '/properties?purpose=SALE'],
+      ['forRent', '/properties?purpose=RENT'],
       ['curatedProjects', '/properties'],
-      ['villas', '/properties?type=villa'],
+      ['villas', '/properties?type=VILLA'],
     ],
   },
   {
@@ -70,12 +71,21 @@ export default function Footer() {
               <ul className="mt-5 space-y-3">
                 {group.links.map(([label, href]) => (
                   <li key={label}>
-                    <Link
-                      href={href}
-                      className="text-sm text-white/55 transition-colors hover:text-white"
-                    >
-                      {t(label)}
-                    </Link>
+                    {href.startsWith('/provider') ? (
+                      <a
+                        href={getProviderUrl(href)}
+                        className="text-sm text-white/55 transition-colors hover:text-white"
+                      >
+                        {t(label)}
+                      </a>
+                    ) : (
+                      <Link
+                        href={href}
+                        className="text-sm text-white/55 transition-colors hover:text-white"
+                      >
+                        {t(label)}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

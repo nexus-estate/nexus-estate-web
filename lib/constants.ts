@@ -14,6 +14,14 @@ export const SUPPORTED_LOCALES = ['en', 'vi'] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = 'en';
 
+/**
+ * Canonical application runtime timezone for next-intl date/time formatting.
+ * Passed to both the server request config (i18n/request.ts) and the client
+ * provider (app/providers.tsx) so server and browser render identically.
+ * Never infer the timezone from the host OS or container.
+ */
+export const APP_TIME_ZONE = 'UTC';
+
 export function isLocale(value: unknown): value is Locale {
   return (
     typeof value === 'string' && SUPPORTED_LOCALES.includes(value as Locale)
@@ -37,5 +45,5 @@ export const ROUTES = {
 
 export const NAV_LINKS = [
   { href: ROUTES.properties, labelKey: 'nav.properties' },
-  { href: `${ROUTES.properties}?purpose=rent`, labelKey: 'nav.forRent' },
+  { href: `${ROUTES.properties}?purpose=RENT`, labelKey: 'nav.forRent' },
 ] as const;

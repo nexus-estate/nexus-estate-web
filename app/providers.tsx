@@ -1,7 +1,7 @@
 'use client';
 import { NextIntlClientProvider } from 'next-intl';
 import { ProviderContextProvider } from '@/features/provider/context/provider-context.provider';
-import type { Locale } from '@/lib/constants';
+import { APP_TIME_ZONE, type Locale } from '@/lib/constants';
 import administrationEn from '@/messages/en/administration.json';
 import authEn from '@/messages/en/auth.json';
 import commonEn from '@/messages/en/common.json';
@@ -36,7 +36,11 @@ export function AppProviders({
   children: React.ReactNode;
 }) {
   return (
-    <NextIntlClientProvider locale={locale} messages={localeMessages[locale]}>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={localeMessages[locale]}
+      timeZone={APP_TIME_ZONE}
+    >
       <ProviderContextProvider>{children}</ProviderContextProvider>
     </NextIntlClientProvider>
   );

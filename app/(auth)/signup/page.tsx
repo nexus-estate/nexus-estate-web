@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/use-auth';
+import { safeCustomerNext } from '@/lib/customer-return-path';
 
 export default function SignUpPage() {
   const router = useRouter();
+  const search = useSearchParams();
   const { register } = useAuth();
   const t = useTranslations('auth.customer');
   const [form, setForm] = useState({
@@ -19,6 +21,9 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const next = safeCustomerNext(search.get('next'));
+  const signInHref =
+    next === '/' ? '/signin' : `/signin?next=${encodeURIComponent(next)}`;
 
   const update =
     (field: keyof typeof form) =>
@@ -35,7 +40,7 @@ export default function SignUpPage() {
     try {
       await register({ email: form.email, password: form.password });
       setSuccess(true);
-      setTimeout(() => router.push('/signin'), 1800);
+      setTimeout(() => router.push(signInHref), 1800);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('registerFailed'));
     } finally {
@@ -70,7 +75,7 @@ export default function SignUpPage() {
           {t('successDescription')}
         </p>
         <Link
-          href="/signin"
+          href={signInHref}
           className="mt-8 inline-flex border-b border-[#9a7b4f] pb-2 text-xs font-bold uppercase tracking-[.15em] text-[#173b38]"
         >
           {t('signInNow')} →
@@ -260,7 +265,7 @@ export default function SignUpPage() {
       <p className="mt-7 text-center text-sm text-[#75807d]">
         {t('hasAccount')}{' '}
         <Link
-          href="/signin"
+          href={signInHref}
           className="font-semibold text-[#8e7043] underline decoration-[#c8b087] underline-offset-4"
         >
           {t('signInNow')}

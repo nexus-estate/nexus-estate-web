@@ -8,11 +8,12 @@ import {
   useAuthorizationPlatform,
 } from '@/components/administration/platform-selector';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
+import type { RiskLevel } from '@/lib/api/administration/types';
 export default function PermissionsPage() {
   const t = useTranslations('administration.authorization');
   const { platform, setPlatform } = useAuthorizationPlatform();
   const [q, setQ] = useState('');
-  const [riskLevel, setRiskLevel] = useState('');
+  const [riskLevel, setRiskLevel] = useState<RiskLevel | ''>('');
   const query = useQuery({
     queryKey: [
       'administration',
@@ -42,7 +43,7 @@ export default function PermissionsPage() {
         <select
           className="rounded border px-3 py-2 text-sm"
           value={riskLevel}
-          onChange={(e) => setRiskLevel(e.target.value)}
+          onChange={(e) => setRiskLevel(e.target.value as RiskLevel | '')}
         >
           <option value="">{t('allRisks')}</option>
           <option value="LOW">{t('riskLow')}</option>

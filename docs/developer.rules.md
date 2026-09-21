@@ -110,6 +110,17 @@ docker build .
 docker compose config
 ```
 
+The web and API repositories coordinate feature work by branch name. The
+integration workflow first checks whether the current web branch exists in the
+API repository and checks out that API branch when it does; otherwise it falls
+back to `develop`. Push the API feature branch before opening the web PR when
+the lifecycle E2E needs backend changes that are not yet in `develop`.
+
+The local Husky hook validates the currently checked-out API `HEAD` by default
+so local feature branches can be committed together. `NEXUS_API_EXPECTED_REF`
+remains available as an explicit local override. A direct
+`npm run test:precommit` keeps the CI-parity `origin/develop` default.
+
 GitHub Actions repeats the quality checks, browser tests, and Docker build.
 The image publishing job authenticates only to GHCR and keeps the canonical
 image name `ghcr.io/nexus-estate/nexus-estate-web:<tag-or-sha>`.

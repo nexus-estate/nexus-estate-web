@@ -4,14 +4,22 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import { AppProviders } from '@/app/providers';
 import { LOCALE_KEY, normalizeLocale } from '@/lib/constants';
+import { getPlatformTitle, getWebPlatform } from '@/lib/platform/config';
 import { QueryProvider } from '@/lib/query-client';
 
-export const metadata: Metadata = {
-  title: 'Nexus Estate — Tuyển chọn bất động sản tinh hoa',
-  description:
-    'Kết nối người mua, người bán và môi giới bất động sản trên cùng một nền tảng thông minh. Tìm kiếm nhà đất, căn hộ, văn phòng với AI Recommendation.',
-  keywords: 'bất động sản, nhà đất, mua bán, cho thuê, nexus estate',
-};
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const platform = getWebPlatform();
+  const title = getPlatformTitle(platform);
+
+  return {
+    title,
+    description:
+      'Nexus Estate connects customers, providers, and administration teams through one platform runtime.',
+    keywords: 'real estate, property, nexus estate',
+  };
+}
 
 export default async function RootLayout({
   children,

@@ -1,58 +1,53 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { propertyApi } from '@/lib/api/property/property.api';
+import { estateApi } from '@/lib/api/estate/estate.api';
 import type {
-  CreatePropertyInput,
-  Property,
-  PropertyFilters,
-} from '@/lib/api/property/property.types';
+  CreateEstateRequest,
+  Estate,
+} from '@/lib/api/estate/estate.types';
 
 interface UsePropertiesReturn {
-  properties: Property[] | undefined;
+  properties: Estate[] | undefined;
   isLoading: boolean;
   error: Error | null;
 }
 
 interface UsePropertyReturn {
-  property: Property | undefined;
+  property: Estate | undefined;
   isLoading: boolean;
   error: Error | null;
 }
 
 interface UseCreatePropertyReturn {
-  createProperty: (data: CreatePropertyInput) => Promise<Property>;
+  createProperty: (data: CreateEstateRequest) => Promise<Estate>;
   isPending: boolean;
   error: Error | null;
 }
 
-async function fetchProperties(filters: PropertyFilters): Promise<Property[]> {
-  const response = await propertyApi.list(filters);
-  if (Array.isArray(response)) return response;
-  return response.data ?? response.properties ?? response.items ?? [];
+async function fetchProperties(): Promise<Estate[]> {
+  return estateApi.listMine();
 }
 
-async function fetchProperty(id: string): Promise<Property> {
-  return propertyApi.getById(id);
+async function fetchProperty(id: string): Promise<Estate> {
+  return estateApi.getById(id);
 }
 
-async function createProperty(data: CreatePropertyInput): Promise<Property> {
-  return propertyApi.create(data);
+async function createProperty(data: CreateEstateRequest): Promise<Estate> {
+  return estateApi.create(data);
 }
 
-export function useProperties(
-  filters: PropertyFilters = {},
-): UsePropertiesReturn {
-  const { data, isLoading, error } = useQuery<Property[], Error>({
-    queryKey: ['properties', filters],
-    queryFn: () => fetchProperties(filters),
+export function useProperties(): UsePropertiesReturn {
+  const { data, isLoading, error } = useQuery<Estate[], Error>({
+    queryKey: ['estates', 'mine'],
+    queryFn: fetchProperties,
   });
 
   return { properties: data, isLoading, error };
 }
 
 export function useProperty(id: string): UsePropertyReturn {
-  const { data, isLoading, error } = useQuery<Property, Error>({
+  const { data, isLoading, error } = useQuery<Estate, Error>({
     queryKey: ['property', id],
     queryFn: () => fetchProperty(id),
     enabled: !!id,
@@ -65,13 +60,13 @@ export function useCreateProperty(): UseCreatePropertyReturn {
   const queryClient = useQueryClient();
 
   const { mutateAsync, isPending, error } = useMutation<
-    Property,
+    Estate,
     Error,
-    CreatePropertyInput
+    CreateEstateRequest
   >({
     mutationFn: createProperty,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      queryClient.invalidateQueries({ queryKey: ['estates'] });
     },
   });
 

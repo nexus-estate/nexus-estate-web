@@ -1,11 +1,11 @@
 'use client';
 import { useEffect } from 'react';
-import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PortalShell } from '@/components/portal/portal-shell';
 import { useProviderEntryState } from '@/features/provider/use-provider-entry-state';
 import { useAuth } from '@/hooks/use-auth';
+import { getMarketplaceUrl } from '@/lib/platform/urls';
 export default function ProviderLayout({
   children,
 }: {
@@ -55,6 +55,16 @@ export default function ProviderLayout({
       items={[
         { label: t('nav.overview'), href: '/provider', match: 'exact' },
         {
+          label: t('nav.properties'),
+          href: '/provider/properties',
+          match: 'prefix',
+        },
+        {
+          label: t('nav.listings'),
+          href: '/provider/listings',
+          match: 'prefix',
+        },
+        {
           label: t('nav.account'),
           href: '/provider/account',
           match: 'prefix',
@@ -68,9 +78,12 @@ export default function ProviderLayout({
       identity={identity}
       footer={
         <div className="mb-3 space-y-2 px-3 text-xs">
-          <Link className="block text-[var(--text-muted)]" href="/">
+          <a
+            className="block text-[var(--text-muted)]"
+            href={getMarketplaceUrl('/')}
+          >
             {t('footer.back')}
-          </Link>
+          </a>
           <button className="text-red-700" onClick={() => void logout()}>
             {t('footer.signOut')}
           </button>

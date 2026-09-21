@@ -1,16 +1,17 @@
 export interface CreateLeadInput {
-  listingId: string;
   name: string;
   phone: string;
+  email?: string;
   message?: string;
 }
 
 export interface Lead {
   id: string;
   listingId: string;
-  brokerId?: string;
+  status: 'NEW' | 'CONTACTED' | 'CLOSED';
   name: string;
   phone: string;
-  type?: string;
-  status?: string;
+  email: string | null;
+  message: string | null;
+  createdAt: string;
 }
