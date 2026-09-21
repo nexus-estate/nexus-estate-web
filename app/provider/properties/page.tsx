@@ -19,9 +19,13 @@ export default function ProviderPropertiesPage() {
   const locale = useLocale();
   const t = useTranslations('provider');
   const workspace = useProviderAuthorization();
-  const properties = useProviderProperties();
+  const properties = useProviderProperties(
+    workspace.state === 'ACTIVE_VERIFIED',
+  );
 
   const canCreate = workspace.canMutate;
+  const blockedByLifecycle =
+    workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
 
   return (
     <>
@@ -40,7 +44,11 @@ export default function ProviderPropertiesPage() {
           </Link>
         }
       />
-      {properties.isLoading ? (
+      {blockedByLifecycle ? (
+        <p className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+          {t(`lifecycle.${workspace.state.toLowerCase()}`)}
+        </p>
+      ) : properties.isLoading ? (
         <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
       ) : properties.isError ? (
         <p role="alert" className="text-sm text-[var(--danger)]">
@@ -62,8 +70,7 @@ export default function ProviderPropertiesPage() {
                   {estate.title}
                 </div>
                 <div className="mt-0.5 text-xs text-[var(--text-muted)]">
-                  {formatPrice(estate.price, locale)} ·{' '}
-                  {estate.province?.name ?? '—'}
+                  {formatPrice(estate.price, locale)} · {estate.province.name}
                 </div>
               </div>
             </li>

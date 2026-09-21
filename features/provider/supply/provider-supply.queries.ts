@@ -29,19 +29,21 @@ export const providerSupplyKeys = {
   ],
 };
 
-export function useProviderProperties() {
+export function useProviderProperties(enabled = true) {
   const { providerId } = useProviderContext();
   return useQuery({
     queryKey: providerSupplyKeys.properties(providerId),
     queryFn: () => estateApi.listMine(),
+    enabled,
   });
 }
 
-export function useProviderListings() {
+export function useProviderListings(enabled = true) {
   const { providerId } = useProviderContext();
   return useQuery({
     queryKey: providerSupplyKeys.listings(providerId),
     queryFn: () => listingApi.mine(),
+    enabled,
   });
 }
 

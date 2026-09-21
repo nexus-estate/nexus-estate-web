@@ -17,9 +17,11 @@ export default function ProviderListingsPage() {
   const locale = useLocale();
   const t = useTranslations('provider');
   const workspace = useProviderAuthorization();
-  const listings = useProviderListings();
+  const listings = useProviderListings(workspace.state === 'ACTIVE_VERIFIED');
 
   const canCreate = workspace.canMutate;
+  const blockedByLifecycle =
+    workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
 
   return (
     <>
@@ -38,7 +40,11 @@ export default function ProviderListingsPage() {
           </Link>
         }
       />
-      {listings.isLoading ? (
+      {blockedByLifecycle ? (
+        <p className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+          {t(`lifecycle.${workspace.state.toLowerCase()}`)}
+        </p>
+      ) : listings.isLoading ? (
         <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
       ) : listings.isError ? (
         <p role="alert" className="text-sm text-[var(--danger)]">

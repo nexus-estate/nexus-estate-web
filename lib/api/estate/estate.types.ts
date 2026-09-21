@@ -25,8 +25,9 @@ export interface EstateLocation {
 /**
  * Wire contract of the Estate endpoints (API `EstateResponse`).
  *
- * Provider is the canonical owner. The legacy customer ownership field and
- * internal fields (`deletedAt`, `createdBy`, `updatedBy`) are never exposed.
+ * Provider is the canonical owner. Province and ward are NOT NULL relations,
+ * always hydrated by the API. The legacy customer ownership field and internal
+ * fields (`deletedAt`, `createdBy`, `updatedBy`) are never exposed.
  */
 export interface Estate {
   id: string;
@@ -45,8 +46,8 @@ export interface Estate {
   wardId: string;
   latitude: number | null;
   longitude: number | null;
-  province: EstateLocation | null;
-  ward: EstateLocation | null;
+  province: EstateLocation;
+  ward: EstateLocation;
   createdAt: string;
   updatedAt: string;
 }

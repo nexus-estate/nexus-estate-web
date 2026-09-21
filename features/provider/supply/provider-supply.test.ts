@@ -111,6 +111,23 @@ describe('estate wire contract (API #37)', () => {
     expect(estate.providerId).toBe('provider-1');
   });
 
+  it('always hydrates the required province and ward references', () => {
+    expect(estate.province).toEqual({
+      id: 'province-1',
+      code: '79',
+      name: 'Ho Chi Minh City',
+    });
+    expect(estate.ward).toEqual({
+      id: 'ward-1',
+      code: '26734',
+      name: 'Ben Nghe',
+    });
+    const wire: Record<string, unknown> = { ...estate };
+    // Contract requires non-null relations, never a null fallback.
+    expect(wire).not.toHaveProperty('province', null);
+    expect(wire).not.toHaveProperty('ward', null);
+  });
+
   it('never carries legacy ownership or internal wire fields', () => {
     const wire: Record<string, unknown> = { ...estate };
     expect(wire).not.toHaveProperty('customerId');

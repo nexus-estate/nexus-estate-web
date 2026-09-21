@@ -108,6 +108,7 @@
     "empty": "No Listings yet. Create a draft Listing from one of your Properties.",
     "draftNote": "The Listing is created as a draft. Publishing happens explicitly after the draft is reviewed.",
     "noProperties": "This Provider has no Properties yet. Create a Property first.",
+    "noEligibleProperties": "Every Property of this Provider already has a Listing. Create another Property first.",
     "fields": {
       "property": "Property",
       "propertyPlaceholder": "Select a Property"

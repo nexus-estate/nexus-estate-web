@@ -23,6 +23,19 @@ test.describe(`platform boundary: ${platform}`, () => {
       expect((await request.get('/admin')).status()).toBe(404);
       expect((await request.get('/provider')).status()).toBe(404);
     });
+
+    test('redirects the legacy listing route to the Provider origin', async ({
+      request,
+    }) => {
+      const response = await request.get('/dashboard/listings/new', {
+        maxRedirects: 0,
+      });
+
+      expect([307, 308]).toContain(response.status());
+      expect(response.headers().location).toBe(
+        `${process.env.NEXT_PUBLIC_PROVIDER_URL ?? 'http://localhost:3001'}/provider/properties/new`,
+      );
+    });
   }
 
   if (platform === 'provider') {

@@ -108,6 +108,7 @@
     "empty": "Chưa có tin đăng nào. Hãy tạo tin nháp từ một bất động sản.",
     "draftNote": "Tin đăng được tạo dưới dạng bản nháp. Việc xuất bản sẽ được thực hiện rõ ràng sau khi rà soát.",
     "noProperties": "Provider này chưa có bất động sản. Hãy tạo bất động sản trước.",
+    "noEligibleProperties": "Mọi bất động sản của Provider này đều đã có tin đăng. Hãy tạo bất động sản khác trước.",
     "fields": {
       "property": "Bất động sản",
       "propertyPlaceholder": "Chọn bất động sản"

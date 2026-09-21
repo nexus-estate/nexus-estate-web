@@ -8,6 +8,9 @@ import {
   type ReactNode,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+
+import { providerSupplyKeys } from '../supply/provider-supply.queries';
+
 const Context = createContext<{
   providerId: string | null;
   setProviderId: (id: string | null) => void;
@@ -19,21 +22,37 @@ export function ProviderContextProvider({ children }: { children: ReactNode }) {
       : localStorage.getItem('nexus.provider.active_id'),
   );
   const queryClient = useQueryClient();
-  useEffect(() => {
-    const clear = () => setProviderIdState(null);
-    window.addEventListener('nexus:provider-context-cleared', clear);
-    return () =>
-      window.removeEventListener('nexus:provider-context-cleared', clear);
-  }, []);
   const setProviderId = useCallback(
     (id: string | null) => {
+      // Same context: no destructive cache work.
+      if (id === providerId) return;
+      // Switching contexts: cancel in-flight private queries first so no
+      // response written with the old X-Provider-Id header lands under the
+      // new provider's key, then drop the private cache instead of
+      // invalidating it (invalidating would refetch old keys with the new
+      // header and poison the cache). The new key fetches fresh on mount.
+      const previousId = providerId;
+      if (previousId !== null || id !== null) {
+        void queryClient.cancelQueries({
+          queryKey: providerSupplyKeys.all(previousId),
+        });
+        queryClient.removeQueries({
+          queryKey: ['provider-workspace'],
+          exact: false,
+        });
+      }
       if (id) localStorage.setItem('nexus.provider.active_id', id);
       else localStorage.removeItem('nexus.provider.active_id');
       setProviderIdState(id);
-      void queryClient.invalidateQueries({ queryKey: ['provider'] });
     },
-    [queryClient],
+    [providerId, queryClient],
   );
+  useEffect(() => {
+    const clear = () => setProviderId(null);
+    window.addEventListener('nexus:provider-context-cleared', clear);
+    return () =>
+      window.removeEventListener('nexus:provider-context-cleared', clear);
+  }, [setProviderId]);
   return (
     <Context.Provider value={{ providerId, setProviderId }}>
       {children}
