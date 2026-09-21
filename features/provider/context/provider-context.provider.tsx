@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { providerSupplyKeys } from '../supply/provider-supply.queries';
+import { providerKeys } from '../query-keys';
 
 const Context = createContext<{
   providerId: string | null;
@@ -34,11 +34,10 @@ export function ProviderContextProvider({ children }: { children: ReactNode }) {
       const previousId = providerId;
       if (previousId !== null || id !== null) {
         void queryClient.cancelQueries({
-          queryKey: providerSupplyKeys.all(previousId),
+          queryKey: providerKeys.root,
         });
         queryClient.removeQueries({
-          queryKey: ['provider-workspace'],
-          exact: false,
+          queryKey: providerKeys.root,
         });
       }
       if (id) localStorage.setItem('nexus.provider.active_id', id);

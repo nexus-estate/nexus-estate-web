@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ApiError } from '@/lib/api/core/error';
 import { providerApi } from '@/lib/api/provider/provider.api';
 import { resolveProviderLifecycle } from '../provider-lifecycle';
+import { providerKeys } from '../query-keys';
 import { useProviderContext } from './provider-context.provider';
 export type ProviderLifecycleState =
   | 'NO_PROVIDER'
@@ -14,7 +15,7 @@ export type ProviderLifecycleState =
 export function useProviderAuthorization() {
   const { providerId } = useProviderContext();
   const query = useQuery({
-    queryKey: ['provider-workspace', providerId ?? 'implicit', 'authorization'],
+    queryKey: providerKeys.authorization(providerId),
     queryFn: providerApi.authorization,
     enabled: true,
   });

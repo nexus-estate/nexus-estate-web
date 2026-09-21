@@ -37,10 +37,12 @@ export default function NewProviderListingPage() {
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
   const dependenciesReady =
+    workspace.state === 'ACTIVE_VERIFIED' &&
     !properties.isLoading &&
     !properties.isError &&
     !listings.isLoading &&
     !listings.isError;
+  const dependenciesLoading = properties.isLoading || listings.isLoading;
 
   const eligibleProperties = useMemo(
     () =>
@@ -65,11 +67,27 @@ export default function NewProviderListingPage() {
         title={t('listings.newTitle')}
         description={t('listings.newDescription')}
       />
+      {workspace.state === 'LOADING' && (
+        <p className="mb-4 text-sm text-[var(--text-muted)]">{t('loading')}</p>
+      )}
       {blockedByLifecycle && (
         <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
       )}
+      {workspace.state === 'ACTIVE_VERIFIED' && dependenciesLoading && (
+        <p className="mb-4 text-sm text-[var(--text-muted)]">{t('loading')}</p>
+      )}
+      {workspace.state === 'ACTIVE_VERIFIED' &&
+        !dependenciesLoading &&
+        (properties.isError || listings.isError) && (
+          <p
+            role="alert"
+            className="mb-4 border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
+          >
+            {t('listings.loadFailed')}
+          </p>
+        )}
       {dependenciesReady && eligibleProperties.length === 0 && (
         <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
           {(properties.data ?? []).length === 0
@@ -78,14 +96,6 @@ export default function NewProviderListingPage() {
         </p>
       )}
       <form onSubmit={handleSubmit} className="space-y-5">
-        {(properties.isError || listings.isError) && (
-          <p
-            role="alert"
-            className="border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
-          >
-            {t('listings.loadFailed')}
-          </p>
-        )}
         {createListing.isError && (
           <p
             role="alert"

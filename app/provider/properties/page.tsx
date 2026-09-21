@@ -44,7 +44,9 @@ export default function ProviderPropertiesPage() {
           </Link>
         }
       />
-      {blockedByLifecycle ? (
+      {workspace.state === 'LOADING' ? (
+        <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
+      ) : blockedByLifecycle ? (
         <p className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>

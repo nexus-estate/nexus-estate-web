@@ -5,34 +5,12 @@ import type { CreateEstateRequest } from '@/lib/api/estate/estate.types';
 import { listingApi } from '@/lib/api/listing/listing.api';
 import type { Listing } from '@/lib/api/listing/listing.types';
 import { useProviderContext } from '../context/provider-context.provider';
-
-/**
- * Provider-private query keys. Every key is scoped by the active provider id
- * (`null` while the context is implicit) so switching provider context
- * invalidates or removes exactly one provider's cache and never leaks private
- * supply data across providers.
- */
-export const providerSupplyKeys = {
-  all: (providerId: string | null) => [
-    'provider-workspace',
-    providerId ?? 'implicit',
-  ],
-  properties: (providerId: string | null) => [
-    'provider-workspace',
-    providerId ?? 'implicit',
-    'properties',
-  ],
-  listings: (providerId: string | null) => [
-    'provider-workspace',
-    providerId ?? 'implicit',
-    'listings',
-  ],
-};
+import { providerKeys } from '../query-keys';
 
 export function useProviderProperties(enabled = true) {
   const { providerId } = useProviderContext();
   return useQuery({
-    queryKey: providerSupplyKeys.properties(providerId),
+    queryKey: providerKeys.properties(providerId),
     queryFn: () => estateApi.listMine(),
     enabled,
   });
@@ -41,7 +19,7 @@ export function useProviderProperties(enabled = true) {
 export function useProviderListings(enabled = true) {
   const { providerId } = useProviderContext();
   return useQuery({
-    queryKey: providerSupplyKeys.listings(providerId),
+    queryKey: providerKeys.listings(providerId),
     queryFn: () => listingApi.mine(),
     enabled,
   });
@@ -54,7 +32,7 @@ export function useCreateProviderProperty() {
     mutationFn: (data: CreateEstateRequest) => estateApi.create(data),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: providerSupplyKeys.properties(providerId),
+        queryKey: providerKeys.properties(providerId),
       });
     },
   });
@@ -71,10 +49,10 @@ export function useCreateProviderListing() {
     mutationFn: (data: { estateId: string }) => listingApi.create(data),
     onSuccess: (listing: Listing) => {
       void queryClient.invalidateQueries({
-        queryKey: providerSupplyKeys.listings(providerId),
+        queryKey: providerKeys.listings(providerId),
       });
       void queryClient.invalidateQueries({
-        queryKey: providerSupplyKeys.properties(providerId),
+        queryKey: providerKeys.properties(providerId),
       });
       return listing;
     },

@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen } from '@testing-library/react';
 
-import { providerSupplyKeys } from '../supply/provider-supply.queries';
+import { providerKeys } from '../query-keys';
 import {
   ProviderContextProvider,
   useProviderContext,
@@ -48,7 +48,7 @@ describe('ProviderContextProvider cache hygiene', () => {
 
   it('keeps the private cache when the same provider id is set again', () => {
     const queryClient = renderContext('provider-a');
-    const key = providerSupplyKeys.properties('provider-a');
+    const key = providerKeys.properties('provider-a');
     setQueryData(queryClient, key);
 
     act(() => {
@@ -61,7 +61,7 @@ describe('ProviderContextProvider cache hygiene', () => {
 
   it('removes the previous provider private cache when switching providers', () => {
     const queryClient = renderContext('provider-a');
-    const oldKey = providerSupplyKeys.properties('provider-a');
+    const oldKey = providerKeys.properties('provider-a');
     setQueryData(queryClient, oldKey);
 
     act(() => {
@@ -77,7 +77,7 @@ describe('ProviderContextProvider cache hygiene', () => {
 
   it('removes the private cache when the context is cleared', () => {
     const queryClient = renderContext('provider-a');
-    const oldKey = providerSupplyKeys.listings('provider-a');
+    const oldKey = providerKeys.listings('provider-a');
     setQueryData(queryClient, oldKey);
 
     act(() => {

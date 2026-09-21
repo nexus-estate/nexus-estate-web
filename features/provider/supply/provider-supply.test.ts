@@ -2,7 +2,7 @@ import {
   getPortalBreadcrumbs,
   getPortalRouteMetadata,
 } from '@/components/portal/route-metadata';
-import { providerSupplyKeys } from '@/features/provider/supply/provider-supply.queries';
+import { providerKeys as providerSupplyKeys } from '@/features/provider/query-keys';
 import type { Estate } from '@/lib/api/estate/estate.types';
 
 describe('provider supply routes', () => {

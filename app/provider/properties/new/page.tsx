@@ -146,6 +146,9 @@ export default function NewProviderPropertyPage() {
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
       )}
+      {workspace.state === 'LOADING' && (
+        <p className="mb-4 text-sm text-[var(--text-muted)]">{t('loading')}</p>
+      )}
       <form onSubmit={handleSubmit} className="space-y-5">
         {createProperty.isError && (
           <p
