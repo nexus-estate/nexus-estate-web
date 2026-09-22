@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 
@@ -27,6 +28,7 @@ export default function ProviderListingsPage() {
   );
   const publishListing = usePublishProviderListing();
   const archiveListing = useArchiveProviderListing();
+  const [actionError, setActionError] = useState<unknown>(null);
 
   const canCreate = workspace.hasProviderPermission('listing:create');
   const canRead = workspace.hasProviderPermission('listing:read');
@@ -34,7 +36,6 @@ export default function ProviderListingsPage() {
   const canArchive = workspace.hasProviderPermission('listing:archive');
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
-  const actionError = publishListing.error ?? archiveListing.error;
   const actionErrorMessage =
     actionError instanceof ApiError && actionError.status === 403
       ? t('permissionDenied')
@@ -42,6 +43,24 @@ export default function ProviderListingsPage() {
           actionError.code === 'LISTING_PROPERTY_NOT_ACTIVE'
         ? t('listings.propertyNotActive')
         : t('listings.actionFailed');
+
+  const pendingActionFor = (listingId: string) => {
+    if (publishListing.isPending && publishListing.variables === listingId)
+      return 'publish';
+    if (archiveListing.isPending && archiveListing.variables === listingId)
+      return 'archive';
+    return null;
+  };
+
+  const runAction = (action: 'publish' | 'archive', listingId: string) => {
+    setActionError(null);
+    const options = {
+      onSuccess: () => setActionError(null),
+      onError: (error: unknown) => setActionError(error),
+    };
+    if (action === 'publish') publishListing.mutate(listingId, options);
+    else archiveListing.mutate(listingId, options);
+  };
 
   return (
     <>
@@ -92,45 +111,56 @@ export default function ProviderListingsPage() {
               key={listing.id}
               className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
             >
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium">
-                  {listing.estate.title}
-                </div>
-                <div className="mt-0.5 text-xs text-[var(--text-muted)]">
-                  {new Intl.NumberFormat(locale, {
-                    style: 'currency',
-                    currency: 'VND',
-                    maximumFractionDigits: 0,
-                  }).format(listing.estate.price)}
-                </div>
-              </div>
-              <span
-                className={`text-xs font-semibold uppercase tracking-wide ${statusTone(listing.status)}`}
-              >
-                {t(`listings.status.${listing.status}`)}
-              </span>
-              <div className="flex items-center gap-2">
-                {listing.status === 'DRAFT' && canPublish && (
-                  <button
-                    type="button"
-                    disabled={publishListing.isPending}
-                    onClick={() => publishListing.mutate(listing.id)}
-                    className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
-                  >
-                    {t('listings.publish')}
-                  </button>
-                )}
-                {listing.status === 'PUBLISHED' && canArchive && (
-                  <button
-                    type="button"
-                    disabled={archiveListing.isPending}
-                    onClick={() => archiveListing.mutate(listing.id)}
-                    className="border border-[var(--danger)] px-3 py-1.5 text-xs font-medium text-[var(--danger)] disabled:opacity-50"
-                  >
-                    {t('listings.archive')}
-                  </button>
-                )}
-              </div>
+              {(() => {
+                const pendingAction = pendingActionFor(listing.id);
+                return (
+                  <>
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">
+                        {listing.estate.title}
+                      </div>
+                      <div className="mt-0.5 text-xs text-[var(--text-muted)]">
+                        {new Intl.NumberFormat(locale, {
+                          style: 'currency',
+                          currency: 'VND',
+                          maximumFractionDigits: 0,
+                        }).format(listing.estate.price)}
+                      </div>
+                    </div>
+                    <span
+                      className={`text-xs font-semibold uppercase tracking-wide ${statusTone(listing.status)}`}
+                    >
+                      {t(`listings.status.${listing.status}`)}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {listing.status === 'DRAFT' && canPublish && (
+                        <button
+                          type="button"
+                          disabled={pendingAction !== null}
+                          onClick={() => runAction('publish', listing.id)}
+                          className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
+                        >
+                          {pendingAction === 'publish'
+                            ? t('listings.publishing')
+                            : t('listings.publish')}
+                        </button>
+                      )}
+                      {listing.status === 'PUBLISHED' && canArchive && (
+                        <button
+                          type="button"
+                          disabled={pendingAction !== null}
+                          onClick={() => runAction('archive', listing.id)}
+                          className="border border-[var(--danger)] px-3 py-1.5 text-xs font-medium text-[var(--danger)] disabled:opacity-50"
+                        >
+                          {pendingAction === 'archive'
+                            ? t('listings.archiving')
+                            : t('listings.archive')}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
             </li>
           ))}
         </ul>
