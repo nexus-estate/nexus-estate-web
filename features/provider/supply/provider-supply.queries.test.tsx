@@ -7,11 +7,13 @@ import { listingApi } from '@/lib/api/listing/listing.api';
 import { useProviderContext } from '../context/provider-context.provider';
 import { providerKeys } from '../query-keys';
 import {
+  useActivateProviderProperty,
   useArchiveProviderProperty,
   useArchiveProviderListing,
   useCreateProviderListing,
   useCreateProviderProperty,
   useListingEligibleProperties,
+  useRestoreProviderProperty,
   useUpdateProviderProperty,
 } from './provider-supply.queries';
 
@@ -19,6 +21,9 @@ jest.mock('@/lib/api/estate/estate.api', () => ({
   estateApi: {
     create: jest.fn(),
     update: jest.fn(),
+    activate: jest.fn(),
+    archive: jest.fn(),
+    restore: jest.fn(),
     remove: jest.fn(),
   },
 }));
@@ -150,7 +155,29 @@ test.each([
     'archive property',
     useArchiveProviderProperty,
     () => {
-      jest.mocked(estateApi.remove).mockResolvedValue(true);
+      jest
+        .mocked(estateApi.archive)
+        .mockResolvedValue({ id: 'property-1' } as never);
+      return { data: 'property-1' };
+    },
+  ],
+  [
+    'activate property',
+    useActivateProviderProperty,
+    () => {
+      jest
+        .mocked(estateApi.activate)
+        .mockResolvedValue({ id: 'property-1' } as never);
+      return { data: 'property-1' };
+    },
+  ],
+  [
+    'restore property',
+    useRestoreProviderProperty,
+    () => {
+      jest
+        .mocked(estateApi.restore)
+        .mockResolvedValue({ id: 'property-1' } as never);
       return { data: 'property-1' };
     },
   ],

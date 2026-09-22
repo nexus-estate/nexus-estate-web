@@ -3,10 +3,13 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { PageHeader } from '@/components/portal/page-header';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import {
+  useActivateProviderProperty,
   useArchiveProviderProperty,
   useProviderProperties,
+  useRestoreProviderProperty,
 } from '@/features/provider/supply/provider-supply.queries';
 import { ApiError } from '@/lib/api/core/error';
 import type { Estate } from '@/lib/api/estate/estate.types';
@@ -26,7 +29,9 @@ export default function ProviderPropertiesPage() {
   const properties = useProviderProperties(
     workspace.hasProviderPermission('property:read'),
   );
+  const activateProperty = useActivateProviderProperty();
   const archiveProperty = useArchiveProviderProperty();
+  const restoreProperty = useRestoreProviderProperty();
 
   const canCreate = workspace.hasProviderPermission('property:create');
   const canRead = workspace.hasProviderPermission('property:read');
@@ -34,6 +39,23 @@ export default function ProviderPropertiesPage() {
   const canArchive = workspace.hasProviderPermission('property:archive');
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
+  const lifecyclePending =
+    activateProperty.isPending ||
+    archiveProperty.isPending ||
+    restoreProperty.isPending;
+
+  const lifecycleError =
+    activateProperty.error ?? archiveProperty.error ?? restoreProperty.error;
+  const lifecycleErrorMessage =
+    lifecycleError instanceof ApiError && lifecycleError.status === 403
+      ? t('permissionDenied')
+      : lifecycleError instanceof ApiError &&
+          lifecycleError.code === 'PROPERTY_ACTIVATION_INCOMPLETE'
+        ? t('properties.activationIncomplete')
+        : lifecycleError instanceof ApiError &&
+            lifecycleError.code === 'PROPERTY_PUBLISHED_LISTING_CONFLICT'
+          ? t('properties.publishedListingConflict')
+          : t('properties.lifecycleFailed');
 
   return (
     <>
@@ -86,15 +108,22 @@ export default function ProviderPropertiesPage() {
               className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
             >
               <div className="min-w-0">
-                <div className="truncate text-sm font-medium">
-                  {estate.title}
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="truncate text-sm font-medium">
+                    {estate.title}
+                  </div>
+                  <StatusBadge
+                    status={estate.status}
+                    label={t(`properties.status.${estate.status}`)}
+                    size="sm"
+                  />
                 </div>
                 <div className="mt-0.5 text-xs text-[var(--text-muted)]">
                   {formatPrice(estate.price, locale)} · {estate.province.name}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {canUpdate && (
+                {canUpdate && estate.status !== 'ARCHIVED' && (
                   <Link
                     href={`/provider/properties/${estate.id}/edit`}
                     className="border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--surface-hover)]"
@@ -102,14 +131,41 @@ export default function ProviderPropertiesPage() {
                     {t('properties.edit')}
                   </Link>
                 )}
-                {canArchive && (
+                {estate.status === 'DRAFT' && canUpdate && (
                   <button
                     type="button"
-                    disabled={archiveProperty.isPending}
-                    onClick={() => archiveProperty.mutate(estate.id)}
-                    className="border border-[var(--danger)] px-3 py-1.5 text-xs font-medium text-[var(--danger)] disabled:opacity-50"
+                    disabled={lifecyclePending}
+                    onClick={() => activateProperty.mutate(estate.id)}
+                    className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
                   >
-                    {t('properties.archive')}
+                    {activateProperty.isPending
+                      ? t('properties.activating')
+                      : t('properties.activate')}
+                  </button>
+                )}
+                {(estate.status === 'DRAFT' || estate.status === 'ACTIVE') &&
+                  canArchive && (
+                    <button
+                      type="button"
+                      disabled={lifecyclePending}
+                      onClick={() => archiveProperty.mutate(estate.id)}
+                      className="border border-[var(--danger)] px-3 py-1.5 text-xs font-medium text-[var(--danger)] disabled:opacity-50"
+                    >
+                      {archiveProperty.isPending
+                        ? t('properties.archiving')
+                        : t('properties.archive')}
+                    </button>
+                  )}
+                {estate.status === 'ARCHIVED' && canUpdate && (
+                  <button
+                    type="button"
+                    disabled={lifecyclePending}
+                    onClick={() => restoreProperty.mutate(estate.id)}
+                    className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
+                  >
+                    {restoreProperty.isPending
+                      ? t('properties.restoring')
+                      : t('properties.restore')}
                   </button>
                 )}
               </div>
@@ -117,12 +173,9 @@ export default function ProviderPropertiesPage() {
           ))}
         </ul>
       )}
-      {archiveProperty.isError && (
+      {lifecycleError && (
         <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
-          {archiveProperty.error instanceof ApiError &&
-          archiveProperty.error.status === 403
-            ? t('permissionDenied')
-            : t('properties.archiveFailed')}
+          {lifecycleErrorMessage}
         </p>
       )}
     </>

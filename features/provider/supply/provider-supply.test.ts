@@ -87,6 +87,7 @@ describe('estate wire contract (API #37)', () => {
   const estate = {
     id: 'estate-1',
     providerId: 'provider-1',
+    status: 'DRAFT' as const,
     title: 'Contract estate',
     description: null,
     type: 'APARTMENT' as const,

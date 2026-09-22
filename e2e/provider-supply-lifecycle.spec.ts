@@ -86,6 +86,27 @@ test('runs the Provider Property to Listing lifecycle in the browser', async ({
     await expect(page).toHaveURL(/\/provider\/properties$/);
     await expect(page.getByText(propertyTitle, { exact: true })).toBeVisible();
 
+    const propertyRow = page.locator('li').filter({ hasText: propertyTitle });
+    await expect(
+      propertyRow.getByText(/Draft|Bản nháp/, { exact: true }),
+    ).toBeVisible();
+    await propertyRow
+      .getByRole('button', { name: /Activate|Kích hoạt/ })
+      .click();
+    await expect(
+      propertyRow.getByText(/Active|Đang hoạt động/, { exact: true }),
+    ).toBeVisible();
+    await propertyRow.getByRole('button', { name: /Archive|Lưu trữ/ }).click();
+    await expect(
+      propertyRow.getByText(/Archived|Đã lưu trữ/, { exact: true }),
+    ).toBeVisible();
+    await propertyRow
+      .getByRole('button', { name: /Restore|Khôi phục/ })
+      .click();
+    await expect(
+      propertyRow.getByText(/Draft|Bản nháp/, { exact: true }),
+    ).toBeVisible();
+
     await page.goto('/provider/listings/new');
     const propertySelect = page.locator('#listing-estate');
     await expect(propertySelect.locator('option').nth(1)).toContainText(

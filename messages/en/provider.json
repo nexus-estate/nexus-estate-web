@@ -64,8 +64,16 @@
     "loadFailed": "Properties could not be loaded.",
     "createFailed": "The Property could not be created.",
     "updateFailed": "The Property could not be updated.",
+    "activate": "Activate",
+    "activating": "Activating…",
     "archive": "Archive",
+    "archiving": "Archiving…",
+    "restore": "Restore",
+    "restoring": "Restoring…",
     "archiveFailed": "The Property could not be archived.",
+    "activationIncomplete": "The Property is missing information required for activation.",
+    "publishedListingConflict": "This Property cannot be archived while it has a published Listing.",
+    "lifecycleFailed": "The Property lifecycle action could not be completed.",
     "empty": "No Properties yet. Create your first Property to start supplying.",
     "fields": {
       "title": "Title",
@@ -101,6 +109,11 @@
       "SALE": "For sale",
       "RENT": "For rent",
       "SALE_OR_RENT": "Sale or rent"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "ACTIVE": "Active",
+      "ARCHIVED": "Archived"
     }
   },
   "listings": {
