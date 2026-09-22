@@ -90,22 +90,6 @@ test('runs the Provider Property to Listing lifecycle in the browser', async ({
     await expect(
       propertyRow.getByText(/Draft|Bản nháp/, { exact: true }),
     ).toBeVisible();
-    await propertyRow
-      .getByRole('button', { name: /Activate|Kích hoạt/ })
-      .click();
-    await expect(
-      propertyRow.getByText(/Active|Đang hoạt động/, { exact: true }),
-    ).toBeVisible();
-    await propertyRow.getByRole('button', { name: /Archive|Lưu trữ/ }).click();
-    await expect(
-      propertyRow.getByText(/Archived|Đã lưu trữ/, { exact: true }),
-    ).toBeVisible();
-    await propertyRow
-      .getByRole('button', { name: /Restore|Khôi phục/ })
-      .click();
-    await expect(
-      propertyRow.getByText(/Draft|Bản nháp/, { exact: true }),
-    ).toBeVisible();
 
     await page.goto('/provider/listings/new');
     const propertySelect = page.locator('#listing-estate');
@@ -125,17 +109,70 @@ test('runs the Provider Property to Listing lifecycle in the browser', async ({
     ).toBeVisible();
     await listingRow.getByRole('button', { name: /Publish|Xuất bản/ }).click();
     await expect(
-      listingRow.getByText(/Published|Đã xuất bản/, { exact: true }),
+      page.getByText(
+        /Property must be active|phải ở trạng thái đang hoạt động/,
+      ),
     ).toBeVisible();
-    await listingRow.getByRole('button', { name: /Archive|Lưu trữ/ }).click();
+
+    await page.goto('/provider/properties');
+    const activePropertyRow = page
+      .locator('li')
+      .filter({ hasText: propertyTitle });
+    await activePropertyRow
+      .getByRole('button', { name: /Activate|Kích hoạt/ })
+      .click();
     await expect(
-      listingRow.getByText(/Archived|Đã lưu trữ/, { exact: true }),
+      activePropertyRow.getByText(/Active|Đang hoạt động/, { exact: true }),
     ).toBeVisible();
+
+    await page.goto('/provider/listings');
+    const publishedListingRow = page
+      .locator('li')
+      .filter({ hasText: propertyTitle });
+    await publishedListingRow
+      .getByRole('button', { name: /Publish|Xuất bản/ })
+      .click();
     await expect(
-      listingRow.getByRole('button', {
-        name: /Publish|Xuất bản|Archive|Lưu trữ/,
+      publishedListingRow.getByText(/Published|Đã xuất bản/, { exact: true }),
+    ).toBeVisible();
+
+    await page.goto('/provider/properties');
+    const blockedArchiveRow = page
+      .locator('li')
+      .filter({ hasText: propertyTitle });
+    await blockedArchiveRow
+      .getByRole('button', { name: /Archive|Lưu trữ/ })
+      .click();
+    await expect(
+      page.getByText(/cannot be archived while|Không thể lưu trữ bất động sản/),
+    ).toBeVisible();
+
+    await page.goto('/provider/listings');
+    await publishedListingRow
+      .getByRole('button', { name: /Archive|Lưu trữ/ })
+      .click();
+    await expect(
+      publishedListingRow.getByText(/Archived|Đã lưu trữ/, { exact: true }),
+    ).toBeVisible();
+
+    await page.goto('/provider/properties');
+    const propertyAfterListingArchive = page
+      .locator('li')
+      .filter({ hasText: propertyTitle });
+    await propertyAfterListingArchive
+      .getByRole('button', { name: /Archive|Lưu trữ/ })
+      .click();
+    await expect(
+      propertyAfterListingArchive.getByText(/Archived|Đã lưu trữ/, {
+        exact: true,
       }),
-    ).toHaveCount(0);
+    ).toBeVisible();
+    await propertyAfterListingArchive
+      .getByRole('button', { name: /Restore|Khôi phục/ })
+      .click();
+    await expect(
+      propertyAfterListingArchive.getByText(/Draft|Bản nháp/, { exact: true }),
+    ).toBeVisible();
   } finally {
     await context.close();
   }

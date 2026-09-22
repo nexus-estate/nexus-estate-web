@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { ApiError } from '@/lib/api/core/error';
 import { estateApi } from '@/lib/api/estate/estate.api';
+import type { Estate } from '@/lib/api/estate/estate.types';
 import { listingApi } from '@/lib/api/listing/listing.api';
 import { useProviderContext } from '../context/provider-context.provider';
 import { providerKeys } from '../query-keys';
@@ -41,6 +42,30 @@ jest.mock('../context/provider-context.provider', () => ({
 beforeEach(() => {
   jest.clearAllMocks();
 });
+
+const propertyFixture: Estate = {
+  id: 'property-1',
+  providerId: 'provider-1',
+  status: 'DRAFT',
+  title: 'Riverside apartment',
+  description: null,
+  type: 'APARTMENT',
+  purpose: 'SALE',
+  price: 3500000000,
+  area: 82.5,
+  bedrooms: 2,
+  bathrooms: 2,
+  floors: null,
+  addressLine: '1 Riverside Street',
+  provinceId: 'province-1',
+  wardId: 'ward-1',
+  latitude: null,
+  longitude: null,
+  province: { id: 'province-1', code: '79', name: 'Ho Chi Minh City' },
+  ward: { id: 'ward-1', code: '26734', name: 'Ben Nghe' },
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
 
 test('refreshes effective provider authorization after a supply 403', async () => {
   jest.mocked(useProviderContext).mockReturnValue({
@@ -155,9 +180,10 @@ test.each([
     'archive property',
     useArchiveProviderProperty,
     () => {
-      jest
-        .mocked(estateApi.archive)
-        .mockResolvedValue({ id: 'property-1' } as never);
+      jest.mocked(estateApi.archive).mockResolvedValue({
+        ...propertyFixture,
+        status: 'ARCHIVED',
+      });
       return { data: 'property-1' };
     },
   ],
@@ -165,9 +191,10 @@ test.each([
     'activate property',
     useActivateProviderProperty,
     () => {
-      jest
-        .mocked(estateApi.activate)
-        .mockResolvedValue({ id: 'property-1' } as never);
+      jest.mocked(estateApi.activate).mockResolvedValue({
+        ...propertyFixture,
+        status: 'ACTIVE',
+      });
       return { data: 'property-1' };
     },
   ],
@@ -175,9 +202,7 @@ test.each([
     'restore property',
     useRestoreProviderProperty,
     () => {
-      jest
-        .mocked(estateApi.restore)
-        .mockResolvedValue({ id: 'property-1' } as never);
+      jest.mocked(estateApi.restore).mockResolvedValue(propertyFixture);
       return { data: 'property-1' };
     },
   ],
@@ -219,6 +244,72 @@ test.each([
     void mutationOptions;
   },
 );
+
+test('reflects each property lifecycle transition in list and detail cache', async () => {
+  jest.mocked(useProviderContext).mockReturnValue({
+    providerId: 'provider-1',
+    setProviderId: jest.fn(),
+  });
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false } },
+  });
+  queryClient.setQueryData(providerKeys.properties('provider-1'), [
+    propertyFixture,
+  ]);
+  queryClient.setQueryData(
+    providerKeys.property('provider-1', propertyFixture.id),
+    propertyFixture,
+  );
+  const { result: activate } = renderHook(() => useActivateProviderProperty(), {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    ),
+  });
+  jest.mocked(estateApi.activate).mockResolvedValue({
+    ...propertyFixture,
+    status: 'ACTIVE',
+  });
+  await act(async () => {
+    await activate.current.mutateAsync(propertyFixture.id);
+  });
+  expect(
+    queryClient.getQueryData<Estate[]>(providerKeys.properties('provider-1')),
+  ).toEqual([expect.objectContaining({ status: 'ACTIVE' })]);
+  expect(
+    queryClient.getQueryData<Estate>(
+      providerKeys.property('provider-1', propertyFixture.id),
+    ),
+  ).toEqual(expect.objectContaining({ status: 'ACTIVE' }));
+
+  const { result: archive } = renderHook(() => useArchiveProviderProperty(), {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    ),
+  });
+  jest.mocked(estateApi.archive).mockResolvedValue({
+    ...propertyFixture,
+    status: 'ARCHIVED',
+  });
+  await act(async () => {
+    await archive.current.mutateAsync(propertyFixture.id);
+  });
+  expect(
+    queryClient.getQueryData<Estate[]>(providerKeys.properties('provider-1')),
+  ).toEqual([expect.objectContaining({ status: 'ARCHIVED' })]);
+
+  const { result: restore } = renderHook(() => useRestoreProviderProperty(), {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    ),
+  });
+  jest.mocked(estateApi.restore).mockResolvedValue(propertyFixture);
+  await act(async () => {
+    await restore.current.mutateAsync(propertyFixture.id);
+  });
+  expect(
+    queryClient.getQueryData<Estate[]>(providerKeys.properties('provider-1')),
+  ).toEqual([expect.objectContaining({ status: 'DRAFT' })]);
+});
 
 test('does not query eligible properties when listing:create is absent', async () => {
   jest.mocked(useProviderContext).mockReturnValue({

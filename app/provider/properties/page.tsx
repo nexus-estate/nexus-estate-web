@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 
@@ -39,13 +40,32 @@ export default function ProviderPropertiesPage() {
   const canArchive = workspace.hasProviderPermission('property:archive');
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
-  const lifecyclePending =
-    activateProperty.isPending ||
-    archiveProperty.isPending ||
-    restoreProperty.isPending;
+  const [lifecycleError, setLifecycleError] = useState<unknown>(null);
 
-  const lifecycleError =
-    activateProperty.error ?? archiveProperty.error ?? restoreProperty.error;
+  const pendingActionFor = (propertyId: string) => {
+    if (activateProperty.isPending && activateProperty.variables === propertyId)
+      return 'activate';
+    if (archiveProperty.isPending && archiveProperty.variables === propertyId)
+      return 'archive';
+    if (restoreProperty.isPending && restoreProperty.variables === propertyId)
+      return 'restore';
+    return null;
+  };
+
+  const runLifecycle = (
+    action: 'activate' | 'archive' | 'restore',
+    propertyId: string,
+  ) => {
+    setLifecycleError(null);
+    const options = {
+      onSuccess: () => setLifecycleError(null),
+      onError: (error: unknown) => setLifecycleError(error),
+    };
+    if (action === 'activate') activateProperty.mutate(propertyId, options);
+    if (action === 'archive') archiveProperty.mutate(propertyId, options);
+    if (action === 'restore') restoreProperty.mutate(propertyId, options);
+  };
+
   const lifecycleErrorMessage =
     lifecycleError instanceof ApiError && lifecycleError.status === 403
       ? t('permissionDenied')
@@ -55,7 +75,13 @@ export default function ProviderPropertiesPage() {
         : lifecycleError instanceof ApiError &&
             lifecycleError.code === 'PROPERTY_PUBLISHED_LISTING_CONFLICT'
           ? t('properties.publishedListingConflict')
-          : t('properties.lifecycleFailed');
+          : lifecycleError instanceof ApiError &&
+              lifecycleError.code === 'PROPERTY_INVALID_STATUS_TRANSITION'
+            ? t('properties.invalidStatusTransition')
+            : lifecycleError instanceof ApiError &&
+                lifecycleError.code === 'LISTING_PROPERTY_NOT_ACTIVE'
+              ? t('properties.listingPropertyNotActive')
+              : t('properties.lifecycleFailed');
 
   return (
     <>
@@ -107,68 +133,77 @@ export default function ProviderPropertiesPage() {
               key={estate.id}
               className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
             >
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="truncate text-sm font-medium">
-                    {estate.title}
-                  </div>
-                  <StatusBadge
-                    status={estate.status}
-                    label={t(`properties.status.${estate.status}`)}
-                    size="sm"
-                  />
-                </div>
-                <div className="mt-0.5 text-xs text-[var(--text-muted)]">
-                  {formatPrice(estate.price, locale)} · {estate.province.name}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {canUpdate && estate.status !== 'ARCHIVED' && (
-                  <Link
-                    href={`/provider/properties/${estate.id}/edit`}
-                    className="border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--surface-hover)]"
-                  >
-                    {t('properties.edit')}
-                  </Link>
-                )}
-                {estate.status === 'DRAFT' && canUpdate && (
-                  <button
-                    type="button"
-                    disabled={lifecyclePending}
-                    onClick={() => activateProperty.mutate(estate.id)}
-                    className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
-                  >
-                    {activateProperty.isPending
-                      ? t('properties.activating')
-                      : t('properties.activate')}
-                  </button>
-                )}
-                {(estate.status === 'DRAFT' || estate.status === 'ACTIVE') &&
-                  canArchive && (
-                    <button
-                      type="button"
-                      disabled={lifecyclePending}
-                      onClick={() => archiveProperty.mutate(estate.id)}
-                      className="border border-[var(--danger)] px-3 py-1.5 text-xs font-medium text-[var(--danger)] disabled:opacity-50"
-                    >
-                      {archiveProperty.isPending
-                        ? t('properties.archiving')
-                        : t('properties.archive')}
-                    </button>
-                  )}
-                {estate.status === 'ARCHIVED' && canUpdate && (
-                  <button
-                    type="button"
-                    disabled={lifecyclePending}
-                    onClick={() => restoreProperty.mutate(estate.id)}
-                    className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
-                  >
-                    {restoreProperty.isPending
-                      ? t('properties.restoring')
-                      : t('properties.restore')}
-                  </button>
-                )}
-              </div>
+              {(() => {
+                const pendingAction = pendingActionFor(estate.id);
+                return (
+                  <>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="truncate text-sm font-medium">
+                          {estate.title}
+                        </div>
+                        <StatusBadge
+                          status={estate.status}
+                          label={t(`properties.status.${estate.status}`)}
+                          size="sm"
+                        />
+                      </div>
+                      <div className="mt-0.5 text-xs text-[var(--text-muted)]">
+                        {formatPrice(estate.price, locale)} ·{' '}
+                        {estate.province.name}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {canUpdate && estate.status !== 'ARCHIVED' && (
+                        <Link
+                          href={`/provider/properties/${estate.id}/edit`}
+                          className="border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--surface-hover)]"
+                        >
+                          {t('properties.edit')}
+                        </Link>
+                      )}
+                      {estate.status === 'DRAFT' && canUpdate && (
+                        <button
+                          type="button"
+                          disabled={pendingAction !== null}
+                          onClick={() => runLifecycle('activate', estate.id)}
+                          className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
+                        >
+                          {pendingAction === 'activate'
+                            ? t('properties.activating')
+                            : t('properties.activate')}
+                        </button>
+                      )}
+                      {(estate.status === 'DRAFT' ||
+                        estate.status === 'ACTIVE') &&
+                        canArchive && (
+                          <button
+                            type="button"
+                            disabled={pendingAction !== null}
+                            onClick={() => runLifecycle('archive', estate.id)}
+                            className="border border-[var(--danger)] px-3 py-1.5 text-xs font-medium text-[var(--danger)] disabled:opacity-50"
+                          >
+                            {pendingAction === 'archive'
+                              ? t('properties.archiving')
+                              : t('properties.archive')}
+                          </button>
+                        )}
+                      {estate.status === 'ARCHIVED' && canUpdate && (
+                        <button
+                          type="button"
+                          disabled={pendingAction !== null}
+                          onClick={() => runLifecycle('restore', estate.id)}
+                          className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
+                        >
+                          {pendingAction === 'restore'
+                            ? t('properties.restoring')
+                            : t('properties.restore')}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
             </li>
           ))}
         </ul>

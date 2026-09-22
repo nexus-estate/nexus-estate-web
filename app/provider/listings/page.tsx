@@ -34,6 +34,14 @@ export default function ProviderListingsPage() {
   const canArchive = workspace.hasProviderPermission('listing:archive');
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
+  const actionError = publishListing.error ?? archiveListing.error;
+  const actionErrorMessage =
+    actionError instanceof ApiError && actionError.status === 403
+      ? t('permissionDenied')
+      : actionError instanceof ApiError &&
+          actionError.code === 'LISTING_PROPERTY_NOT_ACTIVE'
+        ? t('listings.propertyNotActive')
+        : t('listings.actionFailed');
 
   return (
     <>
@@ -127,14 +135,9 @@ export default function ProviderListingsPage() {
           ))}
         </ul>
       )}
-      {(publishListing.isError || archiveListing.isError) && (
+      {actionError && (
         <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
-          {(publishListing.error instanceof ApiError &&
-            publishListing.error.status === 403) ||
-          (archiveListing.error instanceof ApiError &&
-            archiveListing.error.status === 403)
-            ? t('permissionDenied')
-            : t('listings.actionFailed')}
+          {actionErrorMessage}
         </p>
       )}
     </>

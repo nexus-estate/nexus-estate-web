@@ -73,6 +73,8 @@
     "archiveFailed": "The Property could not be archived.",
     "activationIncomplete": "The Property is missing information required for activation.",
     "publishedListingConflict": "This Property cannot be archived while it has a published Listing.",
+    "invalidStatusTransition": "That Property lifecycle transition is no longer valid. Refresh and try again.",
+    "listingPropertyNotActive": "The Property must be active before its Listing can be published.",
     "lifecycleFailed": "The Property lifecycle action could not be completed.",
     "empty": "No Properties yet. Create your first Property to start supplying.",
     "fields": {
@@ -127,6 +129,7 @@
     "submitting": "Creating…",
     "publish": "Publish",
     "archive": "Archive",
+    "propertyNotActive": "The Property must be active before its Listing can be published.",
     "loadFailed": "Listings could not be loaded.",
     "createFailed": "The Listing could not be created.",
     "actionFailed": "The Listing action could not be completed.",
