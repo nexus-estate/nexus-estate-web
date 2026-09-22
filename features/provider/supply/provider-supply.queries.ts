@@ -4,6 +4,7 @@ import { ApiError } from '@/lib/api/core/error';
 import { estateApi } from '@/lib/api/estate/estate.api';
 import type {
   CreateEstateRequest,
+  Estate,
   UpdateEstateRequest,
 } from '@/lib/api/estate/estate.types';
 import { listingApi } from '@/lib/api/listing/listing.api';
@@ -33,6 +34,36 @@ function invalidateEligibleProperties(
   void queryClient.invalidateQueries({
     queryKey: providerKeys.eligibleProperties(providerId),
   });
+}
+
+/**
+ * Applies an optimistic status change to the cached listing list and returns
+ * the previous value for rollback. Lifecycle commands (publish/archive) are
+ * low-risk to predict, so the UI should not wait on the round trip.
+ */
+async function optimisticallyPatchListings(
+  queryClient: ReturnType<typeof useQueryClient>,
+  providerId: string | null,
+  id: string,
+  patch: (listing: Listing) => Listing,
+) {
+  const key = providerKeys.listings(providerId);
+  await queryClient.cancelQueries({ queryKey: key });
+  const previous = queryClient.getQueryData<Listing[]>(key);
+  queryClient.setQueryData<Listing[]>(key, (current) =>
+    current?.map((listing) => (listing.id === id ? patch(listing) : listing)),
+  );
+  return { previous };
+}
+
+function rollbackListings(
+  queryClient: ReturnType<typeof useQueryClient>,
+  providerId: string | null,
+  previous: Listing[] | undefined,
+) {
+  if (previous !== undefined) {
+    queryClient.setQueryData(providerKeys.listings(providerId), previous);
+  }
 }
 
 export function useProviderProperties(enabled = true) {
@@ -120,12 +151,44 @@ export function useArchiveProviderProperty() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => estateApi.remove(id),
+    onMutate: async (id: string) => {
+      const key = providerKeys.properties(providerId);
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<Estate[]>(key);
+      queryClient.setQueryData<Estate[]>(key, (current) =>
+        current?.filter((estate) => estate.id !== id),
+      );
+      return { previous };
+    },
+    onError: (error, _id, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(
+          providerKeys.properties(providerId),
+          context.previous,
+        );
+      }
+      refreshAuthorizationOnForbidden(error, queryClient, providerId);
+    },
     onSuccess: (_result, id) => {
       void queryClient.invalidateQueries({
         queryKey: providerKeys.properties(providerId),
       });
       void queryClient.invalidateQueries({
         queryKey: providerKeys.property(providerId, id),
+      });
+      invalidateEligibleProperties(queryClient, providerId);
+    },
+  });
+}
+
+export function useActivateProviderProperty() {
+  const { providerId } = useProviderContext();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => estateApi.activate(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: providerKeys.properties(providerId),
       });
       invalidateEligibleProperties(queryClient, providerId);
     },
@@ -163,13 +226,21 @@ export function usePublishProviderListing() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => listingApi.publish(id),
-    onSuccess: () => {
+    onMutate: (id: string) =>
+      optimisticallyPatchListings(queryClient, providerId, id, (listing) => ({
+        ...listing,
+        status: 'PUBLISHED',
+        publishedAt: listing.publishedAt ?? new Date().toISOString(),
+      })),
+    onError: (error, _id, context) => {
+      rollbackListings(queryClient, providerId, context?.previous);
+      refreshAuthorizationOnForbidden(error, queryClient, providerId);
+    },
+    onSettled: () => {
       void queryClient.invalidateQueries({
         queryKey: providerKeys.listings(providerId),
       });
     },
-    onError: (error) =>
-      refreshAuthorizationOnForbidden(error, queryClient, providerId),
   });
 }
 
@@ -178,12 +249,19 @@ export function useArchiveProviderListing() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => listingApi.archive(id),
-    onSuccess: () => {
+    onMutate: (id: string) =>
+      optimisticallyPatchListings(queryClient, providerId, id, (listing) => ({
+        ...listing,
+        status: 'ARCHIVED',
+      })),
+    onError: (error, _id, context) => {
+      rollbackListings(queryClient, providerId, context?.previous);
+      refreshAuthorizationOnForbidden(error, queryClient, providerId);
+    },
+    onSettled: () => {
       void queryClient.invalidateQueries({
         queryKey: providerKeys.listings(providerId),
       });
     },
-    onError: (error) =>
-      refreshAuthorizationOnForbidden(error, queryClient, providerId),
   });
 }

@@ -88,14 +88,14 @@ function Guard({ children }: { children: React.ReactNode }) {
       platform={t('overview.title')}
       items={items}
       identity={
-        <div className="mt-4 text-xs text-[var(--text-muted)]">
+        <div className="text-xs text-[var(--text-muted)]">
           {session.authorization?.roles.map((role) => role.name).join(', ')}
         </div>
       }
       footer={
-        <div className="mb-3 px-3 text-xs">
+        <div className="text-xs">
           <button
-            className="text-red-700"
+            className="font-medium text-[var(--danger)] transition-colors hover:underline"
             onClick={() => void session.logout()}
           >
             {t('nav.signOut')}

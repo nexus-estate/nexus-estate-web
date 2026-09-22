@@ -1,7 +1,5 @@
-'use client';
-import { useTranslations } from 'next-intl';
-import { LoadingState } from '@/components/ui/LoadingState';
+import { PortalPageSkeleton } from '@/components/ui/Skeleton';
+
 export default function AdminLoading() {
-  const t = useTranslations('common');
-  return <LoadingState label={t('status.loading')} className="min-h-screen" />;
+  return <PortalPageSkeleton fullHeight />;
 }

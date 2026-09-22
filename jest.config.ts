@@ -25,7 +25,25 @@ const config: Config = {
     '!**/*.d.ts',
     '!**/node_modules/**',
     '!**/.next/**',
+    // Barrels only re-export; counting them measures nothing.
+    '!**/index.ts',
   ],
+  /*
+   * Gate the shared library layer, where a silent regression is expensive and
+   * cheap to protect (pure functions, no DOM). Page components are covered by
+   * the Playwright suites instead, so they are not ratio-gated here.
+   * CI runs `npm test -- --coverage`; thresholds are enforced only then.
+   */
+  coverageThreshold: {
+    // Present (and empty) because jest's type requires the key.
+    global: {},
+    './lib/': {
+      statements: 72,
+      branches: 74,
+      functions: 64,
+      lines: 75,
+    },
+  },
 };
 
 export default createJestConfig(config);

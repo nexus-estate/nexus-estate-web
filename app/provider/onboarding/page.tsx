@@ -7,9 +7,11 @@ import { PageHeader } from '@/components/portal/page-header';
 import { useProviderContext } from '@/features/provider/context/provider-context.provider';
 import { providerApi } from '@/lib/api/provider/provider.api';
 import type { ProviderAccount } from '@/lib/api/provider/types';
+import { FEEDBACK, notify } from '@/lib/notify';
 export default function ProviderOnboardingPage() {
   const t = useTranslations('provider.onboarding');
   const providerT = useTranslations('provider');
+  const commonT = useTranslations('common');
   const router = useRouter();
   const [type, setType] = useState<ProviderAccount['type']>('INDIVIDUAL');
   const [displayName, setDisplayName] = useState('');
@@ -21,7 +23,7 @@ export default function ProviderOnboardingPage() {
     <>
       <PageHeader title={t('title')} description={t('description')} />
       <form
-        className="max-w-xl border border-[var(--border)] bg-[var(--surface)] p-6"
+        className="panel max-w-xl space-y-4 p-5 sm:p-6"
         onSubmit={async (event) => {
           event.preventDefault();
           setSaving(true);
@@ -36,18 +38,24 @@ export default function ProviderOnboardingPage() {
             await queryClient.invalidateQueries({
               queryKey: ['provider-workspace'],
             });
+            notify.success(commonT(FEEDBACK.created));
             router.push('/provider');
           } catch (cause) {
-            setError(cause instanceof Error ? cause.message : t('error'));
+            const message = cause instanceof Error ? cause.message : t('error');
+            setError(message);
+            notify.error(message);
           } finally {
             setSaving(false);
           }
         }}
       >
-        <label className="mb-4 block text-sm">
-          <span className="mb-1 block font-medium">{t('type')}</span>
+        <div>
+          <label className="field-label" htmlFor="provider-type">
+            {t('type')}
+          </label>
           <select
-            className="w-full rounded-md border border-[var(--border)] px-3 py-2"
+            id="provider-type"
+            className="field"
             value={type}
             onChange={(e) => setType(e.target.value as ProviderAccount['type'])}
           >
@@ -55,22 +63,26 @@ export default function ProviderOnboardingPage() {
             <option value="BROKER">{providerT('types.BROKER')}</option>
             <option value="AGENCY">{providerT('types.AGENCY')}</option>
           </select>
-        </label>
-        <label className="mb-4 block text-sm">
-          <span className="mb-1 block font-medium">{t('displayName')}</span>
+        </div>
+        <div>
+          <label className="field-label" htmlFor="provider-name">
+            {t('displayName')}
+          </label>
           <input
-            className="w-full rounded-md border border-[var(--border)] px-3 py-2"
+            id="provider-name"
+            className="field"
             required
             maxLength={255}
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
           />
-        </label>
-        {error && <p className="mb-4 text-sm text-red-700">{error}</p>}
-        <button
-          className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
-          disabled={saving}
-        >
+        </div>
+        {error && (
+          <p role="alert" className="field-error">
+            {error}
+          </p>
+        )}
+        <button className="btn btn-primary" disabled={saving}>
           {saving ? t('submitting') : t('submit')}
         </button>
       </form>

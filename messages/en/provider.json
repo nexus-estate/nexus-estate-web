@@ -65,6 +65,7 @@
     "createFailed": "The Property could not be created.",
     "updateFailed": "The Property could not be updated.",
     "archive": "Archive",
+    "activate": "Activate",
     "archiveFailed": "The Property could not be archived.",
     "empty": "No Properties yet. Create your first Property to start supplying.",
     "fields": {

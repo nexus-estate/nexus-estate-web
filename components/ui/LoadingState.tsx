@@ -12,7 +12,7 @@ export function LoadingState({
   return (
     <div
       className={clsx(
-        'flex items-center gap-3 text-sm text-[var(--text-muted)]',
+        'flex items-center gap-2.5 text-sm text-[var(--text-muted)]',
         compact ? 'py-3' : 'justify-center py-12',
         className,
       )}

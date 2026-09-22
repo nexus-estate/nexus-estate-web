@@ -15,6 +15,7 @@ import type {
   Province,
   Ward,
 } from '@/lib/api/estate/estate.types';
+import { FEEDBACK, notify } from '@/lib/notify';
 
 const ESTATE_TYPES: EstateType[] = [
   'APARTMENT',
@@ -33,9 +34,8 @@ const ESTATE_TYPES: EstateType[] = [
 ];
 const ESTATE_PURPOSES: EstatePurpose[] = ['SALE', 'RENT', 'SALE_OR_RENT'];
 
-const CONTROL_CLASS =
-  'mt-1 w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm outline-none focus:border-[var(--primary)]';
-const LABEL_CLASS = 'block text-sm font-medium text-[var(--text)]';
+const CONTROL_CLASS = 'field';
+const LABEL_CLASS = 'field-label';
 
 /**
  * Creates a Property only. Listing creation is a separate explicit flow on
@@ -44,6 +44,7 @@ const LABEL_CLASS = 'block text-sm font-medium text-[var(--text)]';
 export default function NewProviderPropertyPage() {
   const router = useRouter();
   const t = useTranslations('provider');
+  const commonT = useTranslations('common');
   const workspace = useProviderAuthorization();
   const createProperty = useCreateProviderProperty();
 
@@ -133,8 +134,9 @@ export default function NewProviderPropertyPage() {
       });
       router.push('/provider/properties');
       void estate;
-    } catch {
-      // Error surfaces through the mutation state below.
+      notify.success(commonT(FEEDBACK.created));
+    } catch (error) {
+      notify.apiError(error, commonT, 'properties.createFailed');
     }
   };
 
@@ -145,7 +147,7 @@ export default function NewProviderPropertyPage() {
         description={t('properties.newDescription')}
       />
       {blockedByLifecycle && (
-        <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+        <p className="panel mb-4 px-4 py-3 text-sm text-[var(--text-muted)]">
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
       )}
@@ -156,7 +158,7 @@ export default function NewProviderPropertyPage() {
         {createProperty.isError && (
           <p
             role="alert"
-            className="border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
+            className="rounded-[var(--radius-md)] border border-[var(--danger)]/25 bg-[var(--danger-soft)] px-3.5 py-2.5 text-sm font-medium text-[var(--danger-strong)]"
           >
             {createProperty.error instanceof ApiError &&
             createProperty.error.status === 403
@@ -165,7 +167,7 @@ export default function NewProviderPropertyPage() {
           </p>
         )}
 
-        <div className="space-y-4 border border-[var(--border)] bg-[var(--surface)] p-6">
+        <div className="panel space-y-4 p-5 sm:p-6">
           <div>
             <label className={LABEL_CLASS} htmlFor="estate-title">
               {t('properties.fields.title')}
@@ -283,7 +285,7 @@ export default function NewProviderPropertyPage() {
               rows={4}
               value={form.description}
               onChange={handleChange('description')}
-              className={`${CONTROL_CLASS} resize-none`}
+              className={CONTROL_CLASS}
             />
           </div>
 
@@ -358,7 +360,7 @@ export default function NewProviderPropertyPage() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+            className="btn btn-primary btn-lg"
           >
             {createProperty.isPending
               ? t('properties.submitting')
@@ -366,7 +368,7 @@ export default function NewProviderPropertyPage() {
           </button>
           <Link
             href="/provider/properties"
-            className="border border-[var(--border)] px-6 py-2.5 text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
+            className="btn btn-secondary btn-lg"
           >
             {t('properties.cancel')}
           </Link>

@@ -7,10 +7,13 @@ import {
   useAuthorizationPlatform,
 } from '@/components/administration/platform-selector';
 import { PageHeader } from '@/components/portal/page-header';
+import { ErrorAlert } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 import type { MatrixResponse } from '@/lib/api/administration/types';
 import { getApiErrorMessage } from '@/lib/api/error-message';
+import { FEEDBACK, notify } from '@/lib/notify';
 type Group = {
   category: string;
   permissions: Array<{
@@ -77,10 +80,12 @@ export default function MatrixPage() {
         },
       ),
     onSuccess: () => {
+      notify.success(t(FEEDBACK.updated));
       void qc.invalidateQueries({
         queryKey: ['administration', 'authorization', platform],
       });
     },
+    onError: (error) => notify.apiError(error, t),
   });
   return (
     <>
@@ -92,7 +97,7 @@ export default function MatrixPage() {
             <button
               disabled={!activeRoleId || save.isPending || !dirty || !canEdit}
               onClick={() => save.mutate()}
-              className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
+              className="btn btn-primary"
             >
               {save.isPending ? t('status.saving') : adminT('saveChanges')}
             </button>
@@ -102,7 +107,7 @@ export default function MatrixPage() {
               onClick={() => {
                 setSelected(data?.assignments?.[activeRoleId] ?? []);
               }}
-              className="ml-2 rounded-md border border-[var(--border)] px-4 py-2 text-sm disabled:opacity-50"
+              className="btn btn-secondary"
             >
               {adminT('reset')}
             </button>
@@ -113,15 +118,12 @@ export default function MatrixPage() {
         <PlatformSelector platform={platform} onChange={setPlatform} />
       </div>
       <div className="mb-5">
-        <label
-          className="text-xs font-medium text-[var(--text-muted)]"
-          htmlFor="matrix-role"
-        >
+        <label className="field-label" htmlFor="matrix-role">
           {adminT('role')}
         </label>
         <select
           id="matrix-role"
-          className="mt-1 block w-full max-w-sm rounded-md border border-[var(--border)] bg-white px-3 py-2 text-sm"
+          className="field w-full max-w-sm"
           value={activeRoleId}
           onChange={(e) => {
             setRoleId(e.target.value);
@@ -136,26 +138,24 @@ export default function MatrixPage() {
         </select>
       </div>
       {!query.isLoading && data?.roles?.length === 0 && (
-        <p className="border border-dashed border-[var(--border)] p-6 text-sm text-[var(--text-muted)]">
+        <p className="panel-muted border-dashed p-6 text-sm text-[var(--text-muted)]">
           {adminT('noRolesForMatrix')}
         </p>
       )}
       <div className="space-y-5">
         {(data?.permissionGroups ?? []).map((group) => (
-          <section
-            className="border border-[var(--border)] bg-white"
-            key={group.category}
-          >
-            <h2 className="border-b border-[var(--border)] bg-[var(--surface-subtle)] px-4 py-3 text-sm font-medium">
+          <section className="panel overflow-hidden" key={group.category}>
+            <h2 className="border-b border-[var(--border-muted)] bg-[var(--surface-subtle)] px-4 py-2.5 text-sm font-semibold text-[var(--text)]">
               {group.category}
             </h2>
             <div className="grid gap-1 p-3 md:grid-cols-2">
               {group.permissions.map((permission) => (
                 <label
-                  className="flex items-start gap-3 rounded px-2 py-2 text-sm hover:bg-[var(--surface-subtle)]"
+                  className="flex cursor-pointer items-start gap-2.5 rounded-[var(--radius-sm)] px-2 py-2 text-sm hover:bg-[var(--surface-subtle)]"
                   key={permission.id}
                 >
                   <input
+                    className="mt-0.5 h-4 w-4 accent-[var(--primary)]"
                     type="checkbox"
                     checked={activeSelected.includes(permission.id)}
                     disabled={!canEdit}
@@ -168,7 +168,7 @@ export default function MatrixPage() {
                     }}
                   />
                   <span>
-                    <span className="block font-medium">
+                    <span className="block font-medium text-[var(--text)]">
                       {permission.name ?? permission.code}
                     </span>
                     <span className="text-xs text-[var(--text-muted)]">
@@ -187,19 +187,18 @@ export default function MatrixPage() {
         ))}
       </div>
       {save.isError && (
-        <p className="mt-4 text-sm text-red-700">
-          {getApiErrorMessage(save.error, t)}
-        </p>
+        <ErrorAlert
+          message={getApiErrorMessage(save.error, t)}
+          className="mt-4"
+        />
       )}
-      {query.isLoading && (
-        <p className="text-sm text-[var(--text-muted)]">
-          {adminT('loadingMatrix')}
-        </p>
-      )}
+      {query.isLoading && <LoadingState label={adminT('loadingMatrix')} />}
       {query.error && (
-        <p className="text-sm text-[var(--danger)]">
-          {adminT('unableToLoadMatrix')}
-        </p>
+        <ErrorAlert
+          message={adminT('unableToLoadMatrix')}
+          onRetry={() => query.refetch()}
+          className="mt-4"
+        />
       )}
     </>
   );

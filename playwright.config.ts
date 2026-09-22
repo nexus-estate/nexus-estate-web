@@ -18,7 +18,12 @@ export default defineConfig({
   testDir: './e2e',
   testIgnore: integration
     ? []
-    : ['**/platform-lifecycle.spec.ts', '**/provider-supply-lifecycle.spec.ts'],
+    : [
+        '**/platform-lifecycle.spec.ts',
+        '**/provider-supply-lifecycle.spec.ts',
+        // Needs the administration platform server (WEB_PLATFORM=admin).
+        '**/admin-visual-check.spec.ts',
+      ],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

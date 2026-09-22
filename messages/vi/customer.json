@@ -47,7 +47,13 @@
       "villa": "Biệt thự",
       "land": "Đất nền",
       "office": "Văn phòng"
-    }
+    },
+    "exploreCollection": "Khám phá bộ sưu tập",
+    "heroCaption": "Không gian khác biệt. Cuộc sống xứng tầm.",
+    "location": "Nơi bạn muốn sống",
+    "emptyDescription": "Bộ sưu tập đang được cập nhật. Khám phá các loại hình bên dưới để bắt đầu tìm kiếm.",
+    "discover": "Không gian cho mỗi chặng đường",
+    "spacesTitle": "Chọn không gian, viết câu chuyện riêng."
   },
   "properties": {
     "title": "Khám phá bất động sản",
@@ -168,7 +174,10 @@
     "defaultName": "Tài khoản nhà cung cấp",
     "loading": "Đang kiểm tra trạng thái…",
     "error": "Không thể tải trạng thái nhà cung cấp.",
-    "noProvider": { "title": "Trở thành nhà cung cấp" },
+    "noProvider": {
+      "title": "Trở thành nhà cung cấp",
+      "description": "Bạn chưa có tài khoản Nhà cung cấp. Hãy tạo tài khoản để đăng bất động sản trên Nexus Estate."
+    },
     "pending": {
       "description": "Hồ sơ đang chờ duyệt. Tài khoản khách hàng của bạn vẫn hoạt động."
     },
@@ -178,7 +187,9 @@
     "suspended": {
       "description": "Tài khoản nhà cung cấp đang bị tạm ngưng. Marketplace vẫn khả dụng."
     },
-    "active": { "description": "Đang hoạt động · Đã xác minh" },
+    "active": {
+      "description": "Đang hoạt động · Đã xác minh"
+    },
     "context_required": {
       "description": "Hãy chọn ngữ cảnh nhà cung cấp trước khi mở portal."
     },

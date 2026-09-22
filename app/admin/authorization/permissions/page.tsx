@@ -29,19 +29,22 @@ export default function PermissionsPage() {
       }),
   });
   return (
-    <section className="app-panel p-5 sm:p-6">
+    <section className="panel p-5 sm:p-6">
       <PlatformSelector platform={platform} onChange={setPlatform} />
-      <h1 className="mt-5 text-2xl font-bold">{t('permissions')}</h1>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <h1 className="mt-5 text-2xl font-semibold tracking-tight text-[var(--text)]">
+        {t('permissions')}
+      </h1>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <input
-          className="rounded border px-3 py-2 text-sm"
+          className="field w-full sm:max-w-sm"
           placeholder={t('searchPermissions')}
           aria-label={t('searchPermissions')}
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
         <select
-          className="rounded border px-3 py-2 text-sm"
+          className="field w-auto min-w-40"
+          aria-label={t('risk')}
           value={riskLevel}
           onChange={(e) => setRiskLevel(e.target.value as RiskLevel | '')}
         >
@@ -54,19 +57,25 @@ export default function PermissionsPage() {
       </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {(query.data?.items ?? []).map((p) => (
-          <article className="rounded border p-4" key={p.id}>
+          <article className="panel-flush p-4" key={p.id}>
             <Link
-              className="font-medium hover:underline"
+              className="link"
               href={`/admin/authorization/permissions/${p.id}?platform=${platform}`}
             >
               {p.name}
             </Link>
-            <code className="mt-1 block text-xs text-gray-500">{p.code}</code>
-            <p className="text-sm text-gray-500">
+            <code className="mt-1 block font-mono text-xs text-[var(--text-muted)]">
+              {p.code}
+            </code>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">
               {p.category ?? t('general')} · {p.resource ?? '—'} ·{' '}
               {p.action ?? '—'}
             </p>
-            <p className="mt-1 text-xs">{p.description}</p>
+            {p.description && (
+              <p className="mt-2 text-sm leading-6 text-[var(--text)]">
+                {p.description}
+              </p>
+            )}
           </article>
         ))}
       </div>

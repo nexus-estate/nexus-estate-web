@@ -65,6 +65,7 @@
     "createFailed": "Không thể tạo bất động sản.",
     "updateFailed": "Không thể cập nhật bất động sản.",
     "archive": "Lưu trữ",
+    "activate": "Kích hoạt",
     "archiveFailed": "Không thể lưu trữ bất động sản.",
     "empty": "Chưa có bất động sản nào. Hãy tạo bất động sản đầu tiên để bắt đầu.",
     "fields": {

@@ -24,16 +24,14 @@ export default function ProviderAuthorizationPage() {
         title={t('authorization.title')}
         description={t('authorization.description')}
       />
-      <Panel className="p-6">
-        <p className="mb-6 text-sm text-[var(--text-muted)]">
+      <Panel className="p-5 sm:p-6">
+        <p className="text-sm text-[var(--text-muted)]">
           {t('authorization.scopeNote')}
         </p>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="mt-5 grid gap-4 sm:grid-cols-3">
           <div>
-            <span className="text-xs text-[var(--text-muted)]">
-              {t('authorization.membership')}
-            </span>
-            <p className="mt-1 font-medium">
+            <span className="label-caps">{t('authorization.membership')}</span>
+            <p className="mt-1.5">
               {auth.data?.membershipStatus ? (
                 <StatusBadge
                   status={auth.data.membershipStatus}
@@ -47,22 +45,22 @@ export default function ProviderAuthorizationPage() {
             </p>
           </div>
           <div>
-            <span className="text-xs text-[var(--text-muted)]">
-              {t('authorization.providerId')}
-            </span>
-            <p className="mt-1 font-medium">{auth.data?.providerId ?? '—'}</p>
+            <span className="label-caps">{t('authorization.providerId')}</span>
+            <p className="mt-1.5 break-all font-mono text-xs text-[var(--text)]">
+              {auth.data?.providerId ?? '—'}
+            </p>
           </div>
           <div>
-            <span className="text-xs text-[var(--text-muted)]">
-              {t('authorization.state')}
-            </span>
-            <p className="mt-1 font-medium">{stateLabel}</p>
+            <span className="label-caps">{t('authorization.state')}</span>
+            <p className="mt-1.5 text-sm font-medium text-[var(--text)]">
+              {stateLabel}
+            </p>
           </div>
         </div>
-        <h2 className="mt-8 text-sm font-medium">
+        <h2 className="mt-8 text-sm font-semibold text-[var(--text)]">
           {t('authorization.permissions')}
         </h2>
-        <div className="mt-3 space-y-4">
+        <div className="mt-3 space-y-5">
           {Object.entries(
             (auth.data?.permissions ?? []).reduce<
               Record<string, ProviderAuthorization['permissions']>
@@ -73,17 +71,15 @@ export default function ProviderAuthorizationPage() {
             }, {}),
           ).map(([category, permissions]) => (
             <div key={category}>
-              <h3 className="text-xs font-semibold uppercase text-[var(--text-muted)]">
-                {category}
-              </h3>
-              <div className="mt-2 space-y-2">
+              <h3 className="label-caps">{category}</h3>
+              <div className="mt-2">
                 {permissions.map((p) => (
                   <div
-                    className="flex items-baseline justify-between border-b border-[var(--border)] py-2 text-sm"
+                    className="flex items-baseline justify-between gap-4 border-b border-[var(--border-muted)] py-2 text-sm last:border-0"
                     key={p.code}
                   >
-                    <span>{p.name}</span>
-                    <code className="text-xs text-[var(--text-muted)]">
+                    <span className="text-[var(--text)]">{p.name}</span>
+                    <code className="font-mono text-xs text-[var(--text-muted)]">
                       {p.code}
                     </code>
                   </div>

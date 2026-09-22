@@ -4,9 +4,12 @@ import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { providerReviewApi } from '@/lib/api/administration/provider-review.api';
+import type { ProviderRegistrationReview } from '@/lib/api/administration/provider-review.types';
+import { FEEDBACK, notify } from '@/lib/notify';
 export default function ProviderRequestsPage() {
   const t = useTranslations('administration');
   const providerT = useTranslations('provider');
+  const commonT = useTranslations('common');
   const queryClient = useQueryClient();
   const requests = useQuery({
     queryKey: ['administration', 'provider-requests'],
@@ -14,10 +17,33 @@ export default function ProviderRequestsPage() {
   });
   const approve = useMutation({
     mutationFn: providerReviewApi.approve,
-    onSuccess: () =>
+    onMutate: async (accountId: string) => {
+      // The request leaves the pending queue, so remove it immediately and
+      // restore the queue if the approval fails.
+      const key = ['administration', 'provider-requests'] as const;
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous =
+        queryClient.getQueryData<ProviderRegistrationReview[]>(key);
+      queryClient.setQueryData<ProviderRegistrationReview[]>(key, (current) =>
+        current?.filter((request) => request.id !== accountId),
+      );
+      return { previous };
+    },
+    onSuccess: () => {
+      notify.success(commonT(FEEDBACK.approved));
       void queryClient.invalidateQueries({
         queryKey: ['administration', 'provider-requests'],
-      }),
+      });
+    },
+    onError: (error, _accountId, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(
+          ['administration', 'provider-requests'],
+          context.previous,
+        );
+      }
+      notify.apiError(error, commonT);
+    },
   });
   return (
     <>
@@ -25,22 +51,22 @@ export default function ProviderRequestsPage() {
         title={t('providerReview.title')}
         description={t('providerReview.description')}
       />
-      <div className="overflow-x-auto border border-[var(--border)] bg-[var(--surface)]">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-[var(--surface-subtle)] text-xs uppercase text-[var(--text-muted)]">
+      <div className="panel overflow-x-auto">
+        <table className="data-table">
+          <thead>
             <tr>
-              <th className="px-4 py-3">{t('providerReview.provider')}</th>
+              <th>{t('providerReview.provider')}</th>
               <th>{t('providerReview.owner')}</th>
               <th>{t('providerReview.status')}</th>
-              <th className="px-4 py-3">{t('providerReview.approve')}</th>
+              <th>{t('providerReview.approve')}</th>
             </tr>
           </thead>
           <tbody>
             {(requests.data ?? []).map((request) => (
-              <tr className="border-t border-[var(--border)]" key={request.id}>
-                <td className="px-4 py-3 font-medium">
+              <tr key={request.id}>
+                <td>
                   <a
-                    className="hover:underline"
+                    className="link"
                     href={`/admin/provider-requests/${request.id}`}
                   >
                     {request.providerAccount.displayName}
@@ -63,9 +89,9 @@ export default function ProviderRequestsPage() {
                     />
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td>
                   <button
-                    className="rounded-md bg-[var(--primary)] px-3 py-1.5 text-xs text-white disabled:opacity-50"
+                    className="btn btn-secondary btn-sm"
                     disabled={approve.isPending}
                     onClick={() => approve.mutate(request.id)}
                   >

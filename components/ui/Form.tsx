@@ -9,11 +9,11 @@ interface FormProps extends FormHTMLAttributes<HTMLFormElement> {
 
 export function Form({ children, errors, className, ...props }: FormProps) {
   return (
-    <form className={clsx('space-y-6', className)} noValidate {...props}>
+    <form className={clsx('space-y-5', className)} noValidate {...props}>
       {errors?.form && (
         <div
           role="alert"
-          className="rounded-[var(--radius-md)] border border-[var(--danger)]/20 bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger-strong)]"
+          className="rounded-[var(--radius-sm)] border border-[var(--danger)]/25 bg-[var(--danger-soft)] px-3.5 py-2.5 text-sm font-medium text-[var(--danger-strong)]"
         >
           {errors.form}
         </div>
@@ -27,30 +27,31 @@ export function FormField({
   label,
   name,
   error,
+  hint,
   required,
   children,
 }: {
   label: string;
   name: string;
   error?: string;
+  hint?: string;
   required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label
-        htmlFor={name}
-        className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]"
-      >
+      <label htmlFor={name} className="field-label">
         {label}
-        {required && <span className="ml-1 text-[var(--danger)]">*</span>}
+        {required && (
+          <span className="ml-0.5 text-[var(--danger)]" aria-hidden="true">
+            *
+          </span>
+        )}
       </label>
       {children}
+      {hint && !error && <p className="field-help">{hint}</p>}
       {error && (
-        <p
-          role="alert"
-          className="mt-1.5 text-xs font-medium text-[var(--danger)]"
-        >
+        <p role="alert" className="field-error">
           {error}
         </p>
       )}
@@ -73,7 +74,7 @@ export function FormActions({
   return (
     <div
       className={clsx(
-        'flex items-center gap-3 border-t border-[var(--border-muted)] pt-5',
+        'flex flex-wrap items-center gap-3 border-t border-[var(--border-muted)] pt-4',
         alignClass[align],
       )}
     >

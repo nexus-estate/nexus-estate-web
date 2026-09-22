@@ -14,56 +14,73 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   return (
-    <div className="app-panel mx-auto mt-12 max-w-md p-6 sm:mt-20 sm:p-8">
-      <p className="eyebrow">{t('title')}</p>
-      <h1 className="mt-3 text-3xl font-bold text-[#102f2d]">{t('title')}</h1>
-      <form
-        className="mt-8 space-y-4"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setLoading(true);
-          setError('');
-          try {
-            await login(email, password);
-            router.replace(safeAdministrationNext(search.get('next')));
-          } catch (err) {
-            setError(err instanceof Error ? err.message : t('invalid'));
-          } finally {
-            setLoading(false);
-          }
-        }}
-      >
-        <label className="block text-sm font-semibold text-[var(--text)]">
-          <span>{t('email')}</span>
-          <input
-            className="auth-input mt-2 px-3"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </label>
-        <label className="block text-sm font-semibold text-[var(--text)]">
-          <span>{t('password')}</span>
-          <input
-            className="auth-input mt-2 px-3"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </label>
-        {error && (
-          <p role="alert" className="text-sm text-red-700">
-            {error}
-          </p>
-        )}
-        <button disabled={loading} className="auth-submit" type="submit">
-          {loading ? t('signingIn') : t('submit')} <span>→</span>
-        </button>
-      </form>
+    <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-12">
+      <div className="panel p-6 sm:p-8">
+        <p className="label-caps">{t('title')}</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--text)]">
+          {t('title')}
+        </h1>
+        <form
+          className="mt-6 space-y-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setLoading(true);
+            setError('');
+            try {
+              await login(email, password);
+              router.replace(safeAdministrationNext(search.get('next')));
+            } catch (err) {
+              setError(err instanceof Error ? err.message : t('invalid'));
+            } finally {
+              setLoading(false);
+            }
+          }}
+        >
+          <div>
+            <label className="field-label" htmlFor="admin-email">
+              {t('email')}
+            </label>
+            <input
+              id="admin-email"
+              className="field"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="field-label" htmlFor="admin-password">
+              {t('password')}
+            </label>
+            <input
+              id="admin-password"
+              className="field"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          {error && (
+            <p
+              role="alert"
+              className="rounded-[var(--radius-sm)] border border-[var(--danger)]/25 bg-[var(--danger-soft)] px-3.5 py-2.5 text-sm font-medium text-[var(--danger-strong)]"
+            >
+              {error}
+            </p>
+          )}
+          <button
+            disabled={loading}
+            className="btn btn-primary btn-lg w-full"
+            type="submit"
+          >
+            {loading ? t('signingIn') : t('submit')}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

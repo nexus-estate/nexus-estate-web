@@ -12,22 +12,17 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    'border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] shadow-[var(--shadow-xs)] hover:border-[var(--primary-hover)] hover:bg-[var(--primary-hover)] active:border-[var(--primary-active)] active:bg-[var(--primary-active)]',
-  secondary:
-    'border border-[var(--border)] bg-[var(--surface-subtle)] text-[var(--text)] shadow-[var(--shadow-xs)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)]',
-  outline:
-    'border border-[var(--border-interactive)] bg-[var(--surface)] text-[var(--text)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]',
-  ghost:
-    'border border-transparent bg-transparent text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
-  danger:
-    'border border-[var(--danger)] bg-[var(--danger)] text-white shadow-[var(--shadow-xs)] hover:border-[var(--danger-strong)] hover:bg-[var(--danger-strong)]',
+  primary: 'btn-primary',
+  secondary: 'btn-secondary',
+  outline: 'btn-secondary',
+  ghost: 'btn-ghost',
+  danger: 'btn-danger',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'min-h-8 px-3 text-xs',
-  md: 'min-h-10 px-4 text-sm',
-  lg: 'min-h-11 px-5 text-sm',
+  sm: 'btn-sm',
+  md: '',
+  lg: 'btn-lg',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -50,10 +45,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={isDisabled}
         className={clsx(
-          'inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] active:translate-y-px',
+          'btn',
           variantClasses[variant],
           sizeClasses[size],
-          isDisabled && 'cursor-not-allowed opacity-50 active:translate-y-0',
           className,
         )}
         {...props}

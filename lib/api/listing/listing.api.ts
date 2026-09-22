@@ -8,7 +8,11 @@ import type {
 } from './listing.types';
 
 export const listingApi = {
-  list(query: ListingQuery = {}) {
+  /**
+   * `init` is forwarded so Server Components can opt into caching
+   * (`{ next: { revalidate } }`) instead of fetching on every request.
+   */
+  list(query: ListingQuery = {}, init?: RequestInit) {
     const params = new URLSearchParams();
     Object.entries(query).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '')
@@ -17,11 +21,12 @@ export const listingApi = {
     const queryString = params.toString();
     return publicApiClient.get<ListingPageResponse>(
       `/listings${queryString ? `?${queryString}` : ''}`,
+      init,
     );
   },
 
-  getById(id: string) {
-    return publicApiClient.get<Listing>(`/listings/${id}`);
+  getById(id: string, init?: RequestInit) {
+    return publicApiClient.get<Listing>(`/listings/${id}`, init);
   },
 
   create(data: CreateListingInput) {

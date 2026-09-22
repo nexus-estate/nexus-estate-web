@@ -47,7 +47,8 @@ jobs:
         run: npm run type-check
 
       - name: Unit tests
-        run: npm test -- --ci --no-cache
+        # --coverage also enforces the thresholds in jest.config.ts.
+        run: npm test -- --ci --no-cache --coverage
         env:
           NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
 
@@ -112,6 +113,20 @@ jobs:
       - name: Run Administration platform smoke
         run: npm run test:e2e -- e2e/platform-boundary.spec.ts
         env:
+          E2E_PORT: 3002
+          NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
+          NEXT_PUBLIC_MARKETPLACE_URL: http://localhost:3000
+          NEXT_PUBLIC_PROVIDER_URL: http://localhost:3001
+          NEXT_PUBLIC_ADMIN_URL: http://localhost:3002
+          WEB_PLATFORM: admin
+
+      # Visual contract for the administration portal (ErrorState/LoadingState/
+      # Pagination + dark mode + Vietnamese), needs the admin platform server.
+      - name: Run Administration visual check
+        run: npm run test:e2e -- e2e/admin-visual-check.spec.ts
+        env:
+          # Un-ignores admin-visual-check.spec.ts in playwright.config.ts.
+          E2E_INTEGRATION: 'true'
           E2E_PORT: 3002
           NEXT_PUBLIC_API_URL: http://localhost:50001/api/v1
           NEXT_PUBLIC_MARKETPLACE_URL: http://localhost:3000

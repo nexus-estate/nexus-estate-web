@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { PortalShell } from '@/components/portal/portal-shell';
 import { useProviderEntryState } from '@/features/provider/use-provider-entry-state';
 import { useAuth } from '@/hooks/use-auth';
-import { getMarketplaceUrl } from '@/lib/platform/urls';
+import { getMarketplaceHref } from '@/lib/platform/urls';
 export default function ProviderLayout({
   children,
 }: {
@@ -31,7 +31,7 @@ export default function ProviderLayout({
     );
   if (status === 'anonymous') return null;
   const identity = (
-    <div className="mt-4 text-xs text-[var(--text-muted)]">
+    <div className="text-xs text-[var(--text-muted)]">
       <div className="font-medium text-[var(--text)]">
         {workspace.account.data?.displayName ?? t('identity.notEnrolled')}
       </div>
@@ -77,14 +77,17 @@ export default function ProviderLayout({
       ]}
       identity={identity}
       footer={
-        <div className="mb-3 space-y-2 px-3 text-xs">
+        <div className="space-y-2 text-xs">
           <a
-            className="block text-[var(--text-muted)]"
-            href={getMarketplaceUrl('/')}
+            className="block text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+            href={getMarketplaceHref('/')}
           >
             {t('footer.back')}
           </a>
-          <button className="text-red-700" onClick={() => void logout()}>
+          <button
+            className="font-medium text-[var(--danger)] transition-colors hover:underline"
+            onClick={() => void logout()}
+          >
             {t('footer.signOut')}
           </button>
         </div>

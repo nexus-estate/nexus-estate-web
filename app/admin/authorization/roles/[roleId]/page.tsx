@@ -4,14 +4,20 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
+import { ErrorAlert } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 import type { Platform } from '@/lib/api/administration/types';
 import { ApiError } from '@/lib/api/core/error';
 import { getApiErrorMessage } from '@/lib/api/error-message';
+import { FEEDBACK, notify } from '@/lib/notify';
 export default function RoleDetailPage() {
   const t = useTranslations('administration.authorization');
+  // Business error codes live in `common.errors`; a domain translator cannot
+  // resolve them.
+  const commonT = useTranslations('common');
   const params = useParams<{ roleId: string }>();
   const search = useSearchParams();
   const platform = (search.get('platform') as Platform) || 'MARKETPLACE';
@@ -66,11 +72,14 @@ export default function RoleDetailPage() {
         payload,
       );
     },
-    onSuccess: () =>
+    onSuccess: () => {
+      notify.success(commonT(FEEDBACK.updated));
       void qc.invalidateQueries({
         queryKey: ['administration', 'authorization', platform],
-      }),
+      });
+    },
     onError: (error) => {
+      notify.apiError(error, commonT);
       if (
         error instanceof ApiError &&
         error.errorCode === 'AUTHORIZATION_ROLE_VERSION_CONFLICT'
@@ -87,20 +96,21 @@ export default function RoleDetailPage() {
       }
     },
   });
-  if (role.isLoading) return <p>{t('loading')}</p>;
-  if (!role.data) return <p className="text-sm text-red-700">{t('error')}</p>;
+  if (role.isLoading)
+    return <LoadingState label={t('loading')} className="min-h-[40vh]" />;
+  if (!role.data) return <ErrorAlert message={t('error')} className="mt-6" />;
   const item = role.data;
   const canMetadata = canWrite && item.allowedActions.updateMetadata;
   const canStatus = canWrite && item.allowedActions.updateStatus;
   return (
     <>
       <PageHeader title={item.name} description={item.code} />
-      <div className="max-w-3xl space-y-6">
-        <section className="border border-[var(--border)] bg-[var(--surface)] p-6">
-          <dl className="grid gap-4 sm:grid-cols-3 text-sm">
+      <div className="max-w-3xl space-y-5">
+        <section className="panel p-5 sm:p-6">
+          <dl className="grid gap-4 text-sm sm:grid-cols-3">
             <div>
-              <dt>{t('status')}</dt>
-              <dd>
+              <dt className="label-caps">{t('status')}</dt>
+              <dd className="mt-1">
                 <StatusBadge
                   status={item.status}
                   label={
@@ -112,65 +122,80 @@ export default function RoleDetailPage() {
               </dd>
             </div>
             <div>
-              <dt>{t('type')}</dt>
-              <dd>{item.isSystem ? t('system') : t('custom')}</dd>
+              <dt className="label-caps">{t('type')}</dt>
+              <dd className="mt-1 text-[var(--text)]">
+                {item.isSystem ? t('system') : t('custom')}
+              </dd>
             </div>
             <div>
-              <dt>{t('version')}</dt>
-              <dd>{item.version}</dd>
+              <dt className="label-caps">{t('version')}</dt>
+              <dd className="mt-1 text-[var(--text)]">{item.version}</dd>
             </div>
             <div>
-              <dt>{t('permissions')}</dt>
-              <dd>{item.permissionCount}</dd>
+              <dt className="label-caps">{t('permissions')}</dt>
+              <dd className="mt-1 text-[var(--text)]">
+                {item.permissionCount}
+              </dd>
             </div>
             <div>
-              <dt>{t('assignments')}</dt>
-              <dd>{item.assignmentCount}</dd>
+              <dt className="label-caps">{t('assignments')}</dt>
+              <dd className="mt-1 text-[var(--text)]">
+                {item.assignmentCount}
+              </dd>
             </div>
             <div>
-              <dt>{t('updated')}</dt>
-              <dd>{item.updatedAt}</dd>
+              <dt className="label-caps">{t('updated')}</dt>
+              <dd className="mt-1 text-[var(--text)]">{item.updatedAt}</dd>
             </div>
           </dl>
         </section>
         {canMetadata && (
-          <section className="border border-[var(--border)] bg-[var(--surface)] p-6">
-            <h2 className="font-semibold">{t('edit')}</h2>
+          <section className="panel p-5 sm:p-6">
+            <h2 className="text-sm font-semibold text-[var(--text)]">
+              {t('edit')}
+            </h2>
             <input
-              className="mt-4 w-full border px-3 py-2"
+              className="field mt-4"
+              aria-label={t('name')}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
             <textarea
-              className="mt-3 w-full border px-3 py-2"
+              className="field mt-3"
+              aria-label={t('description')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
-            <button
-              className="mt-4 bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
-              disabled={update.isPending || !name.trim()}
-              onClick={() => update.mutate()}
-            >
-              {t('save')}
-            </button>
-            {canStatus && (
-              <label className="mt-3 block text-sm">
-                <span className="mr-2">{t('status')}</span>
-                <select
-                  className="border px-3 py-2"
-                  value={status}
-                  onChange={(e) =>
-                    setStatus(e.target.value as 'ACTIVE' | 'DISABLED')
-                  }
-                >
-                  <option value="ACTIVE">{t('statusActive')}</option>
-                  <option value="DISABLED">{t('statusDisabled')}</option>
-                </select>
-              </label>
-            )}
+            <div className="mt-4 flex flex-wrap items-end gap-3">
+              <button
+                className="btn btn-primary"
+                disabled={update.isPending || !name.trim()}
+                onClick={() => update.mutate()}
+              >
+                {t('save')}
+              </button>
+              {canStatus && (
+                <div>
+                  <label className="field-label" htmlFor="role-status">
+                    {t('status')}
+                  </label>
+                  <select
+                    id="role-status"
+                    className="field w-auto min-w-40"
+                    value={status}
+                    onChange={(e) =>
+                      setStatus(e.target.value as 'ACTIVE' | 'DISABLED')
+                    }
+                  >
+                    <option value="ACTIVE">{t('statusActive')}</option>
+                    <option value="DISABLED">{t('statusDisabled')}</option>
+                  </select>
+                </div>
+              )}
+            </div>
             {update.isError && (
-              <p className="mt-3 text-sm text-red-700">
-                {getApiErrorMessage(update.error, t)}
+              <p role="alert" className="field-error">
+                {getApiErrorMessage(update.error, commonT)}
                 {update.error instanceof ApiError && update.error.requestId
                   ? ` (${update.error.requestId})`
                   : ''}
@@ -181,31 +206,44 @@ export default function RoleDetailPage() {
         {!canMetadata && canWrite && (
           <p className="text-sm text-[var(--text-muted)]">{t('readOnly')}</p>
         )}
-        <section className="border border-[var(--border)] bg-[var(--surface)] p-6">
-          <h2 className="font-semibold">{t('permissions')}</h2>
-          <div className="mt-3 space-y-2">
+        <section className="panel p-5 sm:p-6">
+          <h2 className="text-sm font-semibold text-[var(--text)]">
+            {t('permissions')}
+          </h2>
+          <div className="mt-3">
             {item.permissions.map((permission) => (
-              <div className="border-b py-2 text-sm" key={permission.id}>
-                <span>{permission.name}</span>
-                <code className="ml-3 text-xs text-[var(--text-muted)]">
+              <div
+                className="flex flex-wrap items-baseline gap-x-3 border-b border-[var(--border-muted)] py-2 text-sm last:border-0"
+                key={permission.id}
+              >
+                <span className="text-[var(--text)]">{permission.name}</span>
+                <code className="font-mono text-xs text-[var(--text-muted)]">
                   {permission.code}
                 </code>
               </div>
             ))}
           </div>
         </section>
-        <section className="border border-[var(--border)] bg-[var(--surface)] p-6">
-          <h2 className="font-semibold">{t('assignedSubjects')}</h2>
-          {subjects.isLoading && <p className="mt-3 text-sm">{t('loading')}</p>}
+        <section className="panel p-5 sm:p-6">
+          <h2 className="text-sm font-semibold text-[var(--text)]">
+            {t('assignedSubjects')}
+          </h2>
+          {subjects.isLoading && (
+            <p className="mt-3 text-sm text-[var(--text-muted)]">
+              {t('loading')}
+            </p>
+          )}
           {!subjects.isLoading && subjects.data?.items.length === 0 && (
             <p className="mt-3 text-sm text-[var(--text-muted)]">
               {t('noSubjects')}
             </p>
           )}
-          <div className="mt-3 divide-y">
+          <div className="mt-3 divide-y divide-[var(--border-muted)]">
             {subjects.data?.items.map((subject) => (
               <div className="py-2 text-sm" key={subject.id}>
-                <span className="font-medium">{subject.displayName}</span>
+                <span className="font-medium text-[var(--text)]">
+                  {subject.displayName}
+                </span>
                 <span className="ml-2 text-[var(--text-muted)]">
                   {subject.subjectType} ·{' '}
                   <StatusBadge

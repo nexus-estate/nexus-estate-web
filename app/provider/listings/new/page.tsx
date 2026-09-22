@@ -11,9 +11,9 @@ import {
   useListingEligibleProperties,
 } from '@/features/provider/supply/provider-supply.queries';
 import { ApiError } from '@/lib/api/core/error';
+import { FEEDBACK, notify } from '@/lib/notify';
 
-const CONTROL_CLASS =
-  'mt-1 w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm outline-none focus:border-[var(--primary)]';
+const CONTROL_CLASS = 'field';
 
 /**
  * Creates a DRAFT Listing from a provider-owned Property. Publishing is an
@@ -22,6 +22,7 @@ const CONTROL_CLASS =
 export default function NewProviderListingPage() {
   const router = useRouter();
   const t = useTranslations('provider');
+  const commonT = useTranslations('common');
   const workspace = useProviderAuthorization();
   const canCreate = workspace.hasProviderPermission('listing:create');
   const eligibleProperties = useListingEligibleProperties(canCreate);
@@ -46,8 +47,9 @@ export default function NewProviderListingPage() {
     try {
       await createListing.mutateAsync({ estateId });
       router.push('/provider/listings');
-    } catch {
-      // Error surfaces through the mutation state below.
+      notify.success(commonT(FEEDBACK.created));
+    } catch (error) {
+      notify.apiError(error, commonT, 'listings.createFailed');
     }
   };
 
@@ -61,12 +63,12 @@ export default function NewProviderListingPage() {
         <p className="mb-4 text-sm text-[var(--text-muted)]">{t('loading')}</p>
       )}
       {blockedByLifecycle && (
-        <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+        <p className="panel mb-4 px-4 py-3 text-sm text-[var(--text-muted)]">
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
       )}
       {workspace.state === 'ACTIVE_VERIFIED' && !canCreate && (
-        <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+        <p className="panel mb-4 px-4 py-3 text-sm text-[var(--text-muted)]">
           {t('permissionDenied')}
         </p>
       )}
@@ -83,7 +85,7 @@ export default function NewProviderListingPage() {
         eligibleProperties.isError && (
           <p
             role="alert"
-            className="mb-4 border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
+            className="mb-4 rounded-[var(--radius-md)] border border-[var(--danger)]/25 bg-[var(--danger-soft)] px-3.5 py-2.5 text-sm font-medium text-[var(--danger-strong)]"
           >
             {t(
               eligiblePermissionDenied
@@ -93,7 +95,7 @@ export default function NewProviderListingPage() {
           </p>
         )}
       {dependenciesReady && eligibleProperties.data?.length === 0 && (
-        <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+        <p className="panel mb-4 px-4 py-3 text-sm text-[var(--text-muted)]">
           {t('listings.noEligibleProperties')}
         </p>
       )}
@@ -101,7 +103,7 @@ export default function NewProviderListingPage() {
         {createListing.isError && (
           <p
             role="alert"
-            className="border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
+            className="rounded-[var(--radius-md)] border border-[var(--danger)]/25 bg-[var(--danger-soft)] px-3.5 py-2.5 text-sm font-medium text-[var(--danger-strong)]"
           >
             {createListing.error instanceof ApiError &&
             createListing.error.status === 403
@@ -110,12 +112,9 @@ export default function NewProviderListingPage() {
           </p>
         )}
 
-        <div className="space-y-4 border border-[var(--border)] bg-[var(--surface)] p-6">
+        <div className="panel space-y-4 p-5 sm:p-6">
           <div>
-            <label
-              className="block text-sm font-medium"
-              htmlFor="listing-estate"
-            >
+            <label className="field-label" htmlFor="listing-estate">
               {t('listings.fields.property')}
             </label>
             <select
@@ -145,16 +144,13 @@ export default function NewProviderListingPage() {
           <button
             type="submit"
             disabled={!canSubmit || !estateId || !dependenciesReady}
-            className="bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+            className="btn btn-primary btn-lg"
           >
             {createListing.isPending
               ? t('listings.submitting')
               : t('listings.createDraft')}
           </button>
-          <Link
-            href="/provider/listings"
-            className="border border-[var(--border)] px-6 py-2.5 text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
-          >
+          <Link href="/provider/listings" className="btn btn-secondary btn-lg">
             {t('listings.cancel')}
           </Link>
         </div>

@@ -85,6 +85,13 @@ test('runs the Provider Property to Listing lifecycle in the browser', async ({
       .click();
     await expect(page).toHaveURL(/\/provider\/properties$/);
     await expect(page.getByText(propertyTitle, { exact: true })).toBeVisible();
+    const propertyRow = page.locator('li').filter({ hasText: propertyTitle });
+    await propertyRow
+      .getByRole('button', { name: /Activate|Kích hoạt/ })
+      .click();
+    await expect(
+      propertyRow.getByRole('button', { name: /Activate|Kích hoạt/ }),
+    ).toHaveCount(0);
 
     await page.goto('/provider/listings/new');
     const propertySelect = page.locator('#listing-estate');

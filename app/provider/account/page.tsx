@@ -5,8 +5,10 @@ import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
 import { useProviderEntryState } from '@/features/provider/use-provider-entry-state';
 import { providerApi } from '@/lib/api/provider/provider.api';
+import { FEEDBACK, notify } from '@/lib/notify';
 export default function ProviderAccountPage() {
   const t = useTranslations('provider');
+  const commonT = useTranslations('common');
   const queryClient = useQueryClient();
   const workspace = useProviderEntryState();
   const account = workspace.account;
@@ -22,10 +24,13 @@ export default function ProviderAccountPage() {
       providerApi.updateAccount({
         displayName: displayName.trim(),
       }),
-    onSuccess: () =>
+    onSuccess: () => {
+      notify.success(commonT(FEEDBACK.updated));
       void queryClient.invalidateQueries({
         queryKey: ['provider-workspace'],
-      }),
+      });
+    },
+    onError: (error) => notify.apiError(error, commonT),
   });
   return (
     <>
@@ -34,51 +39,48 @@ export default function ProviderAccountPage() {
         description={t('overview.description')}
       />
       <form
-        className="max-w-xl border border-[var(--border)] bg-[var(--surface)] p-6"
+        className="panel max-w-xl p-5 sm:p-6"
         onSubmit={(event) => {
           event.preventDefault();
           update.mutate();
         }}
       >
-        <label className="block text-sm">
-          <span className="mb-1 block font-medium">
+        <div>
+          <label className="field-label" htmlFor="provider-display-name">
             {t('onboarding.displayName')}
-          </span>
+          </label>
           <input
-            className="w-full rounded-md border border-[var(--border)] px-3 py-2"
+            id="provider-display-name"
+            className="field"
             required
             maxLength={255}
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
           />
-        </label>
+        </div>
         {account.data && (
-          <dl className="mt-6 grid gap-3 border-t border-[var(--border)] pt-5 text-sm sm:grid-cols-2">
+          <dl className="mt-5 grid gap-4 border-t border-[var(--border-muted)] pt-5 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-[var(--text-muted)]">
-                {t('account.providerId')}
-              </dt>
-              <dd className="break-all font-mono text-xs">{account.data.id}</dd>
+              <dt className="label-caps">{t('account.providerId')}</dt>
+              <dd className="mt-1 break-all font-mono text-xs text-[var(--text-muted)]">
+                {account.data.id}
+              </dd>
             </div>
             <div>
-              <dt className="text-[var(--text-muted)]">
-                {t('labels.providerStatus')}
-              </dt>
-              <dd>{t(`status.${account.data.status.toLowerCase()}`)}</dd>
+              <dt className="label-caps">{t('labels.providerStatus')}</dt>
+              <dd className="mt-1 text-[var(--text)]">
+                {t(`status.${account.data.status.toLowerCase()}`)}
+              </dd>
             </div>
             <div>
-              <dt className="text-[var(--text-muted)]">
-                {t('labels.verification')}
-              </dt>
-              <dd>
+              <dt className="label-caps">{t('labels.verification')}</dt>
+              <dd className="mt-1 text-[var(--text)]">
                 {t(`status.${account.data.verificationStatus.toLowerCase()}`)}
               </dd>
             </div>
             <div>
-              <dt className="text-[var(--text-muted)]">
-                {t('account.created')}
-              </dt>
-              <dd>
+              <dt className="label-caps">{t('account.created')}</dt>
+              <dd className="mt-1 text-[var(--text)]">
                 {new Intl.DateTimeFormat(undefined, {
                   dateStyle: 'medium',
                 }).format(new Date(account.data.createdAt))}
@@ -87,13 +89,17 @@ export default function ProviderAccountPage() {
           </dl>
         )}
         {account.error && (
-          <p className="mt-3 text-sm text-red-700">{account.error.message}</p>
+          <p role="alert" className="field-error">
+            {account.error.message}
+          </p>
         )}
         {update.isError && (
-          <p className="mt-3 text-sm text-red-700">{update.error.message}</p>
+          <p role="alert" className="field-error">
+            {update.error.message}
+          </p>
         )}
         <button
-          className="mt-5 rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
+          className="btn btn-primary mt-5"
           disabled={
             update.isPending ||
             account.isLoading ||

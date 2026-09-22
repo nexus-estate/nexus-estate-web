@@ -42,6 +42,20 @@ export function getWebPlatform(): WebPlatform {
   return parseWebPlatform(process.env.WEB_PLATFORM);
 }
 
+/**
+ * Platform resolved without throwing.
+ *
+ * Used by build-time metadata routes (robots/sitemap), which are evaluated
+ * during `next build` where WEB_PLATFORM may intentionally be unset.
+ */
+export function tryGetWebPlatform(): WebPlatform | null {
+  try {
+    return getWebPlatform();
+  } catch {
+    return null;
+  }
+}
+
 export function getPlatformTitle(platform: WebPlatform) {
   switch (platform) {
     case 'provider':

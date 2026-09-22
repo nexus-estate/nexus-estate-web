@@ -22,10 +22,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={selectId}
-            className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]"
-          >
+          <label htmlFor={selectId} className="field-label">
             {label}
           </label>
         )}
@@ -33,10 +30,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={selectId}
           className={clsx(
-            'block min-h-10 w-full rounded-[var(--radius-md)] border bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] shadow-[var(--shadow-xs)] transition-[border-color,box-shadow,background-color] focus:outline-none focus:ring-[3px] disabled:cursor-not-allowed disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-disabled)]',
-            error
-              ? 'border-[var(--danger)] focus:border-[var(--danger)] focus:ring-[rgb(207_34_46_/_0.16)]'
-              : 'border-[var(--border-interactive)] hover:border-[var(--border-strong)] focus:border-[var(--focus-border)] focus:ring-[var(--focus-ring)]',
+            'field appearance-none pr-8',
+            error && 'field-invalid',
             className,
           )}
           aria-invalid={!!error}
@@ -59,11 +54,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ))}
         </select>
         {error && (
-          <p
-            id={`${selectId}-error`}
-            className="mt-1.5 text-xs font-medium text-[var(--danger)]"
-            role="alert"
-          >
+          <p id={`${selectId}-error`} className="field-error" role="alert">
             {error}
           </p>
         )}

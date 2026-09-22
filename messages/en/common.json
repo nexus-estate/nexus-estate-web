@@ -41,14 +41,32 @@
     "subject": "Subject details",
     "audit": "Authorization audit"
   },
+  "a11y": {
+    "skipToContent": "Skip to main content",
+    "mainContent": "Main content"
+  },
+  "table": {
+    "label": "Data table"
+  },
   "pagination": {
     "previous": "Previous",
     "next": "Next",
     "pageOf": "Page {current} of {total}"
   },
   "language": { "vietnamese": "Tiếng Việt", "english": "English" },
+  "feedback": {
+    "created": "Created successfully.",
+    "updated": "Changes saved.",
+    "deleted": "Deleted.",
+    "published": "Listing published.",
+    "archived": "Archived.",
+    "approved": "Provider approved.",
+    "sent": "Sent successfully.",
+    "assigned": "Assignments saved."
+  },
   "errors": {
     "unexpected": "Something went wrong. Please try again.",
+    "assignmentConflict": "This assignment conflicts with the current state. Reload the page and try again.",
     "requestId": "Request ID: {requestId}",
     "roleVersionConflict": "This role changed while you were editing. Reload the latest version before saving again.",
     "roleInUse": "This role is in use and cannot be deleted.",
@@ -57,6 +75,11 @@
     "lastOwnerProtection": "The last Owner cannot be removed.",
     "providerContextRequired": "Select a Provider context before continuing.",
     "providerAccountNotFound": "Provider account was not found."
+  },
+  "notFoundPage": {
+    "title": "We couldn't find that page",
+    "description": "The link may be broken, or the page may have been moved or removed.",
+    "search": "Browse properties"
   },
   "errorPage": {
     "title": "Something went wrong",

@@ -45,7 +45,7 @@ describe('Input', () => {
   it('applies semantic error styles to input', () => {
     render(<Input error="Error" />);
     const input = screen.getByRole('textbox');
-    expect(input.className).toContain('border-[var(--danger)]');
+    expect(input.className).toContain('field-invalid');
     expect(input).toHaveAttribute('aria-invalid', 'true');
   });
 });
