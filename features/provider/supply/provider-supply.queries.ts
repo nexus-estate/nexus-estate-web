@@ -7,7 +7,10 @@ import type {
   UpdateEstateRequest,
 } from '@/lib/api/estate/estate.types';
 import { listingApi } from '@/lib/api/listing/listing.api';
-import type { Listing } from '@/lib/api/listing/listing.types';
+import type {
+  Listing,
+  ListingEligibleProperty,
+} from '@/lib/api/listing/listing.types';
 import { useProviderContext } from '../context/provider-context.provider';
 import { providerKeys } from '../query-keys';
 
@@ -37,6 +40,15 @@ export function useProviderListings(enabled = true) {
   return useQuery({
     queryKey: providerKeys.listings(providerId),
     queryFn: () => listingApi.mine(),
+    enabled,
+  });
+}
+
+export function useListingEligibleProperties(enabled = true) {
+  const { providerId } = useProviderContext();
+  return useQuery<ListingEligibleProperty[]>({
+    queryKey: providerKeys.eligibleProperties(providerId),
+    queryFn: () => listingApi.eligibleProperties(),
     enabled,
   });
 }

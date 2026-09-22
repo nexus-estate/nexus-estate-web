@@ -2,6 +2,11 @@ import type { EstatePurpose, EstateType } from '../estate/estate.types';
 
 export type ListingStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 
+export interface ListingEligibleProperty {
+  id: string;
+  title: string;
+}
+
 export interface ListingEstate {
   id: string;
   title: string;

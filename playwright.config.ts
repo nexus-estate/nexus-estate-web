@@ -16,7 +16,9 @@ const platformUrlEnv = {
 
 export default defineConfig({
   testDir: './e2e',
-  testIgnore: integration ? [] : ['**/platform-lifecycle.spec.ts'],
+  testIgnore: integration
+    ? []
+    : ['**/platform-lifecycle.spec.ts', '**/provider-supply-lifecycle.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

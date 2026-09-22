@@ -8,6 +8,8 @@ export type ProviderVerificationStatus =
   'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type ProviderMembershipStatus = 'ACTIVE' | 'SUSPENDED' | 'REMOVED';
 export type ProviderPermissionCode =
+  | 'provider-account:read'
+  | 'provider-account:update'
   | 'property:read'
   | 'property:create'
   | 'property:update'

@@ -411,6 +411,15 @@ async function main() {
       cwd: apiRoot,
       env: lifecycleEnv,
     });
+    await run(
+      'Seed isolated location fixtures',
+      'npm',
+      ['run', 'seed:location'],
+      {
+        cwd: apiRoot,
+        env: lifecycleEnv,
+      },
+    );
     apiProcess = await startApi();
     await run(
       'Full-stack Platform Lifecycle E2E',
@@ -420,6 +429,7 @@ async function main() {
         'test:e2e',
         '--',
         'platform-lifecycle.spec.ts',
+        'provider-supply-lifecycle.spec.ts',
         'cross-platform-navigation.spec.ts',
       ],
       {

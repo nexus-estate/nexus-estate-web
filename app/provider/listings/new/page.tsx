@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -8,10 +8,8 @@ import { PageHeader } from '@/components/portal/page-header';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import {
   useCreateProviderListing,
-  useProviderListings,
-  useProviderProperties,
+  useListingEligibleProperties,
 } from '@/features/provider/supply/provider-supply.queries';
-import { getListingEligibleProperties } from '@/features/provider/supply/provider-supply.selectors';
 import { ApiError } from '@/lib/api/core/error';
 
 const CONTROL_CLASS =
@@ -20,39 +18,24 @@ const CONTROL_CLASS =
 /**
  * Creates a DRAFT Listing from a provider-owned Property. Publishing is an
  * explicit lifecycle command elsewhere; this flow never auto-publishes.
- * Only Properties without a Listing yet are selectable — the API allows one
- * non-deleted Listing per Estate.
  */
 export default function NewProviderListingPage() {
   const router = useRouter();
   const t = useTranslations('provider');
   const workspace = useProviderAuthorization();
-  const properties = useProviderProperties(
-    workspace.hasProviderPermission('property:read'),
-  );
-  const listings = useProviderListings(
-    workspace.hasProviderPermission('listing:read'),
-  );
+  const canCreate = workspace.hasProviderPermission('listing:create');
+  const eligibleProperties = useListingEligibleProperties(canCreate);
   const createListing = useCreateProviderListing();
   const [estateId, setEstateId] = useState('');
 
-  const canSubmit =
-    workspace.hasProviderPermission('listing:create') &&
-    !createListing.isPending;
+  const canSubmit = canCreate && !createListing.isPending;
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
   const dependenciesReady =
     workspace.state === 'ACTIVE_VERIFIED' &&
-    workspace.hasProviderPermission('property:read') &&
-    !properties.isLoading &&
-    !properties.isError;
-  const dependenciesLoading = properties.isLoading;
-
-  const eligibleProperties = useMemo(
-    () =>
-      getListingEligibleProperties(properties.data ?? [], listings.data ?? []),
-    [properties.data, listings.data],
-  );
+    canCreate &&
+    !eligibleProperties.isLoading &&
+    !eligibleProperties.isError;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -79,18 +62,22 @@ export default function NewProviderListingPage() {
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
       )}
-      {workspace.state === 'ACTIVE_VERIFIED' &&
-        !workspace.hasProviderPermission('property:read') && (
-          <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
-            {t('permissionDenied')}
-          </p>
-        )}
-      {workspace.state === 'ACTIVE_VERIFIED' && dependenciesLoading && (
-        <p className="mb-4 text-sm text-[var(--text-muted)]">{t('loading')}</p>
+      {workspace.state === 'ACTIVE_VERIFIED' && !canCreate && (
+        <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+          {t('permissionDenied')}
+        </p>
       )}
       {workspace.state === 'ACTIVE_VERIFIED' &&
-        !dependenciesLoading &&
-        properties.isError && (
+        canCreate &&
+        eligibleProperties.isLoading && (
+          <p className="mb-4 text-sm text-[var(--text-muted)]">
+            {t('loading')}
+          </p>
+        )}
+      {workspace.state === 'ACTIVE_VERIFIED' &&
+        canCreate &&
+        !eligibleProperties.isLoading &&
+        eligibleProperties.isError && (
           <p
             role="alert"
             className="mb-4 border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
@@ -98,11 +85,9 @@ export default function NewProviderListingPage() {
             {t('listings.loadFailed')}
           </p>
         )}
-      {dependenciesReady && eligibleProperties.length === 0 && (
+      {dependenciesReady && eligibleProperties.data?.length === 0 && (
         <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
-          {(properties.data ?? []).length === 0
-            ? t('listings.noProperties')
-            : t('listings.noEligibleProperties')}
+          {t('listings.noEligibleProperties')}
         </p>
       )}
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -137,19 +122,12 @@ export default function NewProviderListingPage() {
               <option value="">
                 {t('listings.fields.propertyPlaceholder')}
               </option>
-              {eligibleProperties.map((estate) => (
-                <option key={estate.id} value={estate.id}>
-                  {estate.title}
+              {(eligibleProperties.data ?? []).map((property) => (
+                <option key={property.id} value={property.id}>
+                  {property.title}
                 </option>
               ))}
             </select>
-            {dependenciesReady &&
-              (properties.data ?? []).length > 0 &&
-              eligibleProperties.length === 0 && (
-                <p className="mt-2 text-xs text-[var(--text-muted)]">
-                  {t('listings.noEligibleProperties')}
-                </p>
-              )}
           </div>
           <p className="text-xs text-[var(--text-muted)]">
             {t('listings.draftNote')}
