@@ -4,7 +4,12 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { PageHeader } from '@/components/portal/page-header';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
-import { useProviderListings } from '@/features/provider/supply/provider-supply.queries';
+import {
+  useArchiveProviderListing,
+  useProviderListings,
+  usePublishProviderListing,
+} from '@/features/provider/supply/provider-supply.queries';
+import { ApiError } from '@/lib/api/core/error';
 import type { ListingStatus } from '@/lib/api/listing/listing.types';
 
 function statusTone(status: ListingStatus) {
@@ -17,9 +22,16 @@ export default function ProviderListingsPage() {
   const locale = useLocale();
   const t = useTranslations('provider');
   const workspace = useProviderAuthorization();
-  const listings = useProviderListings(workspace.state === 'ACTIVE_VERIFIED');
+  const listings = useProviderListings(
+    workspace.hasProviderPermission('listing:read'),
+  );
+  const publishListing = usePublishProviderListing();
+  const archiveListing = useArchiveProviderListing();
 
-  const canCreate = workspace.canMutate;
+  const canCreate = workspace.hasProviderPermission('listing:create');
+  const canRead = workspace.hasProviderPermission('listing:read');
+  const canPublish = workspace.hasProviderPermission('listing:publish');
+  const canArchive = workspace.hasProviderPermission('listing:archive');
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
 
@@ -46,11 +58,20 @@ export default function ProviderListingsPage() {
         <p className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
+      ) : !canRead ? (
+        <p
+          role="alert"
+          className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]"
+        >
+          {t('permissionDenied')}
+        </p>
       ) : listings.isLoading ? (
         <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
       ) : listings.isError ? (
         <p role="alert" className="text-sm text-[var(--danger)]">
-          {t('listings.loadFailed')}
+          {listings.error instanceof ApiError && listings.error.status === 403
+            ? t('permissionDenied')
+            : t('listings.loadFailed')}
         </p>
       ) : (listings.data?.length ?? 0) === 0 ? (
         <div className="border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center text-sm text-[var(--text-muted)]">
@@ -80,9 +101,41 @@ export default function ProviderListingsPage() {
               >
                 {t(`listings.status.${listing.status}`)}
               </span>
+              <div className="flex items-center gap-2">
+                {listing.status === 'DRAFT' && canPublish && (
+                  <button
+                    type="button"
+                    disabled={publishListing.isPending}
+                    onClick={() => publishListing.mutate(listing.id)}
+                    className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
+                  >
+                    {t('listings.publish')}
+                  </button>
+                )}
+                {listing.status === 'PUBLISHED' && canArchive && (
+                  <button
+                    type="button"
+                    disabled={archiveListing.isPending}
+                    onClick={() => archiveListing.mutate(listing.id)}
+                    className="border border-[var(--danger)] px-3 py-1.5 text-xs font-medium text-[var(--danger)] disabled:opacity-50"
+                  >
+                    {t('listings.archive')}
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
+      )}
+      {(publishListing.isError || archiveListing.isError) && (
+        <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
+          {(publishListing.error instanceof ApiError &&
+            publishListing.error.status === 403) ||
+          (archiveListing.error instanceof ApiError &&
+            archiveListing.error.status === 403)
+            ? t('permissionDenied')
+            : t('listings.actionFailed')}
+        </p>
       )}
     </>
   );

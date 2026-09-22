@@ -1,6 +1,7 @@
 import { publicApiClient, providerApiClient } from '../client';
 import type {
   CreateListingInput,
+  ListingEligibleProperty,
   Listing,
   ListingPageResponse,
   ListingQuery,
@@ -27,8 +28,18 @@ export const listingApi = {
     return providerApiClient.post<Listing>('/listings', data);
   },
 
+  eligibleProperties() {
+    return providerApiClient.get<ListingEligibleProperty[]>(
+      '/listings/eligible-properties',
+    );
+  },
+
   publish(id: string) {
     return providerApiClient.post<Listing>(`/listings/${id}/publish`);
+  },
+
+  archive(id: string) {
+    return providerApiClient.post<Listing>(`/listings/${id}/archive`);
   },
 
   mine() {

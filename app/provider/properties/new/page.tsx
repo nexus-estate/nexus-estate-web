@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import { useCreateProviderProperty } from '@/features/provider/supply/provider-supply.queries';
+import { ApiError } from '@/lib/api/core/error';
 import { locationApi } from '@/lib/api/estate/estate.api';
 import type {
   EstatePurpose,
@@ -93,7 +94,9 @@ export default function NewProviderPropertyPage() {
     };
   }, [form.provinceId]);
 
-  const canMutate = workspace.canMutate && !createProperty.isPending;
+  const canSubmit =
+    workspace.hasProviderPermission('property:create') &&
+    !createProperty.isPending;
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
 
@@ -109,7 +112,7 @@ export default function NewProviderPropertyPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!canMutate) return;
+    if (!canSubmit) return;
     try {
       const estate = await createProperty.mutateAsync({
         title: form.title,
@@ -155,7 +158,10 @@ export default function NewProviderPropertyPage() {
             role="alert"
             className="border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
           >
-            {t('properties.createFailed')}
+            {createProperty.error instanceof ApiError &&
+            createProperty.error.status === 403
+              ? t('permissionDenied')
+              : t('properties.createFailed')}
           </p>
         )}
 
@@ -351,7 +357,7 @@ export default function NewProviderPropertyPage() {
         <div className="flex items-center gap-3">
           <button
             type="submit"
-            disabled={!canMutate}
+            disabled={!canSubmit}
             className="bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
           >
             {createProperty.isPending

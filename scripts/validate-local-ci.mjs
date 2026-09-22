@@ -1,13 +1,15 @@
 import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
+import { createServer } from 'node:net';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const webRoot = resolve(import.meta.dirname, '..');
 const apiRoot = resolve(webRoot, process.env.NEXUS_API_ROOT ?? '../api');
 const expectedApiRef = process.env.NEXUS_API_EXPECTED_REF ?? 'origin/develop';
-const apiUrl = 'http://localhost:50001/api/v1';
-const apiHealthUrl = 'http://localhost:50001/health/live';
+let apiPort = process.env.NEXUS_LOCAL_CI_API_PORT ?? '50001';
+let apiUrl = `http://localhost:${apiPort}/api/v1`;
+let apiHealthUrl = `http://localhost:${apiPort}/health/live`;
 const localPlatformUrls = {
   NEXT_PUBLIC_MARKETPLACE_URL: 'http://localhost:3000',
   NEXT_PUBLIC_PROVIDER_URL: 'http://localhost:3001',
@@ -129,7 +131,7 @@ function validateApiRevision() {
 
 const lifecycleEnv = {
   NODE_ENV: 'development',
-  PORT: '50001',
+  PORT: apiPort,
   DB_POSTGRES_HOST: '127.0.0.1',
   DB_POSTGRES_USER: 'postgres',
   DB_POSTGRES_PASS: 'postgres',
@@ -145,6 +147,52 @@ const lifecycleEnv = {
     'http://localhost:3000,http://localhost:3001,http://localhost:3002',
   SWAGGER_ENABLED: 'false',
 };
+
+function canListenOn(port) {
+  return new Promise((resolvePort) => {
+    const server = createServer();
+    const finish = (available) => {
+      server.removeAllListeners();
+      if (server.listening) server.close(() => resolvePort(available));
+      else resolvePort(available);
+    };
+    server.once('error', () => finish(false));
+    server.listen(Number(port), '127.0.0.1', () => finish(true));
+  });
+}
+
+function findEphemeralPort() {
+  return new Promise((resolvePort, rejectPort) => {
+    const server = createServer();
+    server.once('error', rejectPort);
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      const port = typeof address === 'object' && address ? address.port : null;
+      server.close(() => {
+        if (port) resolvePort(String(port));
+        else rejectPort(new Error('Unable to select a local API port'));
+      });
+    });
+  });
+}
+
+async function selectApiPort() {
+  const requestedPort = process.env.NEXUS_LOCAL_CI_API_PORT;
+  if (requestedPort) {
+    if (!(await canListenOn(requestedPort))) {
+      throw new Error(
+        `Requested local CI API port ${requestedPort} is already in use. Set NEXUS_LOCAL_CI_API_PORT to another free port.`,
+      );
+    }
+  } else if (!(await canListenOn(apiPort))) {
+    apiPort = await findEphemeralPort();
+  }
+
+  apiUrl = `http://localhost:${apiPort}/api/v1`;
+  apiHealthUrl = `http://localhost:${apiPort}/health/live`;
+  lifecycleEnv.PORT = apiPort;
+  log(`[local-ci] API port: ${apiPort}`);
+}
 
 function run(label, command, args, options = {}) {
   log(`\n[local-ci] ${label}`);
@@ -301,6 +349,7 @@ async function stopProcess(child) {
 
 async function main() {
   validateApiRevision();
+  await selectApiPort();
   await run('Prettier check', 'npm', ['run', 'format:check']);
   await run('Internationalization check', 'npm', ['run', 'i18n:check']);
   await run('Lint', 'npm', ['run', 'lint']);
@@ -362,6 +411,15 @@ async function main() {
       cwd: apiRoot,
       env: lifecycleEnv,
     });
+    await run(
+      'Seed isolated location fixtures',
+      'npm',
+      ['run', 'seed:location'],
+      {
+        cwd: apiRoot,
+        env: lifecycleEnv,
+      },
+    );
     apiProcess = await startApi();
     await run(
       'Full-stack Platform Lifecycle E2E',
@@ -371,6 +429,7 @@ async function main() {
         'test:e2e',
         '--',
         'platform-lifecycle.spec.ts',
+        'provider-supply-lifecycle.spec.ts',
         'cross-platform-navigation.spec.ts',
       ],
       {
