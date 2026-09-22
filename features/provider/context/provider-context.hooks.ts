@@ -28,6 +28,5 @@ export function useProviderAuthorization() {
     state,
     hasProviderPermission,
     can: hasProviderPermission,
-    canMutate: state === 'ACTIVE_VERIFIED',
   };
 }

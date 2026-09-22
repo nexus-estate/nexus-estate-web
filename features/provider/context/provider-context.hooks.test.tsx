@@ -49,7 +49,6 @@ test('resolves an authorization-only active provider as mutable', async () => {
   });
 
   await waitFor(() => expect(result.current.state).toBe('ACTIVE_VERIFIED'));
-  expect(result.current.canMutate).toBe(true);
   expect(result.current.hasProviderPermission('property:create')).toBe(true);
   expect(result.current.hasProviderPermission('property:archive')).toBe(false);
   expect(

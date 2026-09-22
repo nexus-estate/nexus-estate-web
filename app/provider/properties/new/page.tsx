@@ -94,7 +94,7 @@ export default function NewProviderPropertyPage() {
     };
   }, [form.provinceId]);
 
-  const canMutate =
+  const canSubmit =
     workspace.hasProviderPermission('property:create') &&
     !createProperty.isPending;
   const blockedByLifecycle =
@@ -112,7 +112,7 @@ export default function NewProviderPropertyPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!canMutate) return;
+    if (!canSubmit) return;
     try {
       const estate = await createProperty.mutateAsync({
         title: form.title,
@@ -357,7 +357,7 @@ export default function NewProviderPropertyPage() {
         <div className="flex items-center gap-3">
           <button
             type="submit"
-            disabled={!canMutate}
+            disabled={!canSubmit}
             className="bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
           >
             {createProperty.isPending

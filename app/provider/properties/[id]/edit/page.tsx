@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import {
-  useProviderProperties,
+  useProviderProperty,
   useUpdateProviderProperty,
 } from '@/features/provider/supply/provider-supply.queries';
 import { ApiError } from '@/lib/api/core/error';
@@ -20,11 +20,12 @@ export default function EditProviderPropertyPage() {
   const router = useRouter();
   const t = useTranslations('provider');
   const workspace = useProviderAuthorization();
-  const properties = useProviderProperties(
-    workspace.hasProviderPermission('property:read'),
+  const property = useProviderProperty(
+    params.id,
+    workspace.hasProviderPermission('property:update'),
   );
   const updateProperty = useUpdateProviderProperty();
-  const estate = properties.data?.find((item) => item.id === params.id);
+  const estate = property.data;
   const [title, setTitle] = useState<string | null>(null);
   const currentTitle = title ?? estate?.title ?? '';
 
@@ -67,15 +68,14 @@ export default function EditProviderPropertyPage() {
           {t('permissionDenied')}
         </p>
       )}
-      {properties.isError && (
+      {property.isError && (
         <p role="alert" className="mb-4 text-sm text-[var(--danger)]">
-          {properties.error instanceof ApiError &&
-          properties.error.status === 403
+          {property.error instanceof ApiError && property.error.status === 403
             ? t('permissionDenied')
             : t('properties.loadFailed')}
         </p>
       )}
-      {!properties.isLoading && !properties.isError && !estate && (
+      {!property.isLoading && !property.isError && !estate && (
         <p role="alert" className="mb-4 text-sm text-[var(--danger)]">
           {t('properties.loadFailed')}
         </p>

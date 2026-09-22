@@ -36,7 +36,7 @@ export default function NewProviderListingPage() {
   const createListing = useCreateProviderListing();
   const [estateId, setEstateId] = useState('');
 
-  const canMutate =
+  const canSubmit =
     workspace.hasProviderPermission('listing:create') &&
     !createListing.isPending;
   const blockedByLifecycle =
@@ -44,12 +44,9 @@ export default function NewProviderListingPage() {
   const dependenciesReady =
     workspace.state === 'ACTIVE_VERIFIED' &&
     workspace.hasProviderPermission('property:read') &&
-    workspace.hasProviderPermission('listing:read') &&
     !properties.isLoading &&
-    !properties.isError &&
-    !listings.isLoading &&
-    !listings.isError;
-  const dependenciesLoading = properties.isLoading || listings.isLoading;
+    !properties.isError;
+  const dependenciesLoading = properties.isLoading;
 
   const eligibleProperties = useMemo(
     () =>
@@ -59,7 +56,7 @@ export default function NewProviderListingPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!canMutate || !estateId) return;
+    if (!canSubmit || !estateId) return;
     try {
       await createListing.mutateAsync({ estateId });
       router.push('/provider/listings');
@@ -83,8 +80,7 @@ export default function NewProviderListingPage() {
         </p>
       )}
       {workspace.state === 'ACTIVE_VERIFIED' &&
-        (!workspace.hasProviderPermission('property:read') ||
-          !workspace.hasProviderPermission('listing:read')) && (
+        !workspace.hasProviderPermission('property:read') && (
           <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
             {t('permissionDenied')}
           </p>
@@ -94,7 +90,7 @@ export default function NewProviderListingPage() {
       )}
       {workspace.state === 'ACTIVE_VERIFIED' &&
         !dependenciesLoading &&
-        (properties.isError || listings.isError) && (
+        properties.isError && (
           <p
             role="alert"
             className="mb-4 border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
@@ -163,7 +159,7 @@ export default function NewProviderListingPage() {
         <div className="flex items-center gap-3">
           <button
             type="submit"
-            disabled={!canMutate || !estateId || !dependenciesReady}
+            disabled={!canSubmit || !estateId || !dependenciesReady}
             className="bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
           >
             {createListing.isPending
