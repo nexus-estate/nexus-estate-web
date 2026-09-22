@@ -4,7 +4,11 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { PageHeader } from '@/components/portal/page-header';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
-import { useProviderProperties } from '@/features/provider/supply/provider-supply.queries';
+import {
+  useArchiveProviderProperty,
+  useProviderProperties,
+} from '@/features/provider/supply/provider-supply.queries';
+import { ApiError } from '@/lib/api/core/error';
 import type { Estate } from '@/lib/api/estate/estate.types';
 
 function formatPrice(value: number, locale: string) {
@@ -20,10 +24,14 @@ export default function ProviderPropertiesPage() {
   const t = useTranslations('provider');
   const workspace = useProviderAuthorization();
   const properties = useProviderProperties(
-    workspace.state === 'ACTIVE_VERIFIED',
+    workspace.hasProviderPermission('property:read'),
   );
+  const archiveProperty = useArchiveProviderProperty();
 
-  const canCreate = workspace.canMutate;
+  const canCreate = workspace.hasProviderPermission('property:create');
+  const canRead = workspace.hasProviderPermission('property:read');
+  const canUpdate = workspace.hasProviderPermission('property:update');
+  const canArchive = workspace.hasProviderPermission('property:archive');
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
 
@@ -50,11 +58,21 @@ export default function ProviderPropertiesPage() {
         <p className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
+      ) : !canRead ? (
+        <p
+          role="alert"
+          className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]"
+        >
+          {t('permissionDenied')}
+        </p>
       ) : properties.isLoading ? (
         <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
       ) : properties.isError ? (
         <p role="alert" className="text-sm text-[var(--danger)]">
-          {t('properties.loadFailed')}
+          {properties.error instanceof ApiError &&
+          properties.error.status === 403
+            ? t('permissionDenied')
+            : t('properties.loadFailed')}
         </p>
       ) : (properties.data?.length ?? 0) === 0 ? (
         <div className="border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center text-sm text-[var(--text-muted)]">
@@ -75,9 +93,37 @@ export default function ProviderPropertiesPage() {
                   {formatPrice(estate.price, locale)} · {estate.province.name}
                 </div>
               </div>
+              <div className="flex items-center gap-2">
+                {canUpdate && (
+                  <Link
+                    href={`/provider/properties/${estate.id}/edit`}
+                    className="border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--surface-hover)]"
+                  >
+                    {t('properties.edit')}
+                  </Link>
+                )}
+                {canArchive && (
+                  <button
+                    type="button"
+                    disabled={archiveProperty.isPending}
+                    onClick={() => archiveProperty.mutate(estate.id)}
+                    className="border border-[var(--danger)] px-3 py-1.5 text-xs font-medium text-[var(--danger)] disabled:opacity-50"
+                  >
+                    {t('properties.archive')}
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
+      )}
+      {archiveProperty.isError && (
+        <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
+          {archiveProperty.error instanceof ApiError &&
+          archiveProperty.error.status === 403
+            ? t('permissionDenied')
+            : t('properties.archiveFailed')}
+        </p>
       )}
     </>
   );

@@ -31,6 +31,10 @@ export const listingApi = {
     return providerApiClient.post<Listing>(`/listings/${id}/publish`);
   },
 
+  unpublish(id: string) {
+    return providerApiClient.post<Listing>(`/listings/${id}/unpublish`);
+  },
+
   mine() {
     return providerApiClient.get<Listing[]>('/listings/mine');
   },

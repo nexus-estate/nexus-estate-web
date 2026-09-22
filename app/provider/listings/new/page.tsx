@@ -12,6 +12,7 @@ import {
   useProviderProperties,
 } from '@/features/provider/supply/provider-supply.queries';
 import { getListingEligibleProperties } from '@/features/provider/supply/provider-supply.selectors';
+import { ApiError } from '@/lib/api/core/error';
 
 const CONTROL_CLASS =
   'mt-1 w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm outline-none focus:border-[var(--primary)]';
@@ -27,17 +28,23 @@ export default function NewProviderListingPage() {
   const t = useTranslations('provider');
   const workspace = useProviderAuthorization();
   const properties = useProviderProperties(
-    workspace.state === 'ACTIVE_VERIFIED',
+    workspace.hasProviderPermission('property:read'),
   );
-  const listings = useProviderListings(workspace.state === 'ACTIVE_VERIFIED');
+  const listings = useProviderListings(
+    workspace.hasProviderPermission('listing:read'),
+  );
   const createListing = useCreateProviderListing();
   const [estateId, setEstateId] = useState('');
 
-  const canMutate = workspace.canMutate && !createListing.isPending;
+  const canMutate =
+    workspace.hasProviderPermission('listing:create') &&
+    !createListing.isPending;
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
   const dependenciesReady =
     workspace.state === 'ACTIVE_VERIFIED' &&
+    workspace.hasProviderPermission('property:read') &&
+    workspace.hasProviderPermission('listing:read') &&
     !properties.isLoading &&
     !properties.isError &&
     !listings.isLoading &&
@@ -75,6 +82,13 @@ export default function NewProviderListingPage() {
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
       )}
+      {workspace.state === 'ACTIVE_VERIFIED' &&
+        (!workspace.hasProviderPermission('property:read') ||
+          !workspace.hasProviderPermission('listing:read')) && (
+          <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+            {t('permissionDenied')}
+          </p>
+        )}
       {workspace.state === 'ACTIVE_VERIFIED' && dependenciesLoading && (
         <p className="mb-4 text-sm text-[var(--text-muted)]">{t('loading')}</p>
       )}
@@ -101,7 +115,10 @@ export default function NewProviderListingPage() {
             role="alert"
             className="border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
           >
-            {t('listings.createFailed')}
+            {createListing.error instanceof ApiError &&
+            createListing.error.status === 403
+              ? t('permissionDenied')
+              : t('listings.createFailed')}
           </p>
         )}
 

@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import { useCreateProviderProperty } from '@/features/provider/supply/provider-supply.queries';
+import { ApiError } from '@/lib/api/core/error';
 import { locationApi } from '@/lib/api/estate/estate.api';
 import type {
   EstatePurpose,
@@ -93,7 +94,9 @@ export default function NewProviderPropertyPage() {
     };
   }, [form.provinceId]);
 
-  const canMutate = workspace.canMutate && !createProperty.isPending;
+  const canMutate =
+    workspace.hasProviderPermission('property:create') &&
+    !createProperty.isPending;
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
 
@@ -155,7 +158,10 @@ export default function NewProviderPropertyPage() {
             role="alert"
             className="border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
           >
-            {t('properties.createFailed')}
+            {createProperty.error instanceof ApiError &&
+            createProperty.error.status === 403
+              ? t('permissionDenied')
+              : t('properties.createFailed')}
           </p>
         )}
 
