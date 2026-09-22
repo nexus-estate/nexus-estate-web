@@ -26,6 +26,15 @@ function refreshAuthorizationOnForbidden(
   }
 }
 
+function invalidateEligibleProperties(
+  queryClient: ReturnType<typeof useQueryClient>,
+  providerId: string | null,
+) {
+  void queryClient.invalidateQueries({
+    queryKey: providerKeys.eligibleProperties(providerId),
+  });
+}
+
 export function useProviderProperties(enabled = true) {
   const { providerId } = useProviderContext();
   return useQuery({
@@ -46,9 +55,17 @@ export function useProviderListings(enabled = true) {
 
 export function useListingEligibleProperties(enabled = true) {
   const { providerId } = useProviderContext();
+  const queryClient = useQueryClient();
   return useQuery<ListingEligibleProperty[]>({
     queryKey: providerKeys.eligibleProperties(providerId),
-    queryFn: () => listingApi.eligibleProperties(),
+    queryFn: async () => {
+      try {
+        return await listingApi.eligibleProperties();
+      } catch (error) {
+        refreshAuthorizationOnForbidden(error, queryClient, providerId);
+        throw error;
+      }
+    },
     enabled,
   });
 }
@@ -71,6 +88,7 @@ export function useCreateProviderProperty() {
       void queryClient.invalidateQueries({
         queryKey: providerKeys.properties(providerId),
       });
+      invalidateEligibleProperties(queryClient, providerId);
     },
     onError: (error) =>
       refreshAuthorizationOnForbidden(error, queryClient, providerId),
@@ -90,6 +108,7 @@ export function useUpdateProviderProperty() {
       void queryClient.invalidateQueries({
         queryKey: providerKeys.property(providerId, updated.id),
       });
+      invalidateEligibleProperties(queryClient, providerId);
     },
     onError: (error) =>
       refreshAuthorizationOnForbidden(error, queryClient, providerId),
@@ -108,6 +127,7 @@ export function useArchiveProviderProperty() {
       void queryClient.invalidateQueries({
         queryKey: providerKeys.property(providerId, id),
       });
+      invalidateEligibleProperties(queryClient, providerId);
     },
     onError: (error) =>
       refreshAuthorizationOnForbidden(error, queryClient, providerId),
@@ -130,6 +150,7 @@ export function useCreateProviderListing() {
       void queryClient.invalidateQueries({
         queryKey: providerKeys.properties(providerId),
       });
+      invalidateEligibleProperties(queryClient, providerId);
       return listing;
     },
     onError: (error) =>

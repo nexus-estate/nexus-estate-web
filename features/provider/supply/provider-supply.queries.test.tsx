@@ -1,21 +1,31 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { ApiError } from '@/lib/api/core/error';
+import { estateApi } from '@/lib/api/estate/estate.api';
 import { listingApi } from '@/lib/api/listing/listing.api';
 import { useProviderContext } from '../context/provider-context.provider';
 import { providerKeys } from '../query-keys';
 import {
+  useArchiveProviderProperty,
   useArchiveProviderListing,
+  useCreateProviderListing,
+  useCreateProviderProperty,
   useListingEligibleProperties,
+  useUpdateProviderProperty,
 } from './provider-supply.queries';
 
 jest.mock('@/lib/api/estate/estate.api', () => ({
-  estateApi: {},
+  estateApi: {
+    create: jest.fn(),
+    update: jest.fn(),
+    remove: jest.fn(),
+  },
 }));
 jest.mock('@/lib/api/listing/listing.api', () => ({
   listingApi: {
     archive: jest.fn(),
+    create: jest.fn(),
     eligibleProperties: jest.fn(),
   },
 }));
@@ -82,6 +92,106 @@ test('loads eligible properties with listing:create as the only capability', asy
   });
   expect(listingApi.eligibleProperties).toHaveBeenCalledTimes(1);
 });
+
+test('refreshes authorization when eligible properties return 403', async () => {
+  jest.mocked(useProviderContext).mockReturnValue({
+    providerId: 'provider-1',
+    setProviderId: jest.fn(),
+  });
+  jest
+    .mocked(listingApi.eligibleProperties)
+    .mockRejectedValue(new ApiError('Forbidden', { status: 403 }));
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
+
+  const { result } = renderHook(() => useListingEligibleProperties(false), {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    ),
+  });
+
+  let refetchResult: Awaited<ReturnType<typeof result.current.refetch>>;
+  await act(async () => {
+    refetchResult = await result.current.refetch();
+  });
+
+  expect(invalidateQueries).toHaveBeenCalledWith({
+    queryKey: providerKeys.authorization('provider-1'),
+  });
+  await waitFor(() => {
+    expect(refetchResult.error).toMatchObject({ status: 403 });
+  });
+});
+
+test.each([
+  [
+    'create property',
+    useCreateProviderProperty,
+    () => {
+      jest.mocked(estateApi.create).mockResolvedValue({} as never);
+      return { data: { title: 'New property' } };
+    },
+  ],
+  [
+    'update property',
+    useUpdateProviderProperty,
+    () => {
+      jest
+        .mocked(estateApi.update)
+        .mockResolvedValue({ id: 'property-1' } as never);
+      return {
+        data: { id: 'property-1', data: { title: 'Updated property' } },
+      };
+    },
+  ],
+  [
+    'archive property',
+    useArchiveProviderProperty,
+    () => {
+      jest.mocked(estateApi.remove).mockResolvedValue(true);
+      return { data: 'property-1' };
+    },
+  ],
+  [
+    'create listing',
+    useCreateProviderListing,
+    () => {
+      jest.mocked(listingApi.create).mockResolvedValue({} as never);
+      return { data: { estateId: 'property-1' } };
+    },
+  ],
+])(
+  '%s invalidates eligible properties after success',
+  async (_name, hook, setup) => {
+    jest.mocked(useProviderContext).mockReturnValue({
+      providerId: 'provider-1',
+      setProviderId: jest.fn(),
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { mutations: { retry: false } },
+    });
+    const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
+    const { data, ...mutationOptions } = setup();
+    const { result } = renderHook(() => hook(), {
+      wrapper: ({ children }) => (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      ),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync(data as never);
+    });
+
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: providerKeys.eligibleProperties('provider-1'),
+    });
+    void mutationOptions;
+  },
+);
 
 test('does not query eligible properties when listing:create is absent', async () => {
   jest.mocked(useProviderContext).mockReturnValue({

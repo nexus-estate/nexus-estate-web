@@ -36,6 +36,9 @@ export default function NewProviderListingPage() {
     canCreate &&
     !eligibleProperties.isLoading &&
     !eligibleProperties.isError;
+  const eligiblePermissionDenied =
+    eligibleProperties.error instanceof ApiError &&
+    eligibleProperties.error.status === 403;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -82,7 +85,11 @@ export default function NewProviderListingPage() {
             role="alert"
             className="mb-4 border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
           >
-            {t('listings.loadFailed')}
+            {t(
+              eligiblePermissionDenied
+                ? 'permissionDenied'
+                : 'listings.loadFailed',
+            )}
           </p>
         )}
       {dependenciesReady && eligibleProperties.data?.length === 0 && (
