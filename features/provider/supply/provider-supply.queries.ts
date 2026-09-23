@@ -36,6 +36,31 @@ function invalidateEligibleProperties(
   });
 }
 
+function updatePropertyQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+  providerId: string | null,
+  updated: Estate,
+) {
+  queryClient.setQueryData(
+    providerKeys.property(providerId, updated.id),
+    updated,
+  );
+  queryClient.setQueryData<Estate[]>(
+    providerKeys.properties(providerId),
+    (properties) =>
+      properties?.map((property) =>
+        property.id === updated.id ? updated : property,
+      ),
+  );
+  void queryClient.invalidateQueries({
+    queryKey: providerKeys.properties(providerId),
+  });
+  void queryClient.invalidateQueries({
+    queryKey: providerKeys.property(providerId, updated.id),
+  });
+  invalidateEligibleProperties(queryClient, providerId);
+}
+
 /**
  * Applies an optimistic status change to the cached listing list and returns
  * the previous value for rollback. Lifecycle commands (publish/archive) are
@@ -132,15 +157,8 @@ export function useUpdateProviderProperty() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateEstateRequest }) =>
       estateApi.update(id, data),
-    onSuccess: (updated) => {
-      void queryClient.invalidateQueries({
-        queryKey: providerKeys.properties(providerId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: providerKeys.property(providerId, updated.id),
-      });
-      invalidateEligibleProperties(queryClient, providerId);
-    },
+    onSuccess: (updated) =>
+      updatePropertyQueries(queryClient, providerId, updated),
     onError: (error) =>
       refreshAuthorizationOnForbidden(error, queryClient, providerId),
   });
@@ -150,34 +168,11 @@ export function useArchiveProviderProperty() {
   const { providerId } = useProviderContext();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => estateApi.remove(id),
-    onMutate: async (id: string) => {
-      const key = providerKeys.properties(providerId);
-      await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Estate[]>(key);
-      queryClient.setQueryData<Estate[]>(key, (current) =>
-        current?.filter((estate) => estate.id !== id),
-      );
-      return { previous };
-    },
-    onError: (error, _id, context) => {
-      if (context?.previous !== undefined) {
-        queryClient.setQueryData(
-          providerKeys.properties(providerId),
-          context.previous,
-        );
-      }
-      refreshAuthorizationOnForbidden(error, queryClient, providerId);
-    },
-    onSuccess: (_result, id) => {
-      void queryClient.invalidateQueries({
-        queryKey: providerKeys.properties(providerId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: providerKeys.property(providerId, id),
-      });
-      invalidateEligibleProperties(queryClient, providerId);
-    },
+    mutationFn: (id: string) => estateApi.archive(id),
+    onSuccess: (updated) =>
+      updatePropertyQueries(queryClient, providerId, updated),
+    onError: (error) =>
+      refreshAuthorizationOnForbidden(error, queryClient, providerId),
   });
 }
 
@@ -186,12 +181,20 @@ export function useActivateProviderProperty() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => estateApi.activate(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: providerKeys.properties(providerId),
-      });
-      invalidateEligibleProperties(queryClient, providerId);
-    },
+    onSuccess: (updated) =>
+      updatePropertyQueries(queryClient, providerId, updated),
+    onError: (error) =>
+      refreshAuthorizationOnForbidden(error, queryClient, providerId),
+  });
+}
+
+export function useRestoreProviderProperty() {
+  const { providerId } = useProviderContext();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => estateApi.restore(id),
+    onSuccess: (updated) =>
+      updatePropertyQueries(queryClient, providerId, updated),
     onError: (error) =>
       refreshAuthorizationOnForbidden(error, queryClient, providerId),
   });

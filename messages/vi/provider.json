@@ -64,9 +64,18 @@
     "loadFailed": "Không thể tải bất động sản.",
     "createFailed": "Không thể tạo bất động sản.",
     "updateFailed": "Không thể cập nhật bất động sản.",
-    "archive": "Lưu trữ",
     "activate": "Kích hoạt",
+    "activating": "Đang kích hoạt…",
+    "archive": "Lưu trữ",
+    "archiving": "Đang lưu trữ…",
+    "restore": "Khôi phục",
+    "restoring": "Đang khôi phục…",
     "archiveFailed": "Không thể lưu trữ bất động sản.",
+    "activationIncomplete": "Bất động sản còn thiếu thông tin cần thiết để kích hoạt.",
+    "publishedListingConflict": "Không thể lưu trữ bất động sản khi đang có Listing đã xuất bản.",
+    "invalidStatusTransition": "Trạng thái vòng đời bất động sản đã thay đổi. Vui lòng tải lại và thử lại.",
+    "listingPropertyNotActive": "Bất động sản phải ở trạng thái đang hoạt động trước khi xuất bản Listing.",
+    "lifecycleFailed": "Không thể hoàn tất thao tác vòng đời bất động sản.",
     "empty": "Chưa có bất động sản nào. Hãy tạo bất động sản đầu tiên để bắt đầu.",
     "fields": {
       "title": "Tiêu đề",
@@ -102,6 +111,11 @@
       "SALE": "Bán",
       "RENT": "Cho thuê",
       "SALE_OR_RENT": "Bán hoặc cho thuê"
+    },
+    "status": {
+      "DRAFT": "Bản nháp",
+      "ACTIVE": "Đang hoạt động",
+      "ARCHIVED": "Đã lưu trữ"
     }
   },
   "listings": {
@@ -114,7 +128,10 @@
     "cancel": "Hủy",
     "submitting": "Đang tạo…",
     "publish": "Xuất bản",
+    "publishing": "Đang xuất bản…",
     "archive": "Lưu trữ",
+    "archiving": "Đang lưu trữ…",
+    "propertyNotActive": "Bất động sản phải ở trạng thái đang hoạt động trước khi xuất bản Listing.",
     "loadFailed": "Không thể tải tin đăng.",
     "createFailed": "Không thể tạo tin đăng.",
     "actionFailed": "Không thể hoàn tất thao tác với tin đăng.",

@@ -16,6 +16,8 @@ export type EstateType =
 export type EstatePurpose = 'SALE' | 'RENT' | 'SALE_OR_RENT';
 export type EstateStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
 
+export type EstateStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+
 /** Location reference embedded in the Estate response contract. */
 export interface EstateLocation {
   id: string;
@@ -33,6 +35,7 @@ export interface EstateLocation {
 export interface Estate {
   id: string;
   providerId: string;
+  status: EstateStatus;
   title: string;
   description: string | null;
   type: EstateType;

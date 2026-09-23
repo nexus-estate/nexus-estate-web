@@ -2,6 +2,8 @@ import { Badge } from './Badge';
 
 const STATUS_VARIANTS = {
   ACTIVE: 'success',
+  DRAFT: 'warning',
+  ARCHIVED: 'default',
   VERIFIED: 'success',
   APPROVED: 'success',
   PUBLISHED: 'success',
@@ -18,12 +20,18 @@ const STATUS_VARIANTS = {
 export function StatusBadge({
   status,
   label,
+  size = 'md',
 }: {
   status: string;
   label?: string;
+  size?: 'sm' | 'md' | 'lg';
 }) {
   const normalized = status.toUpperCase();
   const variant =
     STATUS_VARIANTS[normalized as keyof typeof STATUS_VARIANTS] ?? 'default';
-  return <Badge variant={variant}>{label ?? status}</Badge>;
+  return (
+    <Badge variant={variant} size={size}>
+      {label ?? status}
+    </Badge>
+  );
 }
