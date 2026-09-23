@@ -4,6 +4,7 @@ import { ApiError } from '@/lib/api/core/error';
 import { estateApi } from '@/lib/api/estate/estate.api';
 import type {
   CreateEstateRequest,
+  Estate,
   UpdateEstateRequest,
 } from '@/lib/api/estate/estate.types';
 import { listingApi } from '@/lib/api/listing/listing.api';
@@ -33,6 +34,31 @@ function invalidateEligibleProperties(
   void queryClient.invalidateQueries({
     queryKey: providerKeys.eligibleProperties(providerId),
   });
+}
+
+function updatePropertyQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+  providerId: string | null,
+  updated: Estate,
+) {
+  queryClient.setQueryData(
+    providerKeys.property(providerId, updated.id),
+    updated,
+  );
+  queryClient.setQueryData<Estate[]>(
+    providerKeys.properties(providerId),
+    (properties) =>
+      properties?.map((property) =>
+        property.id === updated.id ? updated : property,
+      ),
+  );
+  void queryClient.invalidateQueries({
+    queryKey: providerKeys.properties(providerId),
+  });
+  void queryClient.invalidateQueries({
+    queryKey: providerKeys.property(providerId, updated.id),
+  });
+  invalidateEligibleProperties(queryClient, providerId);
 }
 
 export function useProviderProperties(enabled = true) {
@@ -101,15 +127,8 @@ export function useUpdateProviderProperty() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateEstateRequest }) =>
       estateApi.update(id, data),
-    onSuccess: (updated) => {
-      void queryClient.invalidateQueries({
-        queryKey: providerKeys.properties(providerId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: providerKeys.property(providerId, updated.id),
-      });
-      invalidateEligibleProperties(queryClient, providerId);
-    },
+    onSuccess: (updated) =>
+      updatePropertyQueries(queryClient, providerId, updated),
     onError: (error) =>
       refreshAuthorizationOnForbidden(error, queryClient, providerId),
   });
@@ -119,16 +138,33 @@ export function useArchiveProviderProperty() {
   const { providerId } = useProviderContext();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => estateApi.remove(id),
-    onSuccess: (_result, id) => {
-      void queryClient.invalidateQueries({
-        queryKey: providerKeys.properties(providerId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: providerKeys.property(providerId, id),
-      });
-      invalidateEligibleProperties(queryClient, providerId);
-    },
+    mutationFn: (id: string) => estateApi.archive(id),
+    onSuccess: (updated) =>
+      updatePropertyQueries(queryClient, providerId, updated),
+    onError: (error) =>
+      refreshAuthorizationOnForbidden(error, queryClient, providerId),
+  });
+}
+
+export function useActivateProviderProperty() {
+  const { providerId } = useProviderContext();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => estateApi.activate(id),
+    onSuccess: (updated) =>
+      updatePropertyQueries(queryClient, providerId, updated),
+    onError: (error) =>
+      refreshAuthorizationOnForbidden(error, queryClient, providerId),
+  });
+}
+
+export function useRestoreProviderProperty() {
+  const { providerId } = useProviderContext();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => estateApi.restore(id),
+    onSuccess: (updated) =>
+      updatePropertyQueries(queryClient, providerId, updated),
     onError: (error) =>
       refreshAuthorizationOnForbidden(error, queryClient, providerId),
   });

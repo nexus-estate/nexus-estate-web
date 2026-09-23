@@ -15,6 +15,13 @@ export const estateApi = {
     providerApiClient.post<Estate>('/estates', data),
   update: (id: string, data: UpdateEstateRequest) =>
     providerApiClient.patch<Estate>(`/estates/${id}`, data),
+  activate: (id: string) =>
+    providerApiClient.post<Estate>(`/estates/${id}/activate`),
+  archive: (id: string) =>
+    providerApiClient.post<Estate>(`/estates/${id}/archive`),
+  restore: (id: string) =>
+    providerApiClient.post<Estate>(`/estates/${id}/restore`),
+  /** Legacy DELETE compatibility; lifecycle UI uses archive(). */
   remove: (id: string) => providerApiClient.delete<boolean>(`/estates/${id}`),
 };
 
