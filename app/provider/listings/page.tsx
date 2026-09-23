@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { PageHeader } from '@/components/portal/page-header';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorAlert } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import {
   useArchiveProviderListing,
@@ -12,16 +16,20 @@ import {
 } from '@/features/provider/supply/provider-supply.queries';
 import { ApiError } from '@/lib/api/core/error';
 import type { ListingStatus } from '@/lib/api/listing/listing.types';
+import { FEEDBACK, notify } from '@/lib/notify';
 
-function statusTone(status: ListingStatus) {
-  if (status === 'PUBLISHED') return 'text-[var(--primary)]';
-  if (status === 'ARCHIVED') return 'text-[var(--text-subtle)]';
-  return 'text-[var(--text-muted)]';
+function statusVariant(
+  status: ListingStatus,
+): 'success' | 'warning' | 'default' {
+  if (status === 'PUBLISHED') return 'success';
+  if (status === 'ARCHIVED') return 'default';
+  return 'warning';
 }
 
 export default function ProviderListingsPage() {
   const locale = useLocale();
   const t = useTranslations('provider');
+  const commonT = useTranslations('common');
   const workspace = useProviderAuthorization();
   const listings = useProviderListings(
     workspace.hasProviderPermission('listing:read'),
@@ -55,7 +63,14 @@ export default function ProviderListingsPage() {
   const runAction = (action: 'publish' | 'archive', listingId: string) => {
     setActionError(null);
     const options = {
-      onSuccess: () => setActionError(null),
+      onSuccess: () => {
+        setActionError(null);
+        notify.success(
+          commonT(
+            action === 'publish' ? FEEDBACK.published : FEEDBACK.archived,
+          ),
+        );
+      },
       onError: (error: unknown) => setActionError(error),
     };
     if (action === 'publish') publishListing.mutate(listingId, options);
@@ -71,8 +86,8 @@ export default function ProviderListingsPage() {
           <Link
             href="/provider/listings/new"
             aria-disabled={!canCreate}
-            className={`inline-flex bg-[var(--primary)] px-4 py-2 text-sm text-white ${
-              canCreate ? 'hover:opacity-90' : 'pointer-events-none opacity-50'
+            className={`btn btn-primary ${
+              canCreate ? '' : 'pointer-events-none opacity-50'
             }`}
           >
             {t('listings.new')}
@@ -80,32 +95,36 @@ export default function ProviderListingsPage() {
         }
       />
       {workspace.state === 'LOADING' ? (
-        <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
+        <LoadingState label={t('loading')} />
       ) : blockedByLifecycle ? (
-        <p className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+        <p className="panel px-4 py-3 text-sm text-[var(--text-muted)]">
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
       ) : !canRead ? (
         <p
           role="alert"
-          className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]"
+          className="panel px-4 py-3 text-sm text-[var(--text-muted)]"
         >
           {t('permissionDenied')}
         </p>
       ) : listings.isLoading ? (
-        <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
+        <LoadingState label={t('loading')} />
       ) : listings.isError ? (
-        <p role="alert" className="text-sm text-[var(--danger)]">
-          {listings.error instanceof ApiError && listings.error.status === 403
-            ? t('permissionDenied')
-            : t('listings.loadFailed')}
-        </p>
+        <ErrorAlert
+          message={
+            listings.error instanceof ApiError && listings.error.status === 403
+              ? t('permissionDenied')
+              : t('listings.loadFailed')
+          }
+          onRetry={() => listings.refetch()}
+        />
       ) : (listings.data?.length ?? 0) === 0 ? (
-        <div className="border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center text-sm text-[var(--text-muted)]">
-          {t('listings.empty')}
-        </div>
+        <EmptyState
+          title={t('listings.empty')}
+          className="bg-[var(--surface)]"
+        />
       ) : (
-        <ul className="divide-y divide-[var(--border-muted)] border border-[var(--border)] bg-[var(--surface)]">
+        <ul className="panel divide-y divide-[var(--border-muted)] overflow-hidden">
           {(listings.data ?? []).map((listing) => (
             <li
               key={listing.id}
@@ -127,18 +146,16 @@ export default function ProviderListingsPage() {
                         }).format(listing.estate.price)}
                       </div>
                     </div>
-                    <span
-                      className={`text-xs font-semibold uppercase tracking-wide ${statusTone(listing.status)}`}
-                    >
+                    <Badge variant={statusVariant(listing.status)}>
                       {t(`listings.status.${listing.status}`)}
-                    </span>
+                    </Badge>
                     <div className="flex items-center gap-2">
                       {listing.status === 'DRAFT' && canPublish && (
                         <button
                           type="button"
                           disabled={pendingAction !== null}
                           onClick={() => runAction('publish', listing.id)}
-                          className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
+                          className="btn btn-secondary btn-sm"
                         >
                           {pendingAction === 'publish'
                             ? t('listings.publishing')
@@ -150,7 +167,7 @@ export default function ProviderListingsPage() {
                           type="button"
                           disabled={pendingAction !== null}
                           onClick={() => runAction('archive', listing.id)}
-                          className="border border-[var(--danger)] px-3 py-1.5 text-xs font-medium text-[var(--danger)] disabled:opacity-50"
+                          className="btn btn-danger btn-sm"
                         >
                           {pendingAction === 'archive'
                             ? t('listings.archiving')
@@ -166,9 +183,7 @@ export default function ProviderListingsPage() {
         </ul>
       )}
       {actionError && (
-        <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
-          {actionErrorMessage}
-        </p>
+        <ErrorAlert className="mt-4" message={actionErrorMessage} />
       )}
     </>
   );

@@ -2,22 +2,32 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
+import { ErrorAlert } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
+import { Pagination } from '@/components/ui/Pagination';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
+
+const DEFAULT_PAGE = 1;
+
 export default function AuditPage() {
   const t = useTranslations('administration.authorization');
+  const commonT = useTranslations('common');
   const query = useQuery({
     queryKey: ['administration', 'authorization', 'audit'],
     queryFn: () => administrationAuthorizationApi.audit(),
   });
   const items = query.data?.items ?? [];
+  const meta = query.data?.meta;
+  const page = meta?.page ?? DEFAULT_PAGE;
+  const totalPages = meta?.totalPages ?? 0;
   return (
     <>
       <PageHeader title={t('audit')} description={t('auditDescription')} />
-      <div className="overflow-x-auto border border-[var(--border)] bg-[var(--surface)]">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-[var(--surface-subtle)] text-xs uppercase text-[var(--text-muted)]">
+      <div className="panel overflow-x-auto">
+        <table className="data-table">
+          <thead>
             <tr>
-              <th className="px-4 py-3">{t('time')}</th>
+              <th>{t('time')}</th>
               <th>{t('actor')}</th>
               <th>{t('platform')}</th>
               <th>{t('action')}</th>
@@ -26,11 +36,8 @@ export default function AuditPage() {
           </thead>
           <tbody>
             {items.map((item, index) => (
-              <tr
-                className="border-t border-[var(--border)]"
-                key={item.id ?? `${item.createdAt}-${index}`}
-              >
-                <td className="px-4 py-3">{item.createdAt ?? '—'}</td>
+              <tr key={item.id ?? `${item.createdAt}-${index}`}>
+                <td>{item.createdAt ?? '—'}</td>
                 <td>{item.actorAdministratorId}</td>
                 <td>{item.platform ?? '—'}</td>
                 <td>{item.action ?? '—'}</td>
@@ -40,12 +47,34 @@ export default function AuditPage() {
           </tbody>
         </table>
         {query.isLoading && (
-          <p className="p-6 text-sm text-[var(--text-muted)]">{t('loading')}</p>
+          <LoadingState compact label={t('loading')} className="p-6" />
         )}
-        {!query.isLoading && !items.length && (
+        {!query.isLoading && !items.length && !query.error && (
           <p className="p-6 text-sm text-[var(--text-muted)]">{t('noAudit')}</p>
         )}
       </div>
+      {query.error && (
+        <ErrorAlert
+          message={t('error')}
+          onRetry={() => query.refetch()}
+          className="mt-4"
+        />
+      )}
+      {!query.error && totalPages > 1 && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          hrefForPage={(target) => `/admin/authorization/audit?page=${target}`}
+          labels={{
+            previous: commonT('pagination.previous'),
+            next: commonT('pagination.next'),
+            pageOf: commonT('pagination.pageOf', {
+              current: page,
+              total: totalPages,
+            }),
+          }}
+        />
+      )}
     </>
   );
 }

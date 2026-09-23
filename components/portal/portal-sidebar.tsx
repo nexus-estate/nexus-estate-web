@@ -23,6 +23,8 @@ export function PortalSidebar({
   onClose,
   identity,
   footer,
+  isDesktop = true,
+  asideRef,
 }: {
   platform: string;
   items: PortalNavItem[];
@@ -30,6 +32,9 @@ export function PortalSidebar({
   onClose: () => void;
   identity?: React.ReactNode;
   footer?: React.ReactNode;
+  /** Drawn permanently on wide viewports; a dismissible drawer below `lg`. */
+  isDesktop?: boolean;
+  asideRef?: React.Ref<HTMLElement>;
 }) {
   const pathname = usePathname();
   const t = useTranslations('common');
@@ -46,22 +51,44 @@ export function PortalSidebar({
         className={`fixed inset-0 z-30 bg-[var(--overlay)] transition-opacity lg:hidden ${open ? 'block' : 'hidden'}`}
       />
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-[var(--portal-sidebar-width)] border-r border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-xs)] transition-transform duration-200 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        id="portal-sidebar"
+        ref={asideRef}
+        // Off-canvas on mobile: keep it out of the tab order and the
+        // accessibility tree instead of merely translating it off screen.
+        inert={!isDesktop && !open ? true : undefined}
+        className={`fixed inset-y-0 left-0 z-40 flex w-[var(--portal-sidebar-width)] flex-col border-r border-[var(--border)] bg-[var(--surface-subtle)] transition-transform duration-200 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
         aria-label={t('navigation.portal')}
       >
-        <div className="flex h-full flex-col px-3 py-4">
-          <div className="border-b border-[var(--border-muted)] px-3 pb-5">
-            <div className="text-base font-semibold tracking-tight text-[var(--text)]">
-              Nexus Estate
-            </div>
-            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">
-              {t('navigation.portalLabel', { platform })}
-            </div>
-            {identity && <div className="mt-4">{identity}</div>}
-          </div>
+        <div className="flex h-16 shrink-0 items-center border-b border-[var(--border)] px-4">
+          <Link href="/" className="flex min-w-0 items-center gap-2">
+            <span
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-sm)] bg-[var(--primary)] text-[var(--text-on-accent)]"
+              aria-hidden="true"
+            >
+              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+                <path
+                  d="M4 20V9.5L12 4l8 5.5V20M9 20v-6h6v6"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold text-[var(--text)]">
+                Nexus Estate
+              </span>
+              <span className="block truncate text-[11px] text-[var(--text-subtle)]">
+                {t('navigation.portalLabel', { platform })}
+              </span>
+            </span>
+          </Link>
+        </div>
 
+        <div className="flex-1 overflow-y-auto px-3 py-4">
           <nav
-            className="mt-4 space-y-0.5"
+            className="space-y-0.5"
             aria-label={t('navigation.platformNavigation', { platform })}
           >
             {items.map((item, index) => {
@@ -73,7 +100,7 @@ export function PortalSidebar({
               return (
                 <div key={item.href}>
                   {showSection && (
-                    <div className="px-3 pb-1 pt-4 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">
+                    <div className="label-caps px-2 pb-1 pt-4 first:pt-0">
                       {item.section}
                     </div>
                   )}
@@ -81,29 +108,24 @@ export function PortalSidebar({
                     onClick={onClose}
                     href={item.href}
                     aria-current={active ? 'page' : undefined}
-                    className={`relative block rounded-[var(--radius-md)] px-3 py-2 text-sm transition-colors ${active ? 'bg-[var(--surface-selected)] font-semibold text-[var(--primary)]' : 'text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]'}`}
+                    className={`block rounded-[var(--radius-sm)] px-2.5 py-2 text-sm transition-colors ${
+                      active
+                        ? 'bg-[var(--surface-selected)] font-semibold text-[var(--primary)]'
+                        : 'text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]'
+                    }`}
                   >
-                    {active && (
-                      <span
-                        aria-hidden="true"
-                        className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[var(--primary)]"
-                      />
-                    )}
                     {item.label}
                   </Link>
                 </div>
               );
             })}
           </nav>
+        </div>
 
-          <div className="mt-auto border-t border-[var(--border-muted)] pt-4">
-            {footer}
-            <div className="px-3 text-xs text-[var(--text-muted)]">
-              <span className="sr-only">{t('navigation.portal')}</span>
-              {t('status.signedInWorkspace')}
-            </div>
-            <LanguageSwitcher />
-          </div>
+        <div className="shrink-0 space-y-3 border-t border-[var(--border)] px-3 py-4">
+          {identity}
+          {footer}
+          <LanguageSwitcher />
         </div>
       </aside>
     </>

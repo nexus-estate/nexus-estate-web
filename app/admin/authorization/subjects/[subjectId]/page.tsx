@@ -5,6 +5,8 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
+import { ErrorAlert } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
@@ -13,6 +15,7 @@ import type {
   Platform,
 } from '@/lib/api/administration/types';
 import { getApiErrorDisplayMessage } from '@/lib/api/error-message';
+import { FEEDBACK, notify } from '@/lib/notify';
 import {
   activeSelectedRoleIds,
   buildAssignmentRoleOptions,
@@ -21,6 +24,9 @@ import {
 
 export default function SubjectDetailPage() {
   const t = useTranslations('administration.authorization');
+  // Business error codes live in `common.errors`; a domain translator cannot
+  // resolve them.
+  const commonT = useTranslations('common');
   const params = useParams<{ subjectId: string }>();
   const search = useSearchParams();
   const platform = (search.get('platform') as Platform) || 'MARKETPLACE';
@@ -99,14 +105,17 @@ export default function SubjectDetailPage() {
       setDraftRoles(null);
       setReason('');
       setValidationError('');
+      notify.success(commonT(FEEDBACK.assigned));
       void qc.invalidateQueries({
         queryKey: ['administration', 'authorization', platform],
       });
     },
+    onError: (error) => notify.apiError(error, commonT),
   });
-  if (subject.isLoading) return <p>{t('loading')}</p>;
+  if (subject.isLoading)
+    return <LoadingState label={t('loading')} className="min-h-[40vh]" />;
   if (subject.isError || !subject.data)
-    return <p className="text-sm text-red-700">{t('error')}</p>;
+    return <ErrorAlert message={t('error')} className="mt-6" />;
   const item = subject.data;
   const subjectTypeLabel =
     item.subjectType === 'CUSTOMER'
@@ -122,10 +131,12 @@ export default function SubjectDetailPage() {
         title={item.displayName}
         description={item.secondaryText ?? subjectTypeLabel}
       />
-      <div className="max-w-4xl space-y-6">
-        <section className="border border-[var(--border)] bg-white p-6">
-          <h2 className="font-semibold">{t('identity')}</h2>
-          <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+      <div className="max-w-4xl space-y-5">
+        <section className="panel p-5 sm:p-6">
+          <h2 className="text-sm font-semibold text-[var(--text)]">
+            {t('identity')}
+          </h2>
+          <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-3">
             <div>
               <dt className="text-[var(--text-muted)]">{t('subjectType')}</dt>
               <dd>{subjectTypeLabel}</dd>
@@ -181,13 +192,18 @@ export default function SubjectDetailPage() {
             </pre>
           </details>
         </section>
-        <section className="border border-[var(--border)] bg-white p-6">
-          <h2 className="font-semibold">{t('assignedSubjects')}</h2>
-          <div className="mt-3 space-y-2">
+        <section className="panel p-5 sm:p-6">
+          <h2 className="text-sm font-semibold text-[var(--text)]">
+            {t('assignedSubjects')}
+          </h2>
+          <div className="mt-3">
             {item.roles.map((role) => (
-              <div key={role.id} className="border-b py-2 text-sm">
+              <div
+                key={role.id}
+                className="border-b border-[var(--border-muted)] py-2 text-sm last:border-0"
+              >
                 <Link
-                  className="font-medium hover:underline"
+                  className="link"
                   href={`/admin/authorization/roles/${role.id}?platform=${platform}`}
                 >
                   {role.name}
@@ -209,12 +225,18 @@ export default function SubjectDetailPage() {
             ))}
           </div>
           {canManageAssignments && (
-            <div className="mt-5 border-t pt-4">
-              <p className="text-sm font-medium">{t('replaceAssignment')}</p>
-              <div className="mt-2 grid gap-2">
+            <div className="mt-5 border-t border-[var(--border-muted)] pt-4">
+              <p className="text-sm font-semibold text-[var(--text)]">
+                {t('replaceAssignment')}
+              </p>
+              <div className="mt-2 grid gap-1.5">
                 {assignmentOptions.map((role) => (
-                  <label className="flex gap-2 text-sm" key={role.id}>
+                  <label
+                    className="flex cursor-pointer items-center gap-2 rounded-[var(--radius-sm)] px-2 py-1.5 text-sm hover:bg-[var(--surface-subtle)]"
+                    key={role.id}
+                  >
                     <input
+                      className="h-4 w-4 accent-[var(--primary)]"
                       type="checkbox"
                       checked={selectedRoles.includes(role.id)}
                       disabled={!role.canAdd && !role.assigned}
@@ -240,19 +262,19 @@ export default function SubjectDetailPage() {
                 ))}
               </div>
               <textarea
-                className="mt-3 w-full border px-3 py-2 text-sm"
+                className="field mt-3"
                 placeholder={t('reasonOptional')}
                 aria-label={t('reasonOptional')}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
               />
               {selectedDisabledRoles.length > 0 && (
-                <p className="mt-2 text-sm text-amber-700">
+                <p className="mt-2 text-sm font-medium text-[var(--warning-strong)]">
                   {t('removeDisabledRoles')}
                 </p>
               )}
               <button
-                className="mt-3 rounded bg-[var(--primary)] px-4 py-2 text-sm text-white disabled:opacity-50"
+                className="btn btn-primary mt-3"
                 disabled={
                   assign.isPending ||
                   roles.isLoading ||
@@ -270,30 +292,41 @@ export default function SubjectDetailPage() {
                 {t('saveAssignments')}
               </button>
               {validationError && (
-                <p className="mt-2 text-sm text-red-700">{validationError}</p>
+                <p role="alert" className="field-error">
+                  {validationError}
+                </p>
               )}
               {assign.isError && (
-                <p className="mt-2 text-sm text-red-700">
-                  {getApiErrorDisplayMessage(assign.error, t)}
+                <p role="alert" className="field-error">
+                  {getApiErrorDisplayMessage(assign.error, commonT)}
                 </p>
               )}
             </div>
           )}
         </section>
-        <section className="border border-[var(--border)] bg-white p-6">
-          <h2 className="font-semibold">{t('effectivePermissions')}</h2>
-          <div className="mt-3 space-y-4">
+        <section className="panel p-5 sm:p-6">
+          <h2 className="text-sm font-semibold text-[var(--text)]">
+            {t('effectivePermissions')}
+          </h2>
+          <div className="mt-3 space-y-5">
             {permissionsByCategory.map(([category, permissions]) => (
               <div key={category}>
-                <h3 className="text-sm font-medium">{category}</h3>
-                {permissions.map((permission) => (
-                  <div className="border-b py-2 text-sm" key={permission.id}>
-                    {permission.name}
-                    <code className="ml-2 text-xs text-[var(--text-muted)]">
-                      {permission.code}
-                    </code>
-                  </div>
-                ))}
+                <h3 className="label-caps">{category}</h3>
+                <div className="mt-1">
+                  {permissions.map((permission) => (
+                    <div
+                      className="flex flex-wrap items-baseline gap-x-2 border-b border-[var(--border-muted)] py-2 text-sm last:border-0"
+                      key={permission.id}
+                    >
+                      <span className="text-[var(--text)]">
+                        {permission.name}
+                      </span>
+                      <code className="font-mono text-xs text-[var(--text-muted)]">
+                        {permission.code}
+                      </code>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

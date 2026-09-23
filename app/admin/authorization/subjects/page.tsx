@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import {
@@ -8,28 +9,53 @@ import {
   useAuthorizationPlatform,
 } from '@/components/administration/platform-selector';
 import { PageHeader } from '@/components/portal/page-header';
+import { ErrorAlert } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
+import { Pagination } from '@/components/ui/Pagination';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
+
+const DEFAULT_PAGE = 1;
+const PAGE_SIZE = 20;
+
 export default function SubjectsPage() {
   const t = useTranslations('administration.authorization');
+  const commonT = useTranslations('common');
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('');
   const { platform, setPlatform } = useAuthorizationPlatform();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const rawPage = Number.parseInt(searchParams.get('page') ?? '', 10);
+  const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : DEFAULT_PAGE;
+
+  const hrefForPage = (target: number) => {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    if (target <= 1) nextParams.delete('page');
+    else nextParams.set('page', String(target));
+    const queryString = nextParams.toString();
+    return queryString ? `${pathname}?${queryString}` : pathname;
+  };
+
   const query = useQuery({
     queryKey: [
       'administration',
       'authorization',
       platform,
       'subjects',
-      { q, status },
+      { q, status, page },
     ],
     queryFn: () =>
       administrationAuthorizationApi.subjects(platform, {
         q: q || undefined,
         status: status || undefined,
+        page,
+        limit: PAGE_SIZE,
       }),
   });
   const items = query.data?.items ?? [];
+  const totalPages = query.data?.meta.totalPages ?? 0;
   return (
     <>
       <PageHeader
@@ -39,16 +65,17 @@ export default function SubjectsPage() {
       <div className="mb-4">
         <PlatformSelector platform={platform} onChange={setPlatform} />
       </div>
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <input
-          className="w-full max-w-sm rounded-md border border-[var(--border)] bg-white px-3 py-2 text-sm"
+          className="field w-full sm:max-w-sm"
           placeholder={t('searchSubjects')}
           aria-label={t('searchSubjects')}
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
         <select
-          className="ml-2 rounded-md border border-[var(--border)] bg-white px-3 py-2 text-sm"
+          className="field w-auto min-w-36"
+          aria-label={t('status')}
           value={status}
           onChange={(e) => setStatus(e.target.value)}
         >
@@ -57,11 +84,11 @@ export default function SubjectsPage() {
           <option value="DISABLED">{t('statusDisabled')}</option>
         </select>
       </div>
-      <div className="overflow-x-auto border border-[var(--border)] bg-[var(--surface)]">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-[var(--surface-subtle)] text-xs uppercase text-[var(--text-muted)]">
+      <div className="panel overflow-x-auto">
+        <table className="data-table">
+          <thead>
             <tr>
-              <th className="px-4 py-3">{t('identity')}</th>
+              <th>{t('identity')}</th>
               <th>{t('status')}</th>
               <th>{t('roles')}</th>
               <th />
@@ -69,8 +96,8 @@ export default function SubjectsPage() {
           </thead>
           <tbody>
             {items.map((item) => (
-              <tr className="border-t border-[var(--border)]" key={item.id}>
-                <td className="px-4 py-3">
+              <tr key={item.id}>
+                <td>
                   <div className="font-medium">{item.displayName}</div>
                   {item.secondaryText && (
                     <div className="text-xs text-[var(--text-muted)]">
@@ -93,7 +120,7 @@ export default function SubjectsPage() {
                 <td>{String(item.roleCount)}</td>
                 <td>
                   <Link
-                    className="text-[var(--primary)] hover:underline"
+                    className="link"
                     href={`/admin/authorization/subjects/${item.id}?platform=${platform}`}
                   >
                     {t('viewDetails')}
@@ -104,14 +131,36 @@ export default function SubjectsPage() {
           </tbody>
         </table>
         {query.isLoading && (
-          <p className="p-6 text-sm text-[var(--text-muted)]">{t('loading')}</p>
+          <LoadingState compact label={t('loading')} className="p-6" />
         )}
-        {!query.isLoading && !items.length && (
+        {!query.isLoading && !items.length && !query.error && (
           <p className="p-6 text-sm text-[var(--text-muted)]">
             {t('noSubjects')}
           </p>
         )}
       </div>
+      {query.error && (
+        <ErrorAlert
+          message={t('error')}
+          onRetry={() => query.refetch()}
+          className="mt-4"
+        />
+      )}
+      {!query.error && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          hrefForPage={hrefForPage}
+          labels={{
+            previous: commonT('pagination.previous'),
+            next: commonT('pagination.next'),
+            pageOf: commonT('pagination.pageOf', {
+              current: page,
+              total: totalPages,
+            }),
+          }}
+        />
+      )}
     </>
   );
 }

@@ -47,7 +47,13 @@
       "villa": "Villa",
       "land": "Land",
       "office": "Office"
-    }
+    },
+    "exploreCollection": "Explore the collection",
+    "heroCaption": "Distinctive spaces. Exceptional living.",
+    "location": "Your next destination",
+    "emptyDescription": "The collection is being updated. Explore property types below to start your search.",
+    "discover": "Spaces for every chapter",
+    "spacesTitle": "Find your kind of extraordinary."
   },
   "properties": {
     "title": "Explore properties",
@@ -168,7 +174,10 @@
     "defaultName": "Provider account",
     "loading": "Checking Provider status…",
     "error": "Provider status could not be loaded.",
-    "noProvider": { "title": "Become a Provider" },
+    "noProvider": {
+      "title": "Become a Provider",
+      "description": "You do not have a Provider account yet. Create one to publish properties on Nexus Estate."
+    },
     "pending": {
       "description": "Your application is pending review. Your Customer account remains active."
     },
@@ -178,10 +187,15 @@
     "suspended": {
       "description": "This Provider account is suspended. Marketplace access remains available."
     },
-    "active": { "description": "Active · Verified" },
+    "active": {
+      "description": "Active · Verified"
+    },
     "context_required": {
       "description": "Select a Provider context before opening the Provider portal."
     },
-    "actions": { "become": "Become a Provider", "open": "Open Provider Portal" }
+    "actions": {
+      "become": "Become a Provider",
+      "open": "Open Provider Portal"
+    }
   }
 }

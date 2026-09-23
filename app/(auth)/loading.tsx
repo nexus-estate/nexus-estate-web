@@ -1,7 +1,5 @@
-'use client';
-import { useTranslations } from 'next-intl';
-import { LoadingState } from '@/components/ui/LoadingState';
+import { AuthFormSkeleton } from '@/components/ui/Skeleton';
+
 export default function AuthLoading() {
-  const t = useTranslations('common');
-  return <LoadingState label={t('status.loading')} />;
+  return <AuthFormSkeleton />;
 }

@@ -34,12 +34,12 @@ export function PlatformSelector({
     queryFn: administrationAuthorizationApi.platforms,
   });
   return (
-    <label className="text-sm">
-      <span className="mr-2 text-[var(--text-muted)]">{t('platform')}</span>
+    <label className="flex items-center gap-2">
+      <span className="text-sm text-[var(--text-muted)]">{t('platform')}</span>
       <select
         value={platform}
         onChange={(event) => onChange(event.target.value as Platform)}
-        className="rounded border bg-white px-3 py-2 text-sm"
+        className="field w-auto min-w-40"
       >
         {(query.data?.items ?? []).map((item) => (
           <option key={item.platform} value={item.platform}>

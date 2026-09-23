@@ -1,9 +1,10 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { Listing } from '@/lib/api/listing/listing.types';
-import { getProviderUrl } from '@/lib/platform/urls';
+import { getProviderHref } from '@/lib/platform/urls';
 import { PropertyCard } from './property-card';
 
 const types = ['apartment', 'house', 'villa', 'land', 'office'] as const;
@@ -19,178 +20,270 @@ export function MarketplaceHome({
   const t = useTranslations('customer');
   return (
     <div className="bg-[var(--background)]">
-      <section className="relative overflow-hidden bg-[var(--brand-strong)] text-[var(--text-on-dark)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(179,138,70,.28),transparent_38%),linear-gradient(135deg,rgba(18,59,58,.95),rgba(7,27,27,.98))]" />
-        <div className="relative mx-auto grid max-w-[var(--content-max)] gap-12 px-5 py-20 sm:px-8 sm:py-24 lg:grid-cols-[1.1fr_.9fr] lg:items-end lg:px-10 lg:py-28">
-          <div className="max-w-3xl">
-            <p className="eyebrow text-[var(--brand-accent)]">
-              {t('home.eyebrow')}
-            </p>
-            <h1 className="mt-6 max-w-3xl font-display text-5xl leading-[.98] tracking-[-.035em] sm:text-6xl lg:text-7xl">
-              {t('home.title')}
-              <span className="mt-3 block text-[var(--brand-accent)]">
-                {t('home.titleAccent')}
-              </span>
-            </h1>
-            <p className="mt-7 max-w-2xl text-base leading-7 text-white/70 sm:text-lg">
-              {t('home.description')}
-            </p>
-          </div>
-          <form
-            action="/properties"
-            method="GET"
-            className="rounded-[var(--radius-xl)] border border-white/15 bg-white/[.09] p-3 shadow-[var(--shadow-lg)] backdrop-blur sm:p-4"
-          >
-            <div className="grid gap-3">
-              <label
-                className="text-xs font-semibold text-white/70"
-                htmlFor="home-query"
+      <section className="border-b border-[var(--border)] bg-[var(--surface)]">
+        <div className="mx-auto max-w-[var(--content-max)] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+          <div className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:items-center">
+            <div className="animate-fade-up">
+              <p className="label-caps">{t('home.eyebrow')}</p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-4xl">
+                {t('home.title')}
+              </h1>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--text-muted)]">
+                {t('home.description')}
+              </p>
+
+              <form
+                action="/properties"
+                method="GET"
+                className="panel mt-6 grid gap-3 p-3 sm:grid-cols-[1.6fr_1fr_auto] sm:items-end"
               >
-                {t('home.searchPlaceholder')}
-              </label>
-              <input
-                id="home-query"
-                name="q"
-                type="search"
-                placeholder={t('home.searchPlaceholder')}
-                className="min-h-12 rounded-[var(--radius-md)] border-0 bg-white px-4 text-sm text-[var(--text)] shadow-[var(--shadow-xs)] outline-none placeholder:text-[var(--text-subtle)] focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]"
-              />
-              <label
-                className="text-xs font-semibold text-white/70"
-                htmlFor="home-type"
-              >
-                {t('home.searchType')}
-              </label>
-              <select
-                id="home-type"
-                name="type"
-                className="min-h-12 rounded-[var(--radius-md)] border-0 bg-white px-4 text-sm text-[var(--text)] shadow-[var(--shadow-xs)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]"
-              >
-                <option value="">{t('home.allTypes')}</option>
-                {types.map((type) => (
-                  <option key={type} value={type.toUpperCase()}>
-                    {t(`home.propertyTypes.${type}`)}
-                  </option>
+                <div>
+                  <label htmlFor="home-query" className="field-label">
+                    {t('home.location')}
+                  </label>
+                  <input
+                    id="home-query"
+                    name="q"
+                    type="search"
+                    placeholder={t('home.searchPlaceholder')}
+                    className="field"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="home-type" className="field-label">
+                    {t('home.searchType')}
+                  </label>
+                  <select id="home-type" name="type" className="field">
+                    <option value="">{t('home.allTypes')}</option>
+                    {types.map((type) => (
+                      <option key={type} value={type.toUpperCase()}>
+                        {t(`home.propertyTypes.${type}`)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button type="submit" className="btn btn-primary btn-lg">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    className="h-4 w-4"
+                    aria-hidden="true"
+                  >
+                    <circle cx="10.5" cy="10.5" r="6.5" />
+                    <path d="m16 16 5 5" strokeLinecap="round" />
+                  </svg>
+                  {t('home.search')}
+                </button>
+              </form>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className="text-xs text-[var(--text-subtle)]">
+                  {t('home.quickSearch')}
+                </span>
+                {cities.map((city) => (
+                  <Link
+                    key={city}
+                    href={`/properties?q=${encodeURIComponent(city)}`}
+                    className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                  >
+                    {city}
+                  </Link>
                 ))}
-              </select>
-              <button
-                type="submit"
-                className="mt-1 min-h-12 rounded-[var(--radius-md)] bg-[var(--brand-accent)] px-5 text-sm font-semibold text-[var(--brand-strong)] transition-colors hover:bg-[#c4a15f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--brand-strong)]"
-              >
-                {t('home.search')}
-              </button>
+              </div>
             </div>
-          </form>
+
+            <div className="relative hidden aspect-[4/3] overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] lg:block">
+              <Image
+                src="/images/hero-villa.webp"
+                alt=""
+                fill
+                priority
+                sizes="(min-width: 1024px) 45vw, 100vw"
+                className="object-cover"
+              />
+            </div>
+          </div>
         </div>
       </section>
-      <section className="border-b border-[var(--border-muted)] bg-[var(--surface)]">
-        <div className="mx-auto max-w-[var(--content-max)] px-5 py-6 sm:px-8 lg:px-10">
-          <p className="text-xs font-semibold uppercase tracking-[.14em] text-[var(--text-subtle)]">
-            {t('home.quickSearch')}
-          </p>
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-            {cities.map((city) => (
-              <Link
-                key={city}
-                href={`/properties?q=${encodeURIComponent(city)}`}
-                className="shrink-0 rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--text-muted)] transition-colors hover:border-[var(--brand-accent)] hover:text-[var(--brand)]"
+
+      <section
+        id="collection"
+        className="mx-auto max-w-[var(--content-max)] scroll-mt-20 px-4 py-12 sm:px-6 lg:px-8 lg:py-16"
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight text-[var(--text)]">
+              {t('home.featured')}
+            </h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
+              {t('home.featuredDescription')}
+            </p>
+          </div>
+          <Link href="/properties" className="link text-sm whitespace-nowrap">
+            {t('home.viewAll')} →
+          </Link>
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {featured.length ? (
+            featured.map((property) => (
+              <PropertyCard key={property.id} listing={property} />
+            ))
+          ) : (
+            <div className="panel-muted col-span-full flex flex-col items-center px-6 py-12 text-center">
+              <span
+                className="grid h-11 w-11 place-items-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-subtle)]"
+                aria-hidden="true"
               >
-                {city}
+                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                  <path
+                    d="M4 20V9.5L12 4l8 5.5V20M9 20v-6h6v6"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <p className="mt-3 text-sm font-semibold text-[var(--text)]">
+                {t('home.empty')}
+              </p>
+              <p className="mt-1 max-w-md text-sm text-[var(--text-muted)]">
+                {t('home.emptyDescription')}
+              </p>
+              <Link href="/properties" className="btn btn-secondary mt-4">
+                {t('home.viewAll')}
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="border-y border-[var(--border)] bg-[var(--surface)]">
+        <div className="mx-auto max-w-[var(--content-max)] px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight text-[var(--text)]">
+                {t('home.spacesTitle')}
+              </h2>
+              <p className="mt-1 max-w-xl text-sm text-[var(--text-muted)]">
+                {t('home.titleAccent')}
+              </p>
+            </div>
+            <p className="label-caps">{t('home.discover')}</p>
+          </div>
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            {[
+              ['villa', '/images/properties/villa-dalat.webp'],
+              ['apartment', '/images/properties/residence-danang.webp'],
+              ['house', '/images/properties/penthouse-saigon.webp'],
+            ].map(([type, image]) => (
+              <Link
+                key={type}
+                href={`/properties?type=${type.toUpperCase()}`}
+                className="group relative block aspect-[4/3] overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)]"
+              >
+                <Image
+                  src={image}
+                  alt=""
+                  fill
+                  sizes="(min-width: 768px) 33vw, 100vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+                <span
+                  className="absolute inset-0 bg-[linear-gradient(0deg,rgb(15_23_32_/_0.72),rgb(15_23_32_/_0.05)_60%)]"
+                  aria-hidden="true"
+                />
+                <span className="absolute inset-x-4 bottom-4 flex items-center justify-between text-white">
+                  <span className="text-base font-semibold">
+                    {t(`home.propertyTypes.${type}`)}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-sm transition-colors group-hover:bg-white group-hover:text-[var(--text)]"
+                  >
+                    →
+                  </span>
+                </span>
               </Link>
             ))}
           </div>
         </div>
       </section>
-      <section className="mx-auto max-w-[var(--content-max)] px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
+
+      <section className="mx-auto max-w-[var(--content-max)] px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="eyebrow">{t('home.featured')}</p>
-            <h2 className="mt-3 font-display text-4xl tracking-[-.02em] text-[var(--brand-strong)]">
-              {t('home.featured')}
+            <h2 className="text-xl font-semibold tracking-tight text-[var(--text)]">
+              {t('home.latest')}
             </h2>
-            <p className="mt-2 text-sm text-[var(--text-muted)]">
-              {t('home.featuredDescription')}
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
+              {t('home.latestDescription')}
             </p>
           </div>
-          <Link
-            href="/properties"
-            className="text-sm font-semibold text-[var(--brand)] underline decoration-[var(--brand-accent)] underline-offset-4"
-          >
+          <Link href="/properties" className="link text-sm whitespace-nowrap">
             {t('home.viewAll')} →
           </Link>
         </div>
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {featured.map((property) => (
-            <PropertyCard key={property.id} listing={property} />
-          ))}
+        {properties.length ? (
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {properties.map((property) => (
+              <PropertyCard key={property.id} listing={property} />
+            ))}
+          </div>
+        ) : (
+          <div className="panel-muted mt-5 px-6 py-12 text-center text-sm text-[var(--text-muted)]">
+            {t('home.empty')}
+          </div>
+        )}
+      </section>
+
+      <section className="border-t border-[var(--border)] bg-[var(--surface)]">
+        <div className="mx-auto max-w-[var(--content-max)] px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+          <div className="max-w-2xl">
+            <h2 className="text-xl font-semibold tracking-tight text-[var(--text)]">
+              {t('home.whyNexus')}
+            </h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
+              {t('home.whyDescription')}
+            </p>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {[
+              ['recommendation', '01'],
+              ['smartSearch', '02'],
+              ['trusted', '03'],
+            ].map(([key, number]) => (
+              <article key={key} className="panel p-5">
+                <p className="grid h-7 w-7 place-items-center rounded-full bg-[var(--primary-soft)] text-xs font-semibold text-[var(--primary)]">
+                  {number}
+                </p>
+                <h3 className="mt-3 text-sm font-semibold text-[var(--text)]">
+                  {t(`home.${key}`)}
+                </h3>
+                <p className="mt-1.5 text-sm leading-6 text-[var(--text-muted)]">
+                  {t(`home.${key}Description`)}
+                </p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
-      <section className="border-y border-[var(--border-muted)] bg-[var(--surface-subtle)]">
-        <div className="mx-auto max-w-[var(--content-max)] px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
-          <p className="eyebrow">{t('home.latest')}</p>
-          <h2 className="mt-3 font-display text-4xl tracking-[-.02em] text-[var(--brand-strong)]">
-            {t('home.latest')}
-          </h2>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">
-            {t('home.latestDescription')}
-          </p>
-          {properties.length ? (
-            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {properties.map((property) => (
-                <PropertyCard key={property.id} listing={property} />
-              ))}
-            </div>
-          ) : (
-            <div className="app-panel-muted mt-8 px-6 py-14 text-center text-sm text-[var(--text-muted)]">
-              {t('home.empty')}
-            </div>
-          )}
-        </div>
-      </section>
-      <section className="mx-auto max-w-[var(--content-max)] px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
-        <div className="max-w-2xl">
-          <p className="eyebrow">{t('home.whyNexus')}</p>
-          <h2 className="mt-3 font-display text-4xl tracking-[-.02em] text-[var(--brand-strong)]">
-            {t('home.whyNexus')}
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
-            {t('home.whyDescription')}
-          </p>
-        </div>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {[
-            ['recommendation', '01'],
-            ['smartSearch', '02'],
-            ['trusted', '03'],
-          ].map(([key, number]) => (
-            <article
-              key={key}
-              className="border-t-2 border-[var(--brand-accent)] pt-5"
-            >
-              <p className="text-xs font-semibold text-[var(--brand-accent)]">
-                {number}
-              </p>
-              <h3 className="mt-4 text-lg font-semibold text-[var(--text)]">
-                {t(`home.${key}`)}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
-                {t(`home.${key}Description`)}
-              </p>
-            </article>
-          ))}
-        </div>
-      </section>
-      <section className="bg-[var(--brand)] text-white">
-        <div className="mx-auto flex max-w-[var(--content-max)] flex-col gap-6 px-5 py-14 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10">
+
+      <section className="mx-auto max-w-[var(--content-max)] px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="panel flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div>
-            <h2 className="font-display text-3xl">{t('home.providerCta')}</h2>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-white/70">
+            <h2 className="text-lg font-semibold text-[var(--text)]">
+              {t('home.providerCta')}
+            </h2>
+            <p className="mt-1 max-w-xl text-sm leading-6 text-[var(--text-muted)]">
               {t('home.providerCtaDescription')}
             </p>
           </div>
           <a
-            href={getProviderUrl('/provider/onboarding')}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--brand-accent)] px-5 text-sm font-semibold text-[var(--brand-strong)] hover:bg-[#c4a15f]"
+            href={getProviderHref('/provider/onboarding')}
+            className="btn btn-primary btn-lg shrink-0"
           >
             {t('home.providerCtaAction')}
           </a>

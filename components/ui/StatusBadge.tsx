@@ -5,12 +5,15 @@ const STATUS_VARIANTS = {
   DRAFT: 'warning',
   ARCHIVED: 'default',
   VERIFIED: 'success',
+  APPROVED: 'success',
   PUBLISHED: 'success',
   PENDING: 'warning',
   PENDING_REVIEW: 'warning',
+  IN_REVIEW: 'warning',
   SUSPENDED: 'error',
   REJECTED: 'error',
   DISABLED: 'error',
+  REVOKED: 'error',
 } as const;
 
 export function StatusBadge({

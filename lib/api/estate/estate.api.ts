@@ -10,7 +10,12 @@ import type {
 export const estateApi = {
   listMine: () => providerApiClient.get<Estate[]>('/estates/mine'),
   getMine: (id: string) => providerApiClient.get<Estate>(`/estates/${id}/mine`),
-  getById: (id: string) => publicApiClient.get<Estate>(`/estates/${id}`),
+  /**
+   * `init` is forwarded so Server Components can opt into caching
+   * (`{ next: { revalidate } }`) or explicit `no-store`.
+   */
+  getById: (id: string, init?: RequestInit) =>
+    publicApiClient.get<Estate>(`/estates/${id}`, init),
   create: (data: CreateEstateRequest) =>
     providerApiClient.post<Estate>('/estates', data),
   update: (id: string, data: UpdateEstateRequest) =>
@@ -25,8 +30,16 @@ export const estateApi = {
   remove: (id: string) => providerApiClient.delete<boolean>(`/estates/${id}`),
 };
 
+/**
+ * `init` is forwarded so Server Components can opt into caching
+ * (`{ next: { revalidate } }`) or explicit `no-store`.
+ */
 export const locationApi = {
-  provinces: () => publicApiClient.get<Province[]>('/locations/provinces'),
-  wards: (provinceId: string) =>
-    publicApiClient.get<Ward[]>(`/locations/provinces/${provinceId}/wards`),
+  provinces: (init?: RequestInit) =>
+    publicApiClient.get<Province[]>('/locations/provinces', init),
+  wards: (provinceId: string, init?: RequestInit) =>
+    publicApiClient.get<Ward[]>(
+      `/locations/provinces/${provinceId}/wards`,
+      init,
+    ),
 };

@@ -14,7 +14,6 @@ export type EstateType =
   | 'OTHER';
 
 export type EstatePurpose = 'SALE' | 'RENT' | 'SALE_OR_RENT';
-
 export type EstateStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
 
 /** Location reference embedded in the Estate response contract. */

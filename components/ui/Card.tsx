@@ -7,16 +7,7 @@ interface CardProps {
 }
 
 function Card({ children, className }: CardProps) {
-  return (
-    <div
-      className={clsx(
-        'rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-xs)]',
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
+  return <div className={clsx('panel', className)}>{children}</div>;
 }
 
 interface CardHeaderProps {
@@ -28,7 +19,7 @@ function CardHeader({ children, className }: CardHeaderProps) {
   return (
     <div
       className={clsx(
-        'border-b border-[var(--border-muted)] px-5 py-4 sm:px-6',
+        'border-b border-[var(--border-muted)] px-4 py-3.5 sm:px-5',
         className,
       )}
     >
@@ -43,7 +34,7 @@ interface CardBodyProps {
 }
 
 function CardBody({ children, className }: CardBodyProps) {
-  return <div className={clsx('px-5 py-5 sm:px-6', className)}>{children}</div>;
+  return <div className={clsx('px-4 py-4 sm:px-5', className)}>{children}</div>;
 }
 
 interface CardFooterProps {
@@ -55,7 +46,7 @@ function CardFooter({ children, className }: CardFooterProps) {
   return (
     <div
       className={clsx(
-        'border-t border-[var(--border-muted)] bg-[var(--surface-subtle)] px-5 py-4 sm:px-6',
+        'border-t border-[var(--border-muted)] bg-[var(--surface-subtle)] px-4 py-3.5 sm:px-5',
         className,
       )}
     >

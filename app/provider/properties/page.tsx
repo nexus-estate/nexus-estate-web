@@ -4,11 +4,14 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { PageHeader } from '@/components/portal/page-header';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorAlert } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import {
-  useActivateProviderProperty,
   useArchiveProviderProperty,
+  useActivateProviderProperty,
   useProviderProperties,
   useRestoreProviderProperty,
 } from '@/features/provider/supply/provider-supply.queries';
@@ -30,9 +33,10 @@ export default function ProviderPropertiesPage() {
   const properties = useProviderProperties(
     workspace.hasProviderPermission('property:read'),
   );
-  const activateProperty = useActivateProviderProperty();
   const archiveProperty = useArchiveProviderProperty();
+  const activateProperty = useActivateProviderProperty();
   const restoreProperty = useRestoreProviderProperty();
+  const [lifecycleError, setLifecycleError] = useState<unknown>(null);
 
   const canCreate = workspace.hasProviderPermission('property:create');
   const canRead = workspace.hasProviderPermission('property:read');
@@ -40,8 +44,6 @@ export default function ProviderPropertiesPage() {
   const canArchive = workspace.hasProviderPermission('property:archive');
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
-  const [lifecycleError, setLifecycleError] = useState<unknown>(null);
-
   const pendingActionFor = (propertyId: string) => {
     if (activateProperty.isPending && activateProperty.variables === propertyId)
       return 'activate';
@@ -92,8 +94,8 @@ export default function ProviderPropertiesPage() {
           <Link
             href="/provider/properties/new"
             aria-disabled={!canCreate}
-            className={`inline-flex bg-[var(--primary)] px-4 py-2 text-sm text-white ${
-              canCreate ? 'hover:opacity-90' : 'pointer-events-none opacity-50'
+            className={`btn btn-primary ${
+              canCreate ? '' : 'pointer-events-none opacity-50'
             }`}
           >
             {t('properties.new')}
@@ -101,33 +103,37 @@ export default function ProviderPropertiesPage() {
         }
       />
       {workspace.state === 'LOADING' ? (
-        <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
+        <LoadingState label={t('loading')} />
       ) : blockedByLifecycle ? (
-        <p className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+        <p className="panel px-4 py-3 text-sm text-[var(--text-muted)]">
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
       ) : !canRead ? (
         <p
           role="alert"
-          className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]"
+          className="panel px-4 py-3 text-sm text-[var(--text-muted)]"
         >
           {t('permissionDenied')}
         </p>
       ) : properties.isLoading ? (
-        <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
+        <LoadingState label={t('loading')} />
       ) : properties.isError ? (
-        <p role="alert" className="text-sm text-[var(--danger)]">
-          {properties.error instanceof ApiError &&
-          properties.error.status === 403
-            ? t('permissionDenied')
-            : t('properties.loadFailed')}
-        </p>
+        <ErrorAlert
+          message={
+            properties.error instanceof ApiError &&
+            properties.error.status === 403
+              ? t('permissionDenied')
+              : t('properties.loadFailed')
+          }
+          onRetry={() => properties.refetch()}
+        />
       ) : (properties.data?.length ?? 0) === 0 ? (
-        <div className="border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center text-sm text-[var(--text-muted)]">
-          {t('properties.empty')}
-        </div>
+        <EmptyState
+          title={t('properties.empty')}
+          className="bg-[var(--surface)]"
+        />
       ) : (
-        <ul className="divide-y divide-[var(--border-muted)] border border-[var(--border)] bg-[var(--surface)]">
+        <ul className="panel divide-y divide-[var(--border-muted)] overflow-hidden">
           {(properties.data ?? []).map((estate: Estate) => (
             <li
               key={estate.id}
@@ -157,7 +163,7 @@ export default function ProviderPropertiesPage() {
                       {canUpdate && estate.status !== 'ARCHIVED' && (
                         <Link
                           href={`/provider/properties/${estate.id}/edit`}
-                          className="border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--surface-hover)]"
+                          className="btn btn-secondary btn-sm"
                         >
                           {t('properties.edit')}
                         </Link>
@@ -167,7 +173,7 @@ export default function ProviderPropertiesPage() {
                           type="button"
                           disabled={pendingAction !== null}
                           onClick={() => runLifecycle('activate', estate.id)}
-                          className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
+                          className="btn btn-primary btn-sm"
                         >
                           {pendingAction === 'activate'
                             ? t('properties.activating')
@@ -181,7 +187,7 @@ export default function ProviderPropertiesPage() {
                             type="button"
                             disabled={pendingAction !== null}
                             onClick={() => runLifecycle('archive', estate.id)}
-                            className="border border-[var(--danger)] px-3 py-1.5 text-xs font-medium text-[var(--danger)] disabled:opacity-50"
+                            className="btn btn-danger btn-sm"
                           >
                             {pendingAction === 'archive'
                               ? t('properties.archiving')
@@ -193,7 +199,7 @@ export default function ProviderPropertiesPage() {
                           type="button"
                           disabled={pendingAction !== null}
                           onClick={() => runLifecycle('restore', estate.id)}
-                          className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
+                          className="btn btn-primary btn-sm"
                         >
                           {pendingAction === 'restore'
                             ? t('properties.restoring')
@@ -209,9 +215,7 @@ export default function ProviderPropertiesPage() {
         </ul>
       )}
       {lifecycleError && (
-        <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
-          {lifecycleErrorMessage}
-        </p>
+        <ErrorAlert className="mt-4" message={lifecycleErrorMessage} />
       )}
     </>
   );

@@ -21,8 +21,21 @@ export function LanguageSwitcher() {
       type="button"
       onClick={change}
       aria-label={t('actions.switchLanguage')}
-      className="mt-3 w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-left text-xs font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]"
+      className="btn btn-secondary btn-sm"
     >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        className="h-3.5 w-3.5"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+        <path
+          d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"
+          stroke="currentColor"
+          strokeWidth="1.6"
+        />
+      </svg>
       {locale === 'vi' ? t('language.english') : t('language.vietnamese')}
     </button>
   );

@@ -92,7 +92,7 @@ export function Modal({
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="fixed inset-0 bg-[var(--overlay)] backdrop-blur-[2px] transition-opacity"
+        className="animate-fade-in fixed inset-0 bg-[var(--overlay)]"
         onClick={closeOnOverlay ? onClose : undefined}
         aria-hidden="true"
       />
@@ -103,27 +103,26 @@ export function Modal({
         aria-labelledby={title ? titleId : undefined}
         aria-label={!title ? ariaLabel : undefined}
         className={clsx(
-          'relative flex max-h-[85vh] w-full flex-col overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface-raised)] shadow-[var(--shadow-lg)]',
-          'transform transition-all duration-200 ease-out',
+          'animate-fade-up panel relative flex max-h-[85vh] w-full flex-col overflow-hidden shadow-[var(--shadow-lg)]',
           sizeClasses[size],
         )}
       >
         {title && (
-          <div className="flex items-center justify-between border-b border-[var(--border-muted)] px-5 py-4 sm:px-6">
+          <div className="flex items-center justify-between border-b border-[var(--border-muted)] px-4 py-3 sm:px-5">
             <h2
               id={titleId}
-              className="text-base font-semibold text-[var(--text)]"
+              className="text-sm font-semibold text-[var(--text)]"
             >
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="rounded-[var(--radius-sm)] p-1.5 text-[var(--text-subtle)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
+              className="grid h-7 w-7 place-items-center rounded-[var(--radius-sm)] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
               type="button"
               aria-label={t('actions.close')}
             >
               <svg
-                className="h-5 w-5"
+                className="h-4 w-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -139,11 +138,11 @@ export function Modal({
             </button>
           </div>
         )}
-        <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-5">
           {children}
         </div>
         {footer && (
-          <div className="flex items-center justify-end gap-3 border-t border-[var(--border-muted)] bg-[var(--surface-subtle)] px-5 py-4 sm:px-6">
+          <div className="flex items-center justify-end gap-2 border-t border-[var(--border-muted)] bg-[var(--surface-subtle)] px-4 py-3 sm:px-5">
             {footer}
           </div>
         )}

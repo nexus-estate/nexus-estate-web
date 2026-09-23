@@ -244,13 +244,17 @@ test('uses the finalized estate marketplace wire contract', async () => {
     message: 'Please call me',
   });
 
+  // Public GETs forward a request init so Server Components can pass
+  // `{ next: { revalidate } }`; it is undefined when callers omit it.
   expect(publicGet).toHaveBeenNthCalledWith(
     1,
     '/locations/provinces/province-id/wards',
+    undefined,
   );
   expect(publicGet).toHaveBeenNthCalledWith(
     2,
     '/listings?q=main&type=APARTMENT&purpose=SALE&provinceId=province-id&page=2&limit=10&sort=newest',
+    undefined,
   );
   expect(providerGet).toHaveBeenCalledWith('/estates/mine');
   expect(providerGet).toHaveBeenCalledWith('/listings/mine');
@@ -266,4 +270,92 @@ test('uses the finalized estate marketplace wire contract', async () => {
     phone: '0900000000',
     message: 'Please call me',
   });
+});
+
+test('covers the remaining estate and listing endpoints on their declared clients', async () => {
+  jest.restoreAllMocks();
+  const { publicApiClient, providerApiClient } = await import('./client');
+  const { estateApi, locationApi } = await import('./estate/estate.api');
+  const { listingApi } = await import('./listing/listing.api');
+  const publicGet = jest
+    .spyOn(publicApiClient, 'get')
+    .mockResolvedValue({} as never);
+  const providerGet = jest
+    .spyOn(providerApiClient, 'get')
+    .mockResolvedValue({} as never);
+  const providerPatch = jest
+    .spyOn(providerApiClient, 'patch')
+    .mockResolvedValue({} as never);
+  const providerDelete = jest
+    .spyOn(providerApiClient, 'delete')
+    .mockResolvedValue(true as never);
+  const providerPost = jest
+    .spyOn(providerApiClient, 'post')
+    .mockResolvedValue({} as never);
+
+  // Estate provider surface.
+  await estateApi.getMine('estate-id');
+  await estateApi.update('estate-id', { title: 'Renamed estate' });
+  await estateApi.remove('estate-id');
+
+  // Public read surface, including the forwarded cache init.
+  await estateApi.getById('estate-id');
+  await locationApi.provinces({ next: { revalidate: 60 } });
+
+  // Listing provider lifecycle + public detail.
+  await listingApi.getById('listing-id');
+  await listingApi.eligibleProperties();
+  await listingApi.publish('listing-id');
+  await listingApi.archive('listing-id');
+
+  expect(providerGet).toHaveBeenNthCalledWith(1, '/estates/estate-id/mine');
+  expect(providerGet).toHaveBeenNthCalledWith(
+    2,
+    '/listings/eligible-properties',
+  );
+  expect(providerPatch).toHaveBeenCalledWith('/estates/estate-id', {
+    title: 'Renamed estate',
+  });
+  expect(providerDelete).toHaveBeenCalledWith('/estates/estate-id');
+  expect(publicGet).toHaveBeenNthCalledWith(1, '/estates/estate-id', undefined);
+  expect(publicGet).toHaveBeenNthCalledWith(2, '/locations/provinces', {
+    next: { revalidate: 60 },
+  });
+  expect(publicGet).toHaveBeenNthCalledWith(
+    3,
+    '/listings/listing-id',
+    undefined,
+  );
+  expect(providerPost).toHaveBeenNthCalledWith(
+    1,
+    '/listings/listing-id/publish',
+  );
+  expect(providerPost).toHaveBeenNthCalledWith(
+    2,
+    '/listings/listing-id/archive',
+  );
+});
+
+test('drops empty listing query values and omits the separator for an empty query', async () => {
+  jest.restoreAllMocks();
+  const { publicApiClient } = await import('./client');
+  const { listingApi } = await import('./listing/listing.api');
+  const publicGet = jest
+    .spyOn(publicApiClient, 'get')
+    .mockResolvedValue({} as never);
+
+  // unset and empty-string values must be filtered out of the query string.
+  await listingApi.list({
+    q: undefined,
+    provinceId: 'province-id',
+  });
+  // A completely empty query must not append a bare '?'.
+  await listingApi.list();
+
+  expect(publicGet).toHaveBeenNthCalledWith(
+    1,
+    '/listings?provinceId=province-id',
+    undefined,
+  );
+  expect(publicGet).toHaveBeenNthCalledWith(2, '/listings', undefined);
 });

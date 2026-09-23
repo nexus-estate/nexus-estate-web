@@ -4,22 +4,23 @@ import clsx from 'clsx';
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  hint?: string;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, leftIcon, rightIcon, className, id, ...props }, ref) => {
+  (
+    { label, error, hint, leftIcon, rightIcon, className, id, ...props },
+    ref,
+  ) => {
     const inputId =
       id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={inputId}
-            className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]"
-          >
+          <label htmlFor={inputId} className="field-label">
             {label}
           </label>
         )}
@@ -33,12 +34,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={clsx(
-              'block min-h-10 w-full rounded-[var(--radius-md)] border bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] shadow-[var(--shadow-xs)] transition-[border-color,box-shadow,background-color] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-[3px] disabled:cursor-not-allowed disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-disabled)]',
-              error
-                ? 'border-[var(--danger)] focus:border-[var(--danger)] focus:ring-[rgb(207_34_46_/_0.16)]'
-                : 'border-[var(--border-interactive)] hover:border-[var(--border-strong)] focus:border-[var(--focus-border)] focus:ring-[var(--focus-ring)]',
-              leftIcon && 'pl-10',
-              rightIcon && 'pr-10',
+              'field',
+              error && 'field-invalid',
+              leftIcon && 'pl-9',
+              rightIcon && 'pr-9',
               className,
             )}
             aria-invalid={!!error}
@@ -51,12 +50,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </div>
+        {hint && !error && <p className="field-help">{hint}</p>}
         {error && (
-          <p
-            id={`${inputId}-error`}
-            className="mt-1.5 text-xs font-medium text-[var(--danger)]"
-            role="alert"
-          >
+          <p id={`${inputId}-error`} className="field-error" role="alert">
             {error}
           </p>
         )}

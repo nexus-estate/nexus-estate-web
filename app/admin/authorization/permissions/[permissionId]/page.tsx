@@ -4,6 +4,8 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
+import { ErrorAlert } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { administrationAuthorizationApi } from '@/lib/api/administration/authorization.api';
 import type { Platform } from '@/lib/api/administration/types';
@@ -38,15 +40,16 @@ export default function PermissionDetailPage() {
         params.permissionId,
       ),
   });
-  if (permission.isLoading) return <p>{t('loading')}</p>;
+  if (permission.isLoading)
+    return <LoadingState label={t('loading')} className="min-h-[40vh]" />;
   if (!permission.data)
-    return <p className="text-sm text-red-700">{t('error')}</p>;
+    return <ErrorAlert message={t('error')} className="mt-6" />;
   const item = permission.data;
   return (
     <>
       <PageHeader title={item.name} description={item.code} />
-      <div className="max-w-4xl space-y-6">
-        <section className="border border-[var(--border)] bg-white p-6">
+      <div className="max-w-4xl space-y-5">
+        <section className="panel p-5 sm:p-6">
           <dl className="grid gap-4 text-sm sm:grid-cols-3">
             <div>
               <dt className="text-[var(--text-muted)]">{t('category')}</dt>
@@ -81,13 +84,15 @@ export default function PermissionDetailPage() {
             {item.description ?? '—'}
           </p>
         </section>
-        <section className="border border-[var(--border)] bg-white p-6">
-          <h2 className="font-semibold">{t('rolesGrantingPermission')}</h2>
-          <div className="mt-3 divide-y">
+        <section className="panel p-5 sm:p-6">
+          <h2 className="text-sm font-semibold text-[var(--text)]">
+            {t('rolesGrantingPermission')}
+          </h2>
+          <div className="mt-3 divide-y divide-[var(--border-muted)]">
             {roles.data?.items.map((role) => (
               <div className="py-2 text-sm" key={role.id}>
                 <Link
-                  className="font-medium hover:underline"
+                  className="link"
                   href={`/admin/authorization/roles/${role.id}?platform=${platform}`}
                 >
                   {role.name}

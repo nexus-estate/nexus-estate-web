@@ -20,14 +20,16 @@ interface TableProps<T> {
   onRowClick?: (item: T) => void;
   emptyState?: React.ReactNode;
   pageSize?: number;
+  /** Accessible name for the table; every table needs one. */
+  caption?: string;
 }
 
 function SkeletonRow({ columns }: { columns: number }) {
   return (
     <tr>
       {Array.from({ length: columns }).map((_, i) => (
-        <td key={i} className="px-4 py-3.5">
-          <div className="skeleton h-4 w-full rounded-[var(--radius-sm)]" />
+        <td key={i} className="px-4 py-3">
+          <div className="skeleton h-4 w-full" />
         </td>
       ))}
     </tr>
@@ -42,6 +44,7 @@ export function Table<T>({
   onRowClick,
   emptyState,
   pageSize = 10,
+  caption,
 }: TableProps<T>) {
   const t = useTranslations('common');
   const [sortKey, setSortKey] = useState<string | null>(null);
@@ -62,10 +65,14 @@ export function Table<T>({
     });
   }, [data, sortKey, sortDirection]);
 
-  const totalPages = Math.ceil(sortedData.length / pageSize);
+  const totalPages = Math.max(Math.ceil(sortedData.length / pageSize), 1);
+  // Clamp instead of trusting state: shrinking `data` (a new filter, a refetch)
+  // used to leave the table on an out-of-range page, rendering an empty body
+  // with no way back to the visible rows.
+  const activePage = Math.min(currentPage, totalPages);
   const paginatedData = sortedData.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
+    (activePage - 1) * pageSize,
+    activePage * pageSize,
   );
 
   const handleSort = (key: string) => {
@@ -79,11 +86,11 @@ export function Table<T>({
 
   if (!isLoading && data.length === 0) {
     return (
-      <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-xs)]">
+      <div className="panel">
         {emptyState || (
-          <div className="flex flex-col items-center justify-center px-6 py-12 text-[var(--text-muted)]">
+          <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
             <svg
-              className="mb-3 h-10 w-10 text-[var(--text-subtle)]"
+              className="mb-3 h-6 w-6 text-[var(--text-subtle)]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -92,11 +99,13 @@ export function Table<T>({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={1.25}
+                strokeWidth={1.5}
                 d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
               />
             </svg>
-            <p className="text-sm font-medium">{t('status.empty')}</p>
+            <p className="text-sm font-medium text-[var(--text-muted)]">
+              {t('status.empty')}
+            </p>
           </div>
         )}
       </div>
@@ -104,16 +113,18 @@ export function Table<T>({
   }
 
   return (
-    <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-xs)]">
+    <div className="panel overflow-hidden">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-[var(--border-muted)]">
+          <caption className="sr-only">{caption ?? t('table.label')}</caption>
           <thead className="bg-[var(--surface-subtle)]">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
+                  scope="col"
                   className={clsx(
-                    'px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--text-muted)]',
+                    'px-4 py-2.5 text-left text-xs font-semibold text-[var(--text-muted)]',
                     col.sortable &&
                       'cursor-pointer select-none transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
                     col.headerClassName,
@@ -128,26 +139,27 @@ export function Table<T>({
                         : undefined
                   }
                 >
-                  <div className="flex items-center gap-1.5">
-                    {col.sortable ? (
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1.5 text-left font-inherit"
-                        onClick={() => handleSort(col.key)}
-                      >
-                        <span>{col.header}</span>
-                        <span aria-hidden="true">
-                          {sortKey === col.key
-                            ? sortDirection === 'asc'
-                              ? '↑'
-                              : '↓'
-                            : '↕'}
-                        </span>
-                      </button>
-                    ) : (
+                  {col.sortable ? (
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 text-left font-semibold"
+                      onClick={() => handleSort(col.key)}
+                    >
                       <span>{col.header}</span>
-                    )}
-                  </div>
+                      <span
+                        aria-hidden="true"
+                        className="text-[var(--text-subtle)]"
+                      >
+                        {sortKey === col.key
+                          ? sortDirection === 'asc'
+                            ? '↑'
+                            : '↓'
+                          : '↕'}
+                      </span>
+                    </button>
+                  ) : (
+                    <span>{col.header}</span>
+                  )}
                 </th>
               ))}
             </tr>
@@ -161,17 +173,29 @@ export function Table<T>({
                   <tr
                     key={keyExtractor(item)}
                     onClick={() => onRowClick?.(item)}
+                    // Clickable rows must be reachable and operable by keyboard.
+                    tabIndex={onRowClick ? 0 : undefined}
+                    onKeyDown={
+                      onRowClick
+                        ? (event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              onRowClick(item);
+                            }
+                          }
+                        : undefined
+                    }
                     className={clsx(
                       'transition-colors',
                       onRowClick &&
-                        'cursor-pointer hover:bg-[var(--surface-hover)]',
+                        'cursor-pointer hover:bg-[var(--surface-hover)] focus-visible:bg-[var(--surface-hover)]',
                     )}
                   >
                     {columns.map((col) => (
                       <td
                         key={col.key}
                         className={clsx(
-                          'whitespace-nowrap px-4 py-3.5 text-sm text-[var(--text)]',
+                          'whitespace-nowrap px-4 py-3 text-sm text-[var(--text)]',
                           col.className,
                         )}
                       >
@@ -188,24 +212,30 @@ export function Table<T>({
         </table>
       </div>
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-[var(--border-muted)] bg-[var(--surface-subtle)] px-4 py-3">
+        <div className="flex items-center justify-between border-t border-[var(--border-muted)] bg-[var(--surface-subtle)] px-4 py-2.5">
           <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="rounded-[var(--radius-sm)] border border-transparent px-3 py-1.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-45"
+            onClick={() =>
+              setCurrentPage((p) => Math.max(1, Math.min(p, totalPages) - 1))
+            }
+            disabled={activePage === 1}
+            className="btn btn-secondary btn-sm"
           >
             {t('pagination.previous')}
           </button>
           <span className="text-xs font-medium text-[var(--text-muted)]">
             {t('pagination.pageOf', {
-              current: currentPage,
+              current: activePage,
               total: totalPages,
             })}
           </span>
           <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="rounded-[var(--radius-sm)] border border-transparent px-3 py-1.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-45"
+            onClick={() =>
+              setCurrentPage((p) =>
+                Math.min(totalPages, Math.min(p, totalPages) + 1),
+              )
+            }
+            disabled={activePage === totalPages}
+            className="btn btn-secondary btn-sm"
           >
             {t('pagination.next')}
           </button>

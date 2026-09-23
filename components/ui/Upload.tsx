@@ -105,14 +105,14 @@ export function Upload({
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
         className={clsx(
-          'flex cursor-pointer flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed p-8 text-center transition-[border-color,background-color,box-shadow]',
+          'flex cursor-pointer flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed px-6 py-8 text-center transition-[border-color,background-color,box-shadow]',
           isDragging
-            ? 'border-[var(--primary)] bg-[var(--primary-soft)] shadow-[0_0_0_3px_var(--focus-ring)]'
+            ? 'border-[var(--primary)] bg-[var(--primary-soft)]'
             : 'border-[var(--border-strong)] bg-[var(--surface-subtle)] hover:border-[var(--border-interactive)] hover:bg-[var(--surface-hover)]',
         )}
       >
         <svg
-          className="mb-3 h-10 w-10 text-[var(--text-subtle)]"
+          className="mb-2.5 h-6 w-6 text-[var(--text-subtle)]"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -125,13 +125,13 @@ export function Upload({
             d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
           />
         </svg>
-        <p className="mb-1 text-sm text-[var(--text-muted)]">
+        <p className="text-sm text-[var(--text-muted)]">
           <span className="font-semibold text-[var(--primary)]">
             {t('click')}
           </span>{' '}
           {t('drop')}
         </p>
-        <p className="text-xs text-[var(--text-subtle)]">
+        <p className="mt-1 text-xs text-[var(--text-subtle)]">
           {accept ? accept.replace(/,/g, ', ') : t('anyFile')}{' '}
           {t('upTo', { size: maxSize / 1024 / 1024 })}
         </p>
@@ -146,34 +146,31 @@ export function Upload({
       </div>
 
       {error && (
-        <p
-          role="alert"
-          className="mt-2 text-xs font-medium text-[var(--danger)]"
-        >
+        <p role="alert" className="field-error">
           {error}
         </p>
       )}
 
       {uploadedFiles.length > 0 && (
-        <ul className="mt-4 space-y-2">
+        <ul className="mt-3 space-y-2">
           {uploadedFiles.map((file, index) => (
             <li
               key={`${file.file.name}-${file.file.lastModified}`}
-              className="flex items-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 shadow-[var(--shadow-xs)]"
+              className="panel-flush flex items-center px-3 py-2"
             >
               {file.preview ? (
                 <Image
                   src={file.preview}
                   alt={file.file.name}
-                  width={40}
-                  height={40}
+                  width={36}
+                  height={36}
                   unoptimized
-                  className="mr-3 h-10 w-10 rounded-[var(--radius-sm)] object-cover"
+                  className="mr-3 h-9 w-9 rounded-[var(--radius-xs)] border border-[var(--border-muted)] object-cover"
                 />
               ) : (
-                <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--surface-muted)] text-[var(--text-subtle)]">
+                <div className="mr-3 grid h-9 w-9 place-items-center rounded-[var(--radius-xs)] bg-[var(--surface-muted)] text-[var(--text-subtle)]">
                   <svg
-                    className="h-5 w-5"
+                    className="h-4 w-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -201,7 +198,7 @@ export function Upload({
                   e.stopPropagation();
                   removeFile(index);
                 }}
-                className="ml-2 rounded-[var(--radius-sm)] p-1.5 text-[var(--text-subtle)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
+                className="ml-2 grid h-7 w-7 place-items-center rounded-[var(--radius-sm)] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--danger)]"
                 aria-label={t('remove', { name: file.file.name })}
               >
                 <svg

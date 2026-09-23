@@ -20,29 +20,32 @@ export function PortalBreadcrumbs() {
   if (!breadcrumbs.length) return null;
 
   return (
-    <nav aria-label={t('navigation.breadcrumbs')} className="mb-4">
-      <ol className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]">
+    <nav aria-label={t('navigation.breadcrumbs')} className="mb-3">
+      <ol className="flex flex-wrap items-center gap-1.5 text-xs text-[var(--text-muted)]">
         {breadcrumbs.map((breadcrumb, index) => {
           const isCurrent = index === breadcrumbs.length - 1;
           return (
-            <li key={`${breadcrumb.labelKey}-${breadcrumb.href ?? 'current'}`}>
+            <li
+              key={`${breadcrumb.labelKey}-${breadcrumb.href ?? 'current'}`}
+              className="flex items-center gap-1.5"
+            >
               {isCurrent || !breadcrumb.href ? (
-                <span aria-current={isCurrent ? 'page' : undefined}>
+                <span
+                  className="text-[var(--text)]"
+                  aria-current={isCurrent ? 'page' : undefined}
+                >
                   {t(breadcrumb.labelKey)}
                 </span>
               ) : (
                 <Link
                   href={breadcrumb.href}
-                  className="transition-colors hover:text-[var(--text)] hover:underline"
+                  className="transition-colors hover:text-[var(--primary)]"
                 >
                   {t(breadcrumb.labelKey)}
                 </Link>
               )}
               {!isCurrent && (
-                <span
-                  aria-hidden="true"
-                  className="ml-2 text-[var(--text-subtle)]"
-                >
+                <span aria-hidden="true" className="text-[var(--text-subtle)]">
                   /
                 </span>
               )}

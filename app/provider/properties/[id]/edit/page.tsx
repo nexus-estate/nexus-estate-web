@@ -11,14 +11,15 @@ import {
   useUpdateProviderProperty,
 } from '@/features/provider/supply/provider-supply.queries';
 import { ApiError } from '@/lib/api/core/error';
+import { FEEDBACK, notify } from '@/lib/notify';
 
-const CONTROL_CLASS =
-  'mt-1 w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm outline-none focus:border-[var(--primary)]';
+const CONTROL_CLASS = 'field';
 
 export default function EditProviderPropertyPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const t = useTranslations('provider');
+  const commonT = useTranslations('common');
   const workspace = useProviderAuthorization();
   const property = useProviderProperty(
     params.id,
@@ -44,8 +45,10 @@ export default function EditProviderPropertyPage() {
         data: { title: currentTitle.trim() },
       });
       router.push('/provider/properties');
-    } catch {
-      // The mutation error below gives stale clients a safe 403 state.
+      notify.success(commonT(FEEDBACK.updated));
+    } catch (error) {
+      // The mutation state below still renders a safe 403 state for stale clients.
+      notify.apiError(error, commonT, 'properties.updateFailed');
     }
   };
 
@@ -59,12 +62,12 @@ export default function EditProviderPropertyPage() {
         <p className="mb-4 text-sm text-[var(--text-muted)]">{t('loading')}</p>
       )}
       {lifecycleBlocked && (
-        <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+        <p className="panel mb-4 px-4 py-3 text-sm text-[var(--text-muted)]">
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
       )}
       {workspace.state === 'ACTIVE_VERIFIED' && !canUpdate && (
-        <p className="mb-4 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+        <p className="panel mb-4 px-4 py-3 text-sm text-[var(--text-muted)]">
           {t('permissionDenied')}
         </p>
       )}
@@ -85,7 +88,7 @@ export default function EditProviderPropertyPage() {
           {updateProperty.isError && (
             <p
               role="alert"
-              className="border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
+              className="rounded-[var(--radius-md)] border border-[var(--danger)]/25 bg-[var(--danger-soft)] px-3.5 py-2.5 text-sm font-medium text-[var(--danger-strong)]"
             >
               {updateProperty.error instanceof ApiError &&
               updateProperty.error.status === 403
@@ -93,8 +96,8 @@ export default function EditProviderPropertyPage() {
                 : t('properties.updateFailed')}
             </p>
           )}
-          <div className="border border-[var(--border)] bg-[var(--surface)] p-6">
-            <label className="block text-sm font-medium" htmlFor="estate-title">
+          <div className="panel p-5 sm:p-6">
+            <label className="field-label" htmlFor="estate-title">
               {t('properties.fields.title')}
             </label>
             <input
@@ -110,7 +113,7 @@ export default function EditProviderPropertyPage() {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              className="btn btn-primary btn-lg"
             >
               {updateProperty.isPending
                 ? t('properties.updating')
@@ -119,7 +122,7 @@ export default function EditProviderPropertyPage() {
             <button
               type="button"
               onClick={() => router.push('/provider/properties')}
-              className="border border-[var(--border)] px-6 py-2.5 text-sm font-medium text-[var(--text-muted)]"
+              className="btn btn-secondary btn-lg"
             >
               {t('properties.cancel')}
             </button>

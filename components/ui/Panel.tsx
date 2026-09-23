@@ -11,9 +11,7 @@ export function Panel({
   muted?: boolean;
 }) {
   return (
-    <section
-      className={clsx(muted ? 'app-panel-muted' : 'app-panel', className)}
-    >
+    <section className={clsx(muted ? 'panel-muted' : 'panel', className)}>
       {children}
     </section>
   );
@@ -29,16 +27,18 @@ export function SectionHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-3 border-b border-[var(--border-muted)] px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
-      <div>
-        <h2 className="text-base font-semibold text-[var(--text)]">{title}</h2>
+    <div className="flex flex-col gap-3 border-b border-[var(--border-muted)] px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <div className="min-w-0">
+        <h2 className="text-sm font-semibold text-[var(--text)]">{title}</h2>
         {description && (
-          <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">
+          <p className="mt-0.5 text-xs leading-5 text-[var(--text-muted)]">
             {description}
           </p>
         )}
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+      {actions && (
+        <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>
+      )}
     </div>
   );
 }

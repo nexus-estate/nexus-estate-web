@@ -41,14 +41,32 @@
     "subject": "Chi tiết đối tượng",
     "audit": "Audit phân quyền"
   },
+  "a11y": {
+    "skipToContent": "Chuyển đến nội dung chính",
+    "mainContent": "Nội dung chính"
+  },
+  "table": {
+    "label": "Bảng dữ liệu"
+  },
   "pagination": {
     "previous": "Trước",
     "next": "Sau",
     "pageOf": "Trang {current} / {total}"
   },
   "language": { "vietnamese": "Tiếng Việt", "english": "English" },
+  "feedback": {
+    "created": "Tạo thành công.",
+    "updated": "Đã lưu thay đổi.",
+    "deleted": "Đã xoá.",
+    "published": "Đã xuất bản tin đăng.",
+    "archived": "Đã lưu trữ.",
+    "approved": "Đã phê duyệt nhà cung cấp.",
+    "sent": "Đã gửi thành công.",
+    "assigned": "Đã lưu phân quyền."
+  },
   "errors": {
     "unexpected": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "assignmentConflict": "Phân quyền này xung đột với trạng thái hiện tại. Hãy tải lại trang và thử lại.",
     "requestId": "Mã yêu cầu: {requestId}",
     "roleVersionConflict": "Role đã thay đổi. Hãy tải phiên bản mới nhất rồi lưu lại.",
     "roleInUse": "Role đang được sử dụng và không thể xóa.",
@@ -57,6 +75,11 @@
     "lastOwnerProtection": "Không thể xóa Owner cuối cùng.",
     "providerContextRequired": "Cần chọn Provider context trước khi tiếp tục.",
     "providerAccountNotFound": "Không tìm thấy Provider account."
+  },
+  "notFoundPage": {
+    "title": "Không tìm thấy trang này",
+    "description": "Liên kết có thể bị hỏng, hoặc trang đã được di chuyển hay xoá.",
+    "search": "Xem bất động sản"
   },
   "errorPage": {
     "title": "Đã xảy ra lỗi",

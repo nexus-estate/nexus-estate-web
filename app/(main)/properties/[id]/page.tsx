@@ -1,249 +1,224 @@
-'use client';
-
-import { useState, useEffect } from 'react';
+import { cache } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useLocale, useTranslations } from 'next-intl';
-import { leadApi } from '@/lib/api/lead/lead.api';
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { PropertyLeadForm } from '@/components/customer/property-lead-form';
+import { Badge } from '@/components/ui/Badge';
+import { JsonLd } from '@/components/ui/JsonLd';
 import { listingApi } from '@/lib/api/listing/listing.api';
 import type { Listing } from '@/lib/api/listing/listing.types';
+import { formatCurrency } from '@/lib/format';
+import { getListingImage } from '@/lib/listing-image';
+import {
+  absoluteUrl,
+  buildBreadcrumbJsonLd,
+  buildListingDescription,
+  buildListingJsonLd,
+  listingPath,
+} from '@/lib/seo';
 
-export default function PropertyDetailPage() {
-  const locale = useLocale();
-  const t = useTranslations('customer.propertyDetail');
-  const customerT = useTranslations('customer');
-  const params = useParams();
-  const [listing, setListing] = useState<Listing | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [leadForm, setLeadForm] = useState({
-    name: '',
-    phone: '',
-    message: '',
-  });
-  const [leadSent, setLeadSent] = useState(false);
-  const [leadLoading, setLeadLoading] = useState(false);
-  const [leadError, setLeadError] = useState(false);
+/** Detail pages are stable catalogue data; revalidate instead of refetching. */
+const REVALIDATE_SECONDS = 60;
 
-  useEffect(() => {
-    async function fetch() {
-      try {
-        setListing(await listingApi.getById(params.id as string));
-      } catch (err) {
-        console.error('Failed to fetch property:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetch();
-  }, [params.id]);
-
-  const handleLeadSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLeadLoading(true);
-    setLeadError(false);
-    try {
-      await leadApi.create(params.id as string, {
-        name: leadForm.name,
-        phone: leadForm.phone,
-        message: leadForm.message,
-      });
-      setLeadSent(true);
-    } catch {
-      setLeadError(true);
-    } finally {
-      setLeadLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 py-8">
-          <div className="skeleton h-96 rounded-xl" />
-          <div className="mt-6 space-y-4">
-            <div className="skeleton h-8 w-2/3 rounded" />
-            <div className="skeleton h-6 w-1/3 rounded" />
-          </div>
-        </div>
-      </div>
-    );
+/** Deduped per request so metadata and the page share one upstream call. */
+const loadListing = cache(async (id: string): Promise<Listing | null> => {
+  try {
+    return await listingApi.getById(id, {
+      next: { revalidate: REVALIDATE_SECONDS },
+    });
+  } catch {
+    // 404s and upstream failures both render the not-found surface.
+    return null;
   }
+});
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const listing = await loadListing(id);
 
   if (!listing) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <p className="text-[var(--text-muted)]">{t('notFound')}</p>
-          <Link
-            href="/properties"
-            className="mt-2 inline-block text-blue-600 hover:underline"
-          >
-            {t('back')}
-          </Link>
-        </div>
-      </div>
-    );
+    // Resolved before streaming starts, so the response is a real 404 rather
+    // than a soft 404 (which the route's loading.tsx would otherwise cause).
+    notFound();
   }
 
-  const p = listing.estate;
+  const { estate } = listing;
+  const description = buildListingDescription(listing);
+  const image = absoluteUrl(getListingImage(listing));
+
+  return {
+    title: estate.title,
+    description,
+    alternates: { canonical: listingPath(listing.id) },
+    openGraph: {
+      type: 'article',
+      title: estate.title,
+      description,
+      url: absoluteUrl(listingPath(listing.id)),
+      images: [{ url: image, alt: estate.title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: estate.title,
+      description,
+      images: [image],
+    },
+  };
+}
+
+export default async function PropertyDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const [listing, t, customerT, locale] = await Promise.all([
+    loadListing(id),
+    getTranslations('customer.propertyDetail'),
+    getTranslations('customer'),
+    getLocale(),
+  ]);
+
+  if (!listing) notFound();
+
+  const estate = listing.estate;
+  const price = formatCurrency(estate.price, locale, {
+    fallback: t('contact'),
+  });
+  const specs = [
+    estate.area ? [String(estate.area), t('squareMeters')] : null,
+    estate.bedrooms ? [String(estate.bedrooms), t('bedrooms')] : null,
+    estate.bathrooms ? [String(estate.bathrooms), t('bathrooms')] : null,
+  ].filter((spec): spec is string[] => spec !== null);
+
+  const breadcrumbs = [
+    { name: t('home'), path: '/' },
+    { name: t('properties'), path: '/properties' },
+    { name: estate.title, path: listingPath(listing.id) },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <nav className="mb-6 text-sm text-gray-500">
-          <Link href="/" className="hover:text-blue-600">
+    <div className="bg-[var(--background)]">
+      <JsonLd data={buildListingJsonLd(listing)} />
+      <JsonLd data={buildBreadcrumbJsonLd(breadcrumbs)} />
+
+      <div className="mx-auto max-w-[var(--content-max)] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <nav
+          className="mb-4 flex flex-wrap items-center gap-1.5 text-xs text-[var(--text-muted)]"
+          aria-label={customerT('nav.navigation')}
+        >
+          <Link
+            href="/"
+            className="transition-colors hover:text-[var(--primary)]"
+          >
             {t('home')}
           </Link>
-          <span className="mx-2">/</span>
-          <Link href="/properties" className="hover:text-blue-600">
+          <span aria-hidden="true" className="text-[var(--text-subtle)]">
+            /
+          </span>
+          <Link
+            href="/properties"
+            className="transition-colors hover:text-[var(--primary)]"
+          >
             {t('properties')}
           </Link>
-          <span className="mx-2">/</span>
-          <span className="text-gray-900">{p.title}</span>
+          <span aria-hidden="true" className="text-[var(--text-subtle)]">
+            /
+          </span>
+          <span className="truncate text-[var(--text)]">{estate.title}</span>
         </nav>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Hero image */}
-            <div className="flex h-72 sm:h-96 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-700 text-white">
-              <div className="text-center">
-                <span className="text-8xl opacity-40">
-                  <span
-                    className="h-24 w-24 rounded-full border border-white/30 bg-white/10"
-                    aria-hidden="true"
-                  />
-                </span>
-              </div>
+        <div className="grid gap-6 lg:grid-cols-[1.9fr_1fr]">
+          <div className="space-y-5">
+            <div className="relative aspect-[16/10] overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-muted)]">
+              <Image
+                src={getListingImage(listing)}
+                alt=""
+                fill
+                priority
+                sizes="(min-width: 1024px) 62vw, 100vw"
+                className="object-cover"
+              />
+              <span className="badge absolute left-4 top-4 border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur">
+                {estate.purpose === 'SALE' ? t('forSale') : t('forRent')}
+              </span>
             </div>
 
-            {/* Property info */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-6">
-              <h1 className="text-2xl font-bold text-gray-900">{p.title}</h1>
-              <p className="mt-2 text-3xl font-bold text-blue-600">
-                {p.price
-                  ? new Intl.NumberFormat(locale, {
-                      style: 'currency',
-                      currency: 'VND',
-                      maximumFractionDigits: 0,
-                    }).format(p.price)
-                  : t('contact')}
-              </p>
-              <p className="mt-1 text-sm text-gray-500">
-                {p.purpose === 'SALE' ? t('forSale') : t('forRent')} ·{' '}
-                {customerT(`home.propertyTypes.${p.type.toLowerCase()}`)}
-              </p>
-
-              <div className="mt-4 flex flex-wrap gap-4 border-y border-gray-100 py-4">
-                {p.area && (
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">{p.area}</p>
-                    <p className="text-xs text-gray-500">{t('squareMeters')}</p>
-                  </div>
-                )}
-                {p.bedrooms && (
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">
-                      {p.bedrooms}
-                    </p>
-                    <p className="text-xs text-gray-500">{t('bedrooms')}</p>
-                  </div>
-                )}
-                {p.bathrooms && (
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">
-                      {p.bathrooms}
-                    </p>
-                    <p className="text-xs text-gray-500">{t('bathrooms')}</p>
-                  </div>
-                )}
+            <div className="panel p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs text-[var(--text-subtle)]">
+                    {customerT(
+                      `home.propertyTypes.${estate.type.toLowerCase()}`,
+                    )}
+                  </p>
+                  <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--text)]">
+                    {estate.title}
+                  </h1>
+                </div>
+                <p className="text-2xl font-semibold tracking-tight text-[var(--primary)]">
+                  {price}
+                </p>
               </div>
 
-              {p.description && (
-                <div className="mt-4">
-                  <h2 className="font-semibold text-gray-900">
-                    {t('descriptionTitle')}
-                  </h2>
-                  <p className="mt-1 text-sm text-gray-600 leading-relaxed">
-                    {p.description}
-                  </p>
-                </div>
+              {specs.length > 0 && (
+                <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--border-muted)] sm:grid-cols-3">
+                  {specs.map(([value, label]) => (
+                    <div key={label} className="bg-[var(--surface)] px-4 py-3">
+                      <dt className="text-xs text-[var(--text-muted)]">
+                        {label}
+                      </dt>
+                      <dd className="mt-0.5 text-lg font-semibold text-[var(--text)]">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
               )}
 
-              <div className="mt-4">
-                <h2 className="font-semibold text-gray-900">{t('address')}</h2>
-                <p className="mt-1 text-sm text-gray-600">
-                  {p.province.name}, {p.ward.name} - {p.addressLine}
-                </p>
+              <div className="mt-5 space-y-4 text-sm leading-6 text-[var(--text-muted)]">
+                {estate.description && (
+                  <div>
+                    <h2 className="text-sm font-semibold text-[var(--text)]">
+                      {t('descriptionTitle')}
+                    </h2>
+                    <p className="mt-1 whitespace-pre-line">
+                      {estate.description}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-sm font-semibold text-[var(--text)]">
+                    {t('address')}
+                  </h2>
+                  <p className="mt-1">
+                    {estate.province.name}
+                    {estate.ward ? `, ${estate.ward.name}` : ''} ·{' '}
+                    {estate.addressLine}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Sidebar - Contact form */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-6">
-              <h2 className="text-lg font-bold text-gray-900">
-                {t('contactNow')}
-              </h2>
-              <p className="mt-1 text-sm text-gray-500">{t('contactPrompt')}</p>
-
-              {leadSent ? (
-                <div className="mt-4 rounded-xl bg-green-50 p-4 text-center">
-                  <p className="text-sm font-medium text-green-700">
-                    {t('sent')}
-                  </p>
-                  <p className="mt-1 text-xs text-green-600">
-                    {t('sentDescription')}
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleLeadSubmit} className="mt-4 space-y-3">
-                  <input
-                    type="text"
-                    required
-                    aria-label={t('name')}
-                    placeholder={t('name')}
-                    value={leadForm.name}
-                    onChange={(e) =>
-                      setLeadForm((f) => ({ ...f, name: e.target.value }))
-                    }
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                  />
-                  <input
-                    type="tel"
-                    required
-                    aria-label={t('phone')}
-                    placeholder={t('phone')}
-                    value={leadForm.phone}
-                    onChange={(e) =>
-                      setLeadForm((f) => ({ ...f, phone: e.target.value }))
-                    }
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                  />
-                  <textarea
-                    aria-label={t('message')}
-                    placeholder={t('message')}
-                    rows={3}
-                    value={leadForm.message}
-                    onChange={(e) =>
-                      setLeadForm((f) => ({ ...f, message: e.target.value }))
-                    }
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"
-                  />
-                  <button
-                    type="submit"
-                    disabled={leadLoading}
-                    className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                  >
-                    {leadLoading ? t('sending') : t('send')}
-                  </button>
-                  {leadError && (
-                    <p role="alert" className="text-sm text-[var(--danger)]">
-                      {t('sendFailed')}
-                    </p>
-                  )}
-                </form>
-              )}
+          <div>
+            <div className="panel sticky top-24 p-5">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-base font-semibold text-[var(--text)]">
+                  {t('contactNow')}
+                </h2>
+                <Badge>{t('broker')}</Badge>
+              </div>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">
+                {t('contactPrompt')}
+              </p>
+              <PropertyLeadForm listingId={listing.id} />
             </div>
           </div>
         </div>
