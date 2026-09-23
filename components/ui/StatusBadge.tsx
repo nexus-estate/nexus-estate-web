@@ -10,7 +10,6 @@ const STATUS_VARIANTS = {
   PENDING: 'warning',
   PENDING_REVIEW: 'warning',
   IN_REVIEW: 'warning',
-  DRAFT: 'default',
   SUSPENDED: 'error',
   REJECTED: 'error',
   DISABLED: 'error',
