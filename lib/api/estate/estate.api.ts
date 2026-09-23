@@ -18,8 +18,6 @@ export const estateApi = {
     publicApiClient.get<Estate>(`/estates/${id}`, init),
   create: (data: CreateEstateRequest) =>
     providerApiClient.post<Estate>('/estates', data),
-  activate: (id: string) =>
-    providerApiClient.post<Estate>(`/estates/${id}/activate`),
   update: (id: string, data: UpdateEstateRequest) =>
     providerApiClient.patch<Estate>(`/estates/${id}`, data),
   activate: (id: string) =>
