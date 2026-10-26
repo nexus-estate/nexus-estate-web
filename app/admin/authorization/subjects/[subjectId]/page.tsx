@@ -3,7 +3,8 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
+import { AdminPagination } from '@/components/administration/admin-pagination';
 import { PageHeader } from '@/components/portal/page-header';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
@@ -21,6 +22,7 @@ import {
 
 export default function SubjectDetailPage() {
   const t = useTranslations('administration.authorization');
+  const format = useFormatter();
   const params = useParams<{ subjectId: string }>();
   const search = useSearchParams();
   const platform = (search.get('platform') as Platform) || 'MARKETPLACE';
@@ -76,6 +78,22 @@ export default function SubjectDetailPage() {
     selectedRoles,
   );
   const [validationError, setValidationError] = useState('');
+  const [memberPage, setMemberPage] = useState(1);
+  const providerMembers = useQuery({
+    queryKey: [
+      'administration',
+      'providers',
+      subject.data?.providerId,
+      'members',
+      memberPage,
+    ],
+    queryFn: () =>
+      administrationAuthorizationApi.providerMembers(
+        subject.data!.providerId!,
+        { page: memberPage, limit: 20 },
+      ),
+    enabled: platform === 'PROVIDER' && Boolean(subject.data?.providerId),
+  });
   const permissionsByCategory = useMemo(() => {
     const groups = new Map<string, AuthorizationPermission[]>();
     for (const permission of subject.data?.permissions ?? []) {
@@ -181,6 +199,81 @@ export default function SubjectDetailPage() {
             </pre>
           </details>
         </section>
+        {platform === 'PROVIDER' && item.providerId && (
+          <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-xs)]">
+            <div className="border-b border-[var(--border-muted)] px-5 py-4 sm:px-6">
+              <h2 className="font-semibold">{t('providerMembers')}</h2>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                {item.providerDisplayName ?? item.providerId}
+              </p>
+            </div>
+            {providerMembers.isError ? (
+              <p className="p-5 text-sm text-[var(--danger)]">{t('error')}</p>
+            ) : providerMembers.isLoading ? (
+              <div className="space-y-3 p-5">
+                {[0, 1, 2].map((i) => (
+                  <div className="skeleton h-12 rounded-lg" key={i} />
+                ))}
+              </div>
+            ) : providerMembers.data?.items.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-[#f8faf9] text-[10px] uppercase tracking-[0.13em] text-[var(--text-muted)]">
+                    <tr>
+                      <th className="px-5 py-4 sm:px-6">
+                        {t('customerEmail')}
+                      </th>
+                      <th className="px-5 py-4">{t('status')}</th>
+                      <th className="px-5 py-4">{t('roles')}</th>
+                      <th className="px-5 py-4">{t('joined')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {providerMembers.data.items.map((member) => (
+                      <tr
+                        className="border-t border-[var(--border-muted)]"
+                        key={member.id}
+                      >
+                        <td className="px-5 py-4 sm:px-6">
+                          {member.customerEmail}
+                        </td>
+                        <td className="px-5 py-4">
+                          <StatusBadge
+                            status={member.status}
+                            label={
+                              member.status === 'ACTIVE'
+                                ? t('statusActive')
+                                : member.status
+                            }
+                            size="sm"
+                          />
+                        </td>
+                        <td className="px-5 py-4">
+                          {member.roleCodes.join(', ') || '—'}
+                        </td>
+                        <td className="px-5 py-4 text-xs text-[var(--text-muted)]">
+                          {member.joinedAt
+                            ? format.dateTime(new Date(member.joinedAt), {
+                                dateStyle: 'medium',
+                              })
+                            : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <AdminPagination
+                  meta={providerMembers.data.meta}
+                  onPageChange={setMemberPage}
+                />
+              </div>
+            ) : (
+              <p className="p-5 text-sm text-[var(--text-muted)]">
+                {t('noProviderMembers')}
+              </p>
+            )}
+          </section>
+        )}
         <section className="border border-[var(--border)] bg-white p-6">
           <h2 className="font-semibold">{t('assignedSubjects')}</h2>
           <div className="mt-3 space-y-2">

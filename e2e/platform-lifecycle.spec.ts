@@ -6,7 +6,7 @@ const customerPassword = 'lifecycle-customer-password';
 const adminEmail = 'superadmin@nexus-estate.local';
 const adminPassword = 'NexusEstate#SuperAdmin2026!';
 const marketplaceBaseURL = `http://localhost:${process.env.E2E_PORT ?? '3000'}`;
-const providerBaseURL = `http://localhost:${process.env.E2E_PROVIDER_PORT ?? '3001'}`;
+const providerBaseURL = `http://localhost:${process.env.E2E_PROVIDER_PORT ?? '3003'}`;
 const adminBaseURL = `http://localhost:${process.env.E2E_ADMIN_PORT ?? '3002'}`;
 
 async function apiStatus(page: Page, path: string, tokenKey: string) {
@@ -128,13 +128,14 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     await providerPage
       .getByRole('button', { name: /Submit for review|Gửi xét duyệt/ })
       .click();
+    const platformState = providerPage.getByRole('region', {
+      name: /Platform state|Trạng thái nền tảng/,
+    });
     await expect(
-      providerPage
-        .locator('span.border')
-        .filter({ hasText: /^Pending review$|^Đang chờ duyệt$/ }),
+      platformState.getByText(/^Pending review$|^Đang chờ duyệt$/),
     ).toBeVisible();
     await expect(
-      providerPage.getByText(
+      platformState.getByText(
         /Provider review is in progress\.|Hồ sơ Provider đang được xét duyệt\./,
       ),
     ).toBeVisible();
@@ -148,8 +149,13 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
       adminPage.getByText(providerName, { exact: true }),
     ).toBeVisible();
     await adminPage
+      .getByRole('row')
+      .filter({ hasText: providerName })
       .getByRole('button', { name: /Approve|Phê duyệt/ })
-      .first()
+      .click();
+    await adminPage
+      .getByRole('dialog')
+      .getByRole('button', { name: /Approve|Phê duyệt/ })
       .click();
     await expect(
       adminPage.getByText(/No pending requests\.|Không có yêu cầu đang chờ\./),

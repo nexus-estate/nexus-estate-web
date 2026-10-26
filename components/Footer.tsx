@@ -95,32 +95,12 @@ export default function Footer() {
             <h2 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-accent)]">
               {t('connect')}
             </h2>
-            <p className="mt-5 text-sm leading-6 text-white/55">
-              {t('newsletter')}
-            </p>
-            <form
-              onSubmit={(event) => event.preventDefault()}
-              className="mt-5 flex border-b border-white/25 focus-within:border-[var(--brand-accent)]"
+            <a
+              href="mailto:support@nexusestate.dev"
+              className="mt-5 inline-block border-b border-white/35 pb-1 text-sm text-white/75 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              <input
-                type="email"
-                aria-label={t('newsletterLabel')}
-                placeholder={t('newsletterPlaceholder')}
-                className="min-w-0 flex-1 bg-transparent py-3 text-sm text-white outline-none placeholder:text-white/35"
-              />
-              <button
-                type="submit"
-                aria-label={t('newsletterSubmit')}
-                className="px-3 text-[var(--brand-accent)] transition-colors hover:text-white"
-              >
-                →
-              </button>
-            </form>
-            <p className="mt-6 text-sm text-white/55">
-              support@nexusestate.dev
-              <br />
-              1900 1234
-            </p>
+              support@nexusestate.dev ↗
+            </a>
           </div>
         </div>
         <div className="flex flex-col gap-4 pt-7 text-[10px] uppercase tracking-[0.12em] text-white/35 sm:flex-row sm:items-center sm:justify-between">

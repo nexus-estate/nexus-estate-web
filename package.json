@@ -4,6 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:marketplace": "WEB_PLATFORM=marketplace next dev -p 3000",
+    "dev:provider": "WEB_PLATFORM=provider next dev -p 3003",
+    "dev:admin": "WEB_PLATFORM=admin next dev -p 3002",
+    "dev:all": "concurrently -n MARKETPLACE,PROVIDER,ADMIN \"npm run dev:marketplace\" \"npm run dev:provider\" \"npm run dev:admin\"",
     "build": "next build --webpack",
     "start": "node scripts/start-standalone.mjs",
     "lint": "eslint",
@@ -38,6 +42,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "eslint-config-prettier": "^10",

@@ -1,6 +1,9 @@
 {
   "title": "Provider portal",
-  "footer": { "back": "Back to Marketplace", "signOut": "Sign out" },
+  "footer": {
+    "back": "Back to Marketplace",
+    "signOut": "Sign out"
+  },
   "loading": "Loading Provider workspace…",
   "permissionDenied": "Your current Provider permission does not allow this action.",
   "identity": {
@@ -45,7 +48,8 @@
     "properties": "Properties",
     "listings": "Listings",
     "account": "Account",
-    "authorization": "Authorization"
+    "authorization": "Authorization",
+    "media": "Media"
   },
   "properties": {
     "title": "Properties",
@@ -116,7 +120,9 @@
       "DRAFT": "Draft",
       "ACTIVE": "Active",
       "ARCHIVED": "Archived"
-    }
+    },
+    "media": "Add images",
+    "createListing": "Create listing"
   },
   "listings": {
     "title": "Listings",
@@ -131,6 +137,11 @@
     "publishing": "Publishing…",
     "archive": "Archive",
     "archiving": "Archiving…",
+    "createBanner": "Create banner",
+    "bannerTitle": "Create listing banner",
+    "bannerDescription": "Choose how many days to promote this published listing.",
+    "bannerSubmitting": "Creating…",
+    "bannerFailed": "The banner could not be created.",
     "propertyNotActive": "The Property must be active before its Listing can be published.",
     "loadFailed": "Listings could not be loaded.",
     "createFailed": "The Listing could not be created.",
@@ -141,13 +152,19 @@
     "noEligibleProperties": "Every Property of this Provider already has a Listing. Create another Property first.",
     "fields": {
       "property": "Property",
-      "propertyPlaceholder": "Select a Property"
+      "propertyPlaceholder": "Select a Property",
+      "promotionId": "Promotion ID",
+      "promotionIdPlaceholder": "Paste the promotion ID",
+      "durationDays": "Promotion duration (days)"
     },
     "status": {
       "DRAFT": "Draft",
       "PUBLISHED": "Published",
       "ARCHIVED": "Archived"
-    }
+    },
+    "startsImmediately": "Starts: Immediately after creation.",
+    "invalidDuration": "Enter a positive whole number of days, minimum 1.",
+    "durationOption": "{days} days"
   },
   "labels": {
     "provider": "Provider",
@@ -163,7 +180,20 @@
   },
   "overview": {
     "title": "Provider overview",
-    "description": "Operational status for the selected Provider.",
+    "description": "Manage your properties, listings and business activity in one place.",
+    "workspace": "Provider workspace",
+    "inventory": "Supply overview",
+    "propertyDrafts": "{count} drafts to complete",
+    "manageListings": "Manage all listings",
+    "published": "Published listings",
+    "viewPublished": "Manage listings",
+    "recentProperties": "Recent properties",
+    "recentDescription": "Properties updated most recently",
+    "viewAll": "View all",
+    "quickActions": "Quick access",
+    "quickActionsDescription": "Go straight to the area you need.",
+    "nextStep": "Next step",
+    "retry": "Try again",
     "business": "Business",
     "membershipAccess": "Membership & access",
     "platformState": "Platform state",
@@ -193,5 +223,57 @@
   "account": {
     "providerId": "Provider ID",
     "created": "Created"
+  },
+  "controls": {
+    "search": "Search by title…",
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "refresh": "Refresh",
+    "noResults": "No matching results."
+  },
+  "media": {
+    "title": "Media · Estate images",
+    "description": "Choose an estate and upload images to prepare your listing.",
+    "help": "Images are saved directly to the selected estate.",
+    "choose": "Choose images or drop them here",
+    "formats": "JPEG, PNG · Up to 5 MB per image",
+    "invalidFile": "Choose JPEG or PNG images, up to 5 MB each.",
+    "permissionDenied": "You need permission to update estates to upload images.",
+    "uploadFailed": "Upload failed. Successful images are saved; retry the remaining images.",
+    "upload": "Upload {count} images",
+    "uploading": "Uploading…",
+    "remove": "Remove selected image",
+    "property": "Estate",
+    "selectProperty": "Choose an estate…",
+    "noProperties": "Create an estate before uploading images.",
+    "sessionNote": "Shows uploads from this session. Successful uploads are saved on the server.",
+    "status": {
+      "ready": "Ready to upload",
+      "uploading": "Uploading…",
+      "uploaded": "Saved",
+      "failed": "Failed · Retry available"
+    }
+  },
+  "listingDetail": {
+    "title": "Listing detail",
+    "description": "Publication information and the linked estate.",
+    "back": "Back to listings",
+    "overview": "Listing information",
+    "listingId": "Listing ID",
+    "estateId": "Estate ID",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "publishedAt": "Published",
+    "linkedEstate": "Linked estate",
+    "editEstate": "Edit estate",
+    "manageMedia": "Manage images",
+    "gallery": "Estate images",
+    "floors": "Floors",
+    "notFound": "This listing is not available in your Provider workspace.",
+    "estateLoading": "Loading linked estate…",
+    "estateMissing": "The estate linked to this listing is no longer available.",
+    "estatePermissionDenied": "You need property read permission to view the linked estate.",
+    "privateMediaUnavailable": "Photos are currently unavailable for draft or archived estates.",
+    "view": "View details"
   }
 }

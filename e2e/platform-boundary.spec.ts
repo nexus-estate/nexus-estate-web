@@ -33,7 +33,7 @@ test.describe(`platform boundary: ${platform}`, () => {
 
       expect([307, 308]).toContain(response.status());
       expect(response.headers().location).toBe(
-        `${process.env.NEXT_PUBLIC_PROVIDER_URL ?? 'http://localhost:3001'}/provider/properties/new`,
+        `${process.env.NEXT_PUBLIC_PROVIDER_URL ?? 'http://localhost:3003'}/provider/properties/new`,
       );
     });
   }

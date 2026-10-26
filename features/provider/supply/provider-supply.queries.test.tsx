@@ -5,10 +5,14 @@ import { ApiError } from '@/lib/api/core/error';
 import { estateApi } from '@/lib/api/estate/estate.api';
 import type { Estate } from '@/lib/api/estate/estate.types';
 import { listingApi } from '@/lib/api/listing/listing.api';
+import { mediaApi } from '@/lib/api/media/media.api';
 import { useProviderContext } from '../context/provider-context.provider';
 import { providerKeys } from '../query-keys';
 import {
   useActivateProviderProperty,
+  useProviderListing,
+  useProviderProperty,
+  useProviderEstateMedia,
   useArchiveProviderProperty,
   useArchiveProviderListing,
   useCreateProviderListing,
@@ -20,6 +24,7 @@ import {
 
 jest.mock('@/lib/api/estate/estate.api', () => ({
   estateApi: {
+    getMine: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     activate: jest.fn(),
@@ -31,9 +36,13 @@ jest.mock('@/lib/api/estate/estate.api', () => ({
 jest.mock('@/lib/api/listing/listing.api', () => ({
   listingApi: {
     archive: jest.fn(),
+    mine: jest.fn(),
     create: jest.fn(),
     eligibleProperties: jest.fn(),
   },
+}));
+jest.mock('@/lib/api/media/media.api', () => ({
+  mediaApi: { listPublic: jest.fn() },
 }));
 jest.mock('../context/provider-context.provider', () => ({
   useProviderContext: jest.fn(),
@@ -325,4 +334,78 @@ test('does not query eligible properties when listing:create is absent', async (
   });
 
   expect(listingApi.eligibleProperties).not.toHaveBeenCalled();
+});
+
+test('detail selects the provider listing and waits for its estate identity', async () => {
+  jest.mocked(useProviderContext).mockReturnValue({
+    providerId: 'provider-detail',
+    setProviderId: jest.fn(),
+  });
+  const mineListing = {
+    id: 'draft-listing',
+    estateId: propertyFixture.id,
+    status: 'DRAFT',
+  };
+  jest
+    .mocked(listingApi.mine)
+    .mockResolvedValue([mineListing] as Awaited<
+      ReturnType<typeof listingApi.mine>
+    >);
+  jest.mocked(estateApi.getMine).mockResolvedValue(propertyFixture);
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+  const { result, rerender } = renderHook(
+    ({ enabled }) => {
+      const listing = useProviderListing('draft-listing', enabled);
+      const estate = useProviderProperty(
+        listing.data?.estateId ?? '',
+        enabled && Boolean(listing.data?.estateId),
+      );
+      return { listing, estate };
+    },
+    { wrapper, initialProps: { enabled: false } },
+  );
+  expect(listingApi.mine).not.toHaveBeenCalled();
+  expect(estateApi.getMine).not.toHaveBeenCalled();
+  rerender({ enabled: true });
+  await waitFor(() =>
+    expect(result.current.estate.data?.id).toBe(propertyFixture.id),
+  );
+  expect(result.current.listing.data?.status).toBe('DRAFT');
+  expect(listingApi.mine).toHaveBeenCalledTimes(1);
+  expect(estateApi.getMine).toHaveBeenCalledWith(propertyFixture.id);
+  expect(client.getQueryData(providerKeys.listings('provider-detail'))).toEqual(
+    [mineListing],
+  );
+});
+
+test('media does not fetch without estate ID or permission and stays provider scoped', async () => {
+  jest.mocked(useProviderContext).mockReturnValue({
+    providerId: 'provider-media',
+    setProviderId: jest.fn(),
+  });
+  jest.mocked(mediaApi.listPublic).mockResolvedValue([]);
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+  const { result, rerender } = renderHook(
+    ({ id, enabled }) => useProviderEstateMedia(id, enabled),
+    { wrapper, initialProps: { id: '', enabled: true } },
+  );
+  expect(mediaApi.listPublic).not.toHaveBeenCalled();
+  rerender({ id: 'estate-media', enabled: false });
+  expect(mediaApi.listPublic).not.toHaveBeenCalled();
+  rerender({ id: 'estate-media', enabled: true });
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  expect(mediaApi.listPublic).toHaveBeenCalledWith('estate-media');
+  expect(
+    client.getQueryData(providerKeys.media('provider-media', 'estate-media')),
+  ).toEqual([]);
 });

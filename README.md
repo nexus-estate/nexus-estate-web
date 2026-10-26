@@ -21,12 +21,24 @@ authorization remains authoritative.
 
 ## Getting Started
 
-Run a platform locally:
+Copy the environment template and set the API and platform URLs for your local
+services. `NEXT_PUBLIC_MARKETPLACE_URL`, `NEXT_PUBLIC_PROVIDER_URL`, and
+`NEXT_PUBLIC_ADMIN_URL` are required even when running only one platform,
+because navigation links are rendered in shared components.
 
 ```bash
-WEB_PLATFORM=marketplace npm run dev
-WEB_PLATFORM=provider npm run dev
-WEB_PLATFORM=admin npm run dev
+test -f .env || cp .env.example .env
+```
+
+Restart the dev server after changing any `NEXT_PUBLIC_*` value so Next.js
+embeds the new value in client code.
+
+Then run one platform locally on its assigned port:
+
+```bash
+npm run dev:marketplace # http://localhost:3000
+npm run dev:provider    # http://localhost:3003/provider
+npm run dev:admin       # http://localhost:3002/admin
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -35,36 +47,100 @@ Outside production, a missing `WEB_PLATFORM` temporarily falls back to
 Marketplace for migration compatibility. Production requires a valid value
 and fails fast otherwise.
 
-## Run with Docker Compose
+## Local testing through Cloudflare Tunnel
 
-Copy the environment template, adjust the API URL if needed, then start the
-production container. Frontend dependencies use the public npm registry; no
-package token is required:
+In development, browser API and media requests configured with a loopback URL
+(such as `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`) use `/api/v1`
+on the frontend origin. Next.js forwards them to the local backend, so remote
+browsers can test login, data fetching, and uploads through the HTTPS FE tunnel.
+Production continues to use the configured public API URL.
+
+For `npm run dev`, the proxy destination defaults to `NEXT_PUBLIC_API_URL`.
+For Docker Compose, it defaults to `http://host.docker.internal:3001/api/v1`.
+Set `API_PROXY_TARGET` to override the backend URL reachable from the FE server.
+Keep the full API prefix in this value. The backend must be running and, for
+Docker access through the host gateway, listening on an interface reachable
+from the containers.
+
+Quick Tunnel hostnames (`*.trycloudflare.com`) are allowed for dev assets/HMR.
+For a named tunnel, set `DEV_ALLOWED_ORIGINS=admin.example.com` (comma-separated
+hostnames without scheme or port). Set the `NEXT_PUBLIC_*` platform URLs to
+their tunnel URLs when testing navigation between platforms. Each platform
+still needs its own dev server and tunnel.
+
+Restart the dev server after changing this configuration. With Compose, run
+`docker compose up -d --force-recreate` to apply the new environment and host
+gateway settings.
+
+## Run with Docker Compose (local development)
+
+The default `docker-compose.yml` runs all three platforms with `next dev`.
+Start them once:
 
 ```bash
-cp .env.example .env
-docker compose up --build -d
+test -f .env || cp .env.example .env
+docker compose config --quiet
+docker compose up -d --build
 docker compose ps
 ```
 
-Open [http://localhost:3000](http://localhost:3000). To stop the service:
+Source code is mounted directly from this checkout into every container.
+Saving a page, component, stylesheet, or translation updates the running dev
+servers through Next.js Fast Refresh. You do not need to rebuild or restart
+Docker for ordinary source edits. All three platforms see the same source.
+Container dependencies and `.next` caches use separate anonymous volumes for
+each service, keeping them independent from host dependencies and each other.
+
+| Service     | Host URL                                                         | Container port |
+| ----------- | ---------------------------------------------------------------- | -------------- |
+| Marketplace | [http://localhost:3000](http://localhost:3000)                   | 3000           |
+| Provider    | [http://localhost:3003/provider](http://localhost:3003/provider) | 3000           |
+| Admin       | [http://localhost:3002/admin](http://localhost:3002/admin)       | 3000           |
+
+With the default local API URL, the browser calls `/api/v1` on the frontend;
+the development server forwards it to the backend on host port 3001.
+Compose passes the `NEXT_PUBLIC_*` values from `.env` into the development
+servers. After changing these values, recreate the containers to apply them:
 
 ```bash
+docker compose up -d --force-recreate
+```
+
+When changing `package.json`, `package-lock.json`, or the Dockerfile, refresh
+the development image and its dependency volumes:
+
+```bash
+docker compose up -d --build --force-recreate --renew-anon-volumes
+```
+
+To inspect development logs or stop the frontend services:
+
+```bash
+docker compose logs -f marketplace provider admin
 docker compose down
 ```
 
-`NEXT_PUBLIC_API_URL` is embedded into the browser bundle during image build,
-so rebuild after changing it. `WEB_PLATFORM` is runtime configuration and is
-not a build argument. The stable liveness endpoint is `GET /api/healthz`; it
-returns HTTP 200 without calling the backend. The container listens on port
-`3000`.
+## Production Docker build
 
-`NEXT_PUBLIC_MARKETPLACE_URL`, `NEXT_PUBLIC_PROVIDER_URL`, and
-`NEXT_PUBLIC_ADMIN_URL` are also embedded during image build. Build one
-immutable image with the three URLs for the environment, then run it with the
-three different `WEB_PLATFORM` values. Cross-platform navigation works across
-origins, but Customer tokens in `localStorage` remain origin-local; this does
-not provide SSO.
+`docker-compose.prod.yml` runs the standalone production image. Select it
+explicitly when testing a release or deploying:
+
+```bash
+docker compose -f docker-compose.prod.yml config --quiet
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Both files manage the same frontend services and ports; switching modes
+replaces those services. Production code and `NEXT_PUBLIC_*` values are
+embedded during image build, so production changes require rebuilding the
+image. `WEB_PLATFORM` remains runtime configuration. The liveness endpoint is
+`GET /api/healthz`; it returns HTTP 200 without calling the backend.
+
+Build one immutable production image with the three URLs for the environment,
+then run it with three different `WEB_PLATFORM` values. Cross-platform
+navigation works across origins, but Customer tokens in `localStorage` remain
+origin-local; this does not provide SSO.
 
 Build one image for one source SHA, then run that same image three times:
 

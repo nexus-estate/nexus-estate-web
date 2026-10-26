@@ -8,6 +8,9 @@ import type {
 } from './listing.types';
 
 export const listingApi = {
+  promoted() {
+    return publicApiClient.get<Listing[]>('/listings/promoted');
+  },
   list(query: ListingQuery = {}) {
     const params = new URLSearchParams();
     Object.entries(query).forEach(([key, value]) => {
