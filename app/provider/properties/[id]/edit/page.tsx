@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
+import { EstateMediaUpload } from '@/components/media/estate-media-upload';
 import { PageHeader } from '@/components/portal/page-header';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import {
@@ -110,7 +111,7 @@ export default function EditProviderPropertyPage() {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              className="app-button app-button-primary"
             >
               {updateProperty.isPending
                 ? t('properties.updating')
@@ -119,12 +120,17 @@ export default function EditProviderPropertyPage() {
             <button
               type="button"
               onClick={() => router.push('/provider/properties')}
-              className="border border-[var(--border)] px-6 py-2.5 text-sm font-medium text-[var(--text-muted)]"
+              className="app-button app-button-secondary"
             >
               {t('properties.cancel')}
             </button>
           </div>
         </form>
+      )}
+      {estate && canUpdate && estate.status !== 'ARCHIVED' && (
+        <div className="mt-6">
+          <EstateMediaUpload key={estate.id} estateId={estate.id} />
+        </div>
       )}
     </>
   );

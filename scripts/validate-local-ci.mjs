@@ -12,7 +12,7 @@ let apiUrl = `http://localhost:${apiPort}/api/v1`;
 let apiHealthUrl = `http://localhost:${apiPort}/health/live`;
 const localPlatformUrls = {
   NEXT_PUBLIC_MARKETPLACE_URL: 'http://localhost:3000',
-  NEXT_PUBLIC_PROVIDER_URL: 'http://localhost:3001',
+  NEXT_PUBLIC_PROVIDER_URL: 'http://localhost:3003',
   NEXT_PUBLIC_ADMIN_URL: 'http://localhost:3002',
 };
 const postgresContainer = `nexus-estate-web-precommit-postgres-${process.pid}`;
@@ -144,7 +144,7 @@ const lifecycleEnv = {
   INITIAL_ADMIN_EMAIL: 'superadmin@nexus-estate.local',
   INITIAL_ADMIN_PASSWORD: 'NexusEstate#SuperAdmin2026!',
   CORS_ORIGINS:
-    'http://localhost:3000,http://localhost:3001,http://localhost:3002',
+    'http://localhost:3000,http://localhost:3002,http://localhost:3003',
   SWAGGER_ENABLED: 'false',
 };
 
@@ -369,7 +369,7 @@ async function main() {
     },
   });
   for (const [platform, port] of [
-    ['provider', '3001'],
+    ['provider', '3003'],
     ['admin', '3002'],
   ]) {
     await run(
@@ -438,7 +438,7 @@ async function main() {
           E2E_INTEGRATION: 'true',
           E2E_MULTI_PLATFORM: 'true',
           E2E_PORT: '3000',
-          E2E_PROVIDER_PORT: '3001',
+          E2E_PROVIDER_PORT: '3003',
           E2E_ADMIN_PORT: '3002',
           NEXT_PUBLIC_API_URL: apiUrl,
           ...localPlatformUrls,

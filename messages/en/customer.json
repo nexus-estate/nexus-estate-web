@@ -12,24 +12,39 @@
     "signOut": "Sign out",
     "navigation": "Marketplace navigation",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "postEstate": "Post an estate"
   },
   "home": {
-    "eyebrow": "Nexus private collection",
-    "title": "Find a place that feels like yours.",
+    "eyebrow": "Nexus property marketplace",
+    "title": "Find a property that fits",
     "titleAccent": "A better way to discover property.",
-    "description": "Explore considered homes, apartments and spaces across Vietnam with a calmer, more confident search experience.",
+    "description": "Search, filter and explore properties currently available on the platform.",
+    "bannerArea": "Banner placement",
+    "sponsoredLabel": "Sponsored",
+    "sponsoredTitle": "Promoted properties",
+    "bannerEmptyTitle": "Banner placement is available",
+    "bannerEmptyDescription": "A listing with an active promotion will appear prominently here.",
+    "bannerAction": "Manage listings",
+    "viewDetails": "View details",
+    "fromDatabase": "Live data",
+    "allEstates": "Available properties",
+    "allEstatesDescription": "Active properties loaded directly from the platform.",
+    "loading": "Loading properties…",
     "searchType": "Property type",
     "searchPlaceholder": "City, neighbourhood or project",
     "search": "Search properties",
     "allTypes": "All property types",
     "quickSearch": "Popular destinations",
+    "exploreByType": "Explore by property type",
+    "collectionsTitle": "Spaces for every next chapter",
     "featured": "Featured properties",
     "featuredDescription": "A considered selection for your next move.",
     "viewAll": "View all properties",
     "latest": "Latest opportunities",
     "latestDescription": "Freshly added to the collection.",
     "empty": "No properties are available yet.",
+    "unavailable": "Listings could not be loaded right now. Please try again later.",
     "whyNexus": "Why Nexus Estate",
     "whyDescription": "A more thoughtful way to move through the property market.",
     "recommendation": "Considered recommendations",
@@ -46,7 +61,15 @@
       "house": "Townhouse",
       "villa": "Villa",
       "land": "Land",
-      "office": "Office"
+      "office": "Office",
+      "townhouse": "Townhouse",
+      "shophouse": "Shophouse",
+      "warehouse": "Warehouse",
+      "commercial": "Commercial",
+      "hotel": "Hotel",
+      "resort": "Resort",
+      "farm": "Farm",
+      "other": "Other"
     }
   },
   "properties": {
@@ -65,15 +88,24 @@
     "reset": "Reset filters",
     "results": "{count, plural, =0 {No properties} one {# property} other {# properties}}",
     "empty": "No properties match these filters.",
+    "emptyHint": "Try changing or resetting your filters to see more options.",
+    "tryAgain": "Listings could not be loaded right now. Please try again later.",
+    "retry": "Try again",
+    "pagination": "Property pages",
+    "previous": "Previous",
+    "next": "Next",
     "contact": "Contact for price",
     "listingBuy": "For sale",
     "listingRent": "For rent",
     "area": "{value} m²",
     "bedrooms": "{value} bedrooms",
     "bathrooms": "{value} bathrooms",
-    "location": "{city}{district, select, undefined {} other {, {district}}}"
+    "location": "{city}{district, select, undefined {} other {, {district}}}",
+    "noImage": "No photos yet",
+    "loadingImage": "Loading photos…"
   },
   "propertyDetail": {
+    "contactUnavailable": "Contact details will be available when the owner publishes a listing for this property.",
     "home": "Marketplace",
     "properties": "Properties",
     "back": "Back to properties",
@@ -97,7 +129,18 @@
     "sent": "Enquiry sent successfully.",
     "sentDescription": "A property specialist will be in touch shortly.",
     "sendFailed": "We could not send your enquiry. Please try again.",
-    "similar": "Similar properties"
+    "similar": "Similar properties",
+    "forSaleOrRent": "For sale or rent",
+    "breadcrumb": "Property navigation",
+    "areaLabel": "Area",
+    "purposeLabel": "Purpose",
+    "additionalTitle": "Additional information",
+    "floors": "Floors",
+    "priceLabel": "Property price",
+    "contactPoster": "Contact the advertiser",
+    "enquiryHelp": "Leave your details to enquire about this property.",
+    "contactPendingTitle": "Contact not yet available",
+    "contactPendingDescription": "The owner has not published contact details for this property yet."
   },
   "listing": {
     "back": "Back to dashboard",
@@ -168,7 +211,9 @@
     "defaultName": "Provider account",
     "loading": "Checking Provider status…",
     "error": "Provider status could not be loaded.",
-    "noProvider": { "title": "Become a Provider" },
+    "noProvider": {
+      "title": "Become a Provider"
+    },
     "pending": {
       "description": "Your application is pending review. Your Customer account remains active."
     },
@@ -178,10 +223,30 @@
     "suspended": {
       "description": "This Provider account is suspended. Marketplace access remains available."
     },
-    "active": { "description": "Active · Verified" },
+    "active": {
+      "description": "Active · Verified"
+    },
     "context_required": {
       "description": "Select a Provider context before opening the Provider portal."
     },
-    "actions": { "become": "Become a Provider", "open": "Open Provider Portal" }
+    "actions": {
+      "become": "Become a Provider",
+      "open": "Open Provider Portal"
+    }
+  },
+  "gallery": {
+    "title": "Photos of {title}",
+    "loading": "Loading photos…",
+    "empty": "No photos available",
+    "error": "Photos could not be loaded.",
+    "retry": "Try again",
+    "imageError": "This photo is unavailable",
+    "image": "{title} — photo {number}",
+    "open": "Open photo {number}",
+    "view": "View all {count, plural, one {# photo} other {# photos}}",
+    "more": "+{count} photos",
+    "close": "Close gallery",
+    "previous": "Previous photo",
+    "next": "Next photo"
   }
 }

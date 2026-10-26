@@ -12,26 +12,25 @@ WORKDIR /app
 COPY package*.json ./
 
 # ================================================================
-# Stage 1: Development
+# Stage 1: Shared dependencies for development and production builds
 # ================================================================
-FROM base AS development
-
-ENV NODE_ENV=development
+FROM base AS deps
 
 RUN npm ci
+
+# ================================================================
+# Stage 2: Development (source is bind-mounted by Docker Compose)
+# ================================================================
+FROM deps AS development
+
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY . .
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
-
-# ================================================================
-# Stage 2: Dependencies
-# ================================================================
-FROM base AS deps
-
-RUN npm ci
+CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0", "--port", "3000"]
 
 # ================================================================
 # Stage 3: Builder

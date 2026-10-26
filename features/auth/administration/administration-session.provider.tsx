@@ -18,7 +18,9 @@ type Session = {
   status: 'restoring' | 'authenticated' | 'anonymous';
   isAuthenticated: boolean;
   authorization: AdminAuthorization | null;
+  authorizationReady: boolean;
   login: (email: string, password: string) => Promise<void>;
+  refreshAuthorization: () => Promise<void>;
   logout: () => Promise<void>;
   hasPermission: (code: string) => boolean;
 };
@@ -33,6 +35,7 @@ export function AdministrationSessionProvider({
   const [authorization, setAuthorization] = useState<AdminAuthorization | null>(
     null,
   );
+  const [authorizationReady, setAuthorizationReady] = useState(false);
   const [authenticated, setAuthenticated] = useState(
     Boolean(getRealmAccessToken('administration')),
   );
@@ -46,8 +49,13 @@ export function AdministrationSessionProvider({
     try {
       setAuthorization(await administrationAuthorizationApi.effective());
       setAuthenticated(true);
+      setAuthorizationReady(true);
     } catch {
-      setAuthenticated(false);
+      // Refresh failure may have cleared the session while loading the ACL.
+      // Only keep the workspace open if an access token still exists.
+      setAuthenticated(Boolean(getRealmAccessToken('administration')));
+      setAuthorization(null);
+      setAuthorizationReady(false);
     } finally {
       setRestoring(false);
     }
@@ -63,10 +71,21 @@ export function AdministrationSessionProvider({
       localStorage.removeItem(refreshKey);
       setRealmAccessToken('administration', null);
       setAuthorization(null);
+      setAuthorizationReady(false);
       setAuthenticated(false);
       queryClient.removeQueries({ queryKey: ['administration'] });
     });
   }, [queryClient]);
+  const refreshAuthorization = useCallback(async () => {
+    try {
+      setAuthorization(await administrationAuthorizationApi.effective());
+      setAuthorizationReady(true);
+    } catch (error) {
+      setAuthorization(null);
+      setAuthorizationReady(false);
+      throw error;
+    }
+  }, []);
   const login = useCallback(async (email: string, password: string) => {
     const pair = await administrationAuthenticationApi.login({
       email,
@@ -75,8 +94,15 @@ export function AdministrationSessionProvider({
     localStorage.setItem(tokenKey, pair.accessToken);
     localStorage.setItem(refreshKey, pair.refreshToken);
     setRealmAccessToken('administration', pair.accessToken);
-    setAuthorization(await administrationAuthorizationApi.effective());
     setAuthenticated(true);
+    try {
+      setAuthorization(await administrationAuthorizationApi.effective());
+      setAuthorizationReady(true);
+    } catch {
+      setAuthenticated(Boolean(getRealmAccessToken('administration')));
+      setAuthorization(null);
+      setAuthorizationReady(false);
+    }
   }, []);
   const logout = useCallback(async () => {
     const token = localStorage.getItem(refreshKey);
@@ -88,6 +114,7 @@ export function AdministrationSessionProvider({
     localStorage.removeItem(refreshKey);
     setRealmAccessToken('administration', null);
     setAuthorization(null);
+    setAuthorizationReady(false);
     setAuthenticated(false);
     queryClient.removeQueries({ queryKey: ['administration'] });
   }, [queryClient]);
@@ -100,12 +127,22 @@ export function AdministrationSessionProvider({
           : 'anonymous') as Session['status'],
       isAuthenticated: authenticated,
       authorization,
+      authorizationReady,
       login,
+      refreshAuthorization,
       logout,
       hasPermission: (code: string) =>
         Boolean(authorization?.permissions.some((p) => p.code === code)),
     }),
-    [authenticated, authorization, login, logout, restoring],
+    [
+      authenticated,
+      authorization,
+      authorizationReady,
+      login,
+      logout,
+      refreshAuthorization,
+      restoring,
+    ],
   );
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }

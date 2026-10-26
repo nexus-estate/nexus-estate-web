@@ -358,7 +358,7 @@ export default function NewProviderPropertyPage() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+            className="app-button app-button-primary"
           >
             {createProperty.isPending
               ? t('properties.submitting')
@@ -366,7 +366,7 @@ export default function NewProviderPropertyPage() {
           </button>
           <Link
             href="/provider/properties"
-            className="border border-[var(--border)] px-6 py-2.5 text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
+            className="app-button app-button-secondary"
           >
             {t('properties.cancel')}
           </Link>

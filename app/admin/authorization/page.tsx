@@ -1,7 +1,9 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
+import { AdminPagination } from '@/components/administration/admin-pagination';
 import { PageHeader } from '@/components/portal/page-header';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useAdministrationSession } from '@/features/auth/administration/administration-session.provider';
@@ -16,6 +18,20 @@ export default function AuthorizationPage() {
   const commonT = useTranslations('common');
   const [platform, setPlatform] = useState<Platform>('MARKETPLACE');
   const [creating, setCreating] = useState(false);
+  const [q, setQ] = useState('');
+  const [status, setStatus] = useState('');
+  const [roleType, setRoleType] = useState('');
+  const [permissionCode, setPermissionCode] = useState('');
+  const [sort, setSort] = useState<
+    | 'name'
+    | 'code'
+    | 'createdAt'
+    | 'updatedAt'
+    | 'assignmentCount'
+    | 'permissionCount'
+  >('name');
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
+  const [page, setPage] = useState(1);
   const [form, setForm] = useState({ code: '', name: '', description: '' });
   const qc = useQueryClient();
   const { hasPermission } = useAdministrationSession();
@@ -25,8 +41,24 @@ export default function AuthorizationPage() {
     queryFn: administrationAuthorizationApi.platforms,
   });
   const roles = useQuery({
-    queryKey: ['administration', 'authorization', platform, 'roles'],
-    queryFn: () => administrationAuthorizationApi.roles(platform),
+    queryKey: [
+      'administration',
+      'authorization',
+      platform,
+      'roles',
+      { q, status, roleType, permissionCode, sort, order, page },
+    ],
+    queryFn: () =>
+      administrationAuthorizationApi.roles(platform, {
+        q: q || undefined,
+        status: status ? (status as 'ACTIVE' | 'DISABLED') : undefined,
+        isSystem: roleType ? roleType === 'system' : undefined,
+        permissionCode: permissionCode || undefined,
+        sort,
+        order,
+        page,
+        limit: 20,
+      }),
   });
   const permissions = useQuery({
     queryKey: ['administration', 'authorization', platform, 'permissions'],
@@ -74,8 +106,13 @@ export default function AuthorizationPage() {
       />
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section className="app-panel p-6">
-          <div className="flex justify-between">
-            <h2 className="text-lg font-semibold">{t('roles')}</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">{t('roles')}</h2>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                {roles.data?.meta.total ?? 0} {t('roles').toLocaleLowerCase()}
+              </p>
+            </div>
             {canWrite && (
               <button
                 className="rounded bg-[var(--primary)] px-3 py-2 text-sm text-white"
@@ -87,7 +124,7 @@ export default function AuthorizationPage() {
           </div>
           {creating && (
             <form
-              className="mt-4 grid gap-3 border-b pb-5"
+              className="mt-4 grid gap-3 rounded-xl border border-[var(--border)] bg-[#f8faf9] p-4"
               onSubmit={(e) => {
                 e.preventDefault();
                 create.mutate();
@@ -124,8 +161,113 @@ export default function AuthorizationPage() {
               >
                 {t('save')}
               </button>
+              <button
+                type="button"
+                className="w-fit text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text)]"
+                onClick={() => setCreating(false)}
+              >
+                {commonT('actions.cancel')}
+              </button>
+              {create.isError && (
+                <p className="text-sm text-[var(--danger)]">
+                  {create.error instanceof Error
+                    ? create.error.message
+                    : t('error')}
+                </p>
+              )}
             </form>
           )}
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <input
+              className="app-control px-3 text-sm sm:max-w-xs"
+              aria-label={t('search')}
+              placeholder={t('searchRoles')}
+              value={q}
+              onChange={(event) => {
+                setPage(1);
+                setQ(event.target.value);
+              }}
+            />
+            <select
+              className="app-control px-3 text-sm sm:w-48"
+              aria-label={t('status')}
+              value={status}
+              onChange={(event) => {
+                setPage(1);
+                setStatus(event.target.value);
+              }}
+            >
+              <option value="">{t('allStatuses')}</option>
+              <option value="ACTIVE">{t('statusActive')}</option>
+              <option value="DISABLED">{t('statusDisabled')}</option>
+            </select>
+            <select
+              className="app-control px-3 text-sm"
+              aria-label={t('type')}
+              value={roleType}
+              onChange={(event) => {
+                setPage(1);
+                setRoleType(event.target.value);
+              }}
+            >
+              <option value="">{t('allRoleTypes')}</option>
+              <option value="system">{t('system')}</option>
+              <option value="custom">{t('custom')}</option>
+            </select>
+            <input
+              className="app-control px-3 text-sm"
+              aria-label={t('permissionCode')}
+              placeholder={t('permissionCode')}
+              value={permissionCode}
+              onChange={(event) => {
+                setPage(1);
+                setPermissionCode(event.target.value);
+              }}
+            />
+            <select
+              className="app-control px-3 text-sm"
+              aria-label={t('sort')}
+              value={sort}
+              onChange={(event) => {
+                setPage(1);
+                setSort(event.target.value as typeof sort);
+              }}
+            >
+              <option value="name">{t('sortName')}</option>
+              <option value="code">{t('sortCode')}</option>
+              <option value="createdAt">{t('sortCreated')}</option>
+              <option value="updatedAt">{t('sortUpdated')}</option>
+              <option value="assignmentCount">{t('sortAssignments')}</option>
+              <option value="permissionCount">{t('sortPermissions')}</option>
+            </select>
+            <select
+              className="app-control px-3 text-sm"
+              aria-label={t('sortOrder')}
+              value={order}
+              onChange={(event) => {
+                setPage(1);
+                setOrder(event.target.value as 'asc' | 'desc');
+              }}
+            >
+              <option value="asc">{t('ascending')}</option>
+              <option value="desc">{t('descending')}</option>
+            </select>
+            <button
+              type="button"
+              className="w-fit text-xs font-semibold text-[var(--primary)] hover:underline"
+              onClick={() => {
+                setQ('');
+                setStatus('');
+                setRoleType('');
+                setPermissionCode('');
+                setSort('name');
+                setOrder('asc');
+                setPage(1);
+              }}
+            >
+              {t('clearFilters')}
+            </button>
+          </div>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
@@ -141,12 +283,12 @@ export default function AuthorizationPage() {
                 {items.map((role: AuthorizationRole) => (
                   <tr className="border-b" key={role.id}>
                     <td className="py-3 font-medium">
-                      <a
+                      <Link
                         className="hover:underline"
                         href={`/admin/authorization/roles/${encodeURIComponent(role.id)}?platform=${encodeURIComponent(platform)}`}
                       >
                         {role.name}
-                      </a>
+                      </Link>
                     </td>
                     <td>{role.code}</td>
                     <td>
@@ -164,7 +306,15 @@ export default function AuthorizationPage() {
                       {canWrite && role.allowedActions.delete && (
                         <button
                           className="text-red-700"
-                          onClick={() => remove.mutate(role.id)}
+                          disabled={remove.isPending}
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                t('confirmDeleteRole', { name: role.name }),
+                              )
+                            )
+                              remove.mutate(role.id);
+                          }}
                         >
                           {commonT('actions.delete')}
                         </button>
@@ -180,11 +330,32 @@ export default function AuthorizationPage() {
               </p>
             )}
             {roles.error && (
-              <p className="py-6 text-[var(--danger)]">
-                {t('unableToLoadRoles')}
+              <div className="py-6 text-sm text-[var(--danger)]">
+                <p>{t('unableToLoadRoles')}</p>
+                <button
+                  className="mt-2 font-semibold underline"
+                  onClick={() => void roles.refetch()}
+                >
+                  {t('retry')}
+                </button>
+              </div>
+            )}
+            {!roles.isLoading && !roles.error && !items.length && (
+              <p className="py-8 text-center text-sm text-[var(--text-muted)]">
+                {t('noRoles')}
               </p>
             )}
           </div>
+          {roles.data?.meta && (
+            <AdminPagination meta={roles.data.meta} onPageChange={setPage} />
+          )}
+          {remove.isError && (
+            <p role="alert" className="mt-3 text-sm text-[var(--danger)]">
+              {remove.error instanceof Error
+                ? remove.error.message
+                : t('error')}
+            </p>
+          )}
         </section>
         <section className="app-panel p-6">
           <h2 className="text-lg font-semibold">{t('permissions')}</h2>

@@ -12,24 +12,39 @@
     "signOut": "Đăng xuất",
     "navigation": "Điều hướng Marketplace",
     "openMenu": "Mở menu",
-    "closeMenu": "Đóng menu"
+    "closeMenu": "Đóng menu",
+    "postEstate": "Đăng bất động sản"
   },
   "home": {
-    "eyebrow": "Bộ sưu tập riêng Nexus",
-    "title": "Tìm một nơi thật sự thuộc về bạn.",
+    "eyebrow": "Sàn bất động sản Nexus",
+    "title": "Tìm bất động sản phù hợp với bạn",
     "titleAccent": "Khám phá bất động sản theo cách tinh tế hơn.",
-    "description": "Khám phá những ngôi nhà, căn hộ và không gian được tuyển chọn trên khắp Việt Nam với trải nghiệm tìm kiếm nhẹ nhàng, tự tin hơn.",
+    "description": "Tìm kiếm, lọc và xem các bất động sản đang có trên hệ thống.",
+    "bannerArea": "Vị trí banner",
+    "sponsoredLabel": "Được tài trợ",
+    "sponsoredTitle": "Bất động sản được ưu tiên hiển thị",
+    "bannerEmptyTitle": "Vị trí banner đang chờ tin quảng bá",
+    "bannerEmptyDescription": "Khi có tin đăng được áp dụng promotion trong thời gian hiệu lực, tin sẽ xuất hiện nổi bật tại đây.",
+    "bannerAction": "Quản lý tin đăng",
+    "viewDetails": "Xem chi tiết",
+    "fromDatabase": "Dữ liệu thật",
+    "allEstates": "Bất động sản đang có",
+    "allEstatesDescription": "Danh sách bất động sản đang hoạt động, lấy trực tiếp từ hệ thống.",
+    "loading": "Đang tải bất động sản…",
     "searchType": "Loại bất động sản",
     "searchPlaceholder": "Thành phố, khu vực hoặc dự án",
     "search": "Tìm bất động sản",
     "allTypes": "Tất cả loại bất động sản",
     "quickSearch": "Điểm đến phổ biến",
+    "exploreByType": "Khám phá theo loại hình",
+    "collectionsTitle": "Không gian dành cho mọi kế hoạch",
     "featured": "Bất động sản nổi bật",
     "featuredDescription": "Tuyển chọn đáng cân nhắc cho bước chuyển tiếp theo của bạn.",
     "viewAll": "Xem tất cả bất động sản",
     "latest": "Cơ hội mới nhất",
     "latestDescription": "Những sản phẩm vừa được thêm vào bộ sưu tập.",
     "empty": "Chưa có bất động sản nào.",
+    "unavailable": "Hiện chưa thể tải tin đăng. Vui lòng thử lại sau.",
     "whyNexus": "Vì sao chọn Nexus Estate",
     "whyDescription": "Một cách kỹ lưỡng hơn để bước qua thị trường bất động sản.",
     "recommendation": "Gợi ý được tuyển chọn",
@@ -46,7 +61,15 @@
       "house": "Nhà phố",
       "villa": "Biệt thự",
       "land": "Đất nền",
-      "office": "Văn phòng"
+      "office": "Văn phòng",
+      "townhouse": "Nhà liền kề",
+      "shophouse": "Nhà phố thương mại",
+      "warehouse": "Kho xưởng",
+      "commercial": "Thương mại",
+      "hotel": "Khách sạn",
+      "resort": "Khu nghỉ dưỡng",
+      "farm": "Nông trại",
+      "other": "Khác"
     }
   },
   "properties": {
@@ -65,15 +88,24 @@
     "reset": "Đặt lại bộ lọc",
     "results": "{count, plural, =0 {Không có bất động sản} one {# bất động sản} other {# bất động sản}}",
     "empty": "Không có bất động sản phù hợp với bộ lọc.",
+    "emptyHint": "Hãy thử thay đổi hoặc đặt lại bộ lọc để xem thêm lựa chọn.",
+    "tryAgain": "Hiện chưa thể tải tin đăng. Vui lòng thử lại sau.",
+    "retry": "Thử tải lại",
+    "pagination": "Phân trang bất động sản",
+    "previous": "Trang trước",
+    "next": "Trang sau",
     "contact": "Liên hệ để biết giá",
     "listingBuy": "Đang bán",
     "listingRent": "Cho thuê",
     "area": "{value} m²",
     "bedrooms": "{value} phòng ngủ",
     "bathrooms": "{value} phòng tắm",
-    "location": "{city}{district, select, undefined {} other {, {district}}}"
+    "location": "{city}{district, select, undefined {} other {, {district}}}",
+    "noImage": "Chưa có hình ảnh",
+    "loadingImage": "Đang tải hình ảnh…"
   },
   "propertyDetail": {
+    "contactUnavailable": "Thông tin liên hệ sẽ có khi chủ sở hữu xuất bản tin đăng cho bất động sản này.",
     "home": "Marketplace",
     "properties": "Nhà đất",
     "back": "Quay lại danh sách",
@@ -97,7 +129,18 @@
     "sent": "Gửi liên hệ thành công.",
     "sentDescription": "Chuyên gia sẽ liên hệ với bạn trong thời gian sớm nhất.",
     "sendFailed": "Không thể gửi liên hệ. Vui lòng thử lại.",
-    "similar": "Bất động sản tương tự"
+    "similar": "Bất động sản tương tự",
+    "forSaleOrRent": "Bán hoặc cho thuê",
+    "breadcrumb": "Điều hướng bất động sản",
+    "areaLabel": "Diện tích",
+    "purposeLabel": "Mục đích",
+    "additionalTitle": "Thông tin bổ sung",
+    "floors": "Số tầng",
+    "priceLabel": "Giá bất động sản",
+    "contactPoster": "Liên hệ người đăng",
+    "enquiryHelp": "Để lại thông tin để được tư vấn về bất động sản này.",
+    "contactPendingTitle": "Chưa có thông tin liên hệ",
+    "contactPendingDescription": "Người đăng chưa công bố thông tin liên hệ cho bất động sản này."
   },
   "listing": {
     "back": "Quay lại Dashboard",
@@ -168,7 +211,9 @@
     "defaultName": "Tài khoản nhà cung cấp",
     "loading": "Đang kiểm tra trạng thái…",
     "error": "Không thể tải trạng thái nhà cung cấp.",
-    "noProvider": { "title": "Trở thành nhà cung cấp" },
+    "noProvider": {
+      "title": "Trở thành nhà cung cấp"
+    },
     "pending": {
       "description": "Hồ sơ đang chờ duyệt. Tài khoản khách hàng của bạn vẫn hoạt động."
     },
@@ -178,7 +223,9 @@
     "suspended": {
       "description": "Tài khoản nhà cung cấp đang bị tạm ngưng. Marketplace vẫn khả dụng."
     },
-    "active": { "description": "Đang hoạt động · Đã xác minh" },
+    "active": {
+      "description": "Đang hoạt động · Đã xác minh"
+    },
     "context_required": {
       "description": "Hãy chọn ngữ cảnh nhà cung cấp trước khi mở portal."
     },
@@ -186,5 +233,20 @@
       "become": "Đăng ký nhà cung cấp",
       "open": "Mở Provider Portal"
     }
+  },
+  "gallery": {
+    "title": "Ảnh của {title}",
+    "loading": "Đang tải ảnh…",
+    "empty": "Chưa có ảnh",
+    "error": "Không thể tải bộ ảnh.",
+    "retry": "Thử lại",
+    "imageError": "Không thể tải ảnh này",
+    "image": "{title} — ảnh {number}",
+    "open": "Mở ảnh {number}",
+    "view": "Xem tất cả {count} ảnh",
+    "more": "+{count} ảnh",
+    "close": "Đóng bộ ảnh",
+    "previous": "Ảnh trước",
+    "next": "Ảnh tiếp theo"
   }
 }

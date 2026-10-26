@@ -6,9 +6,11 @@ import { getPortalRouteMetadata } from './route-metadata';
 export function PortalTopbar({
   onMenu,
   context,
+  appearance = 'default',
 }: {
   onMenu: () => void;
   context?: React.ReactNode;
+  appearance?: 'default' | 'administration';
 }) {
   const pathname = usePathname();
   const t = useTranslations('common');
@@ -16,7 +18,9 @@ export function PortalTopbar({
     getPortalRouteMetadata(pathname)?.labelKey ?? 'status.overview';
 
   return (
-    <header className="sticky top-0 z-20 flex min-h-14 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)]/96 px-4 shadow-[var(--shadow-xs)] backdrop-blur sm:px-6">
+    <header
+      className={`sticky top-0 z-20 flex min-h-16 items-center justify-between border-b px-4 backdrop-blur sm:px-6 ${appearance === 'administration' ? 'border-[var(--border)] bg-white/90 shadow-[0_1px_0_rgb(16_44_43_/_0.04)]' : 'border-[var(--border)] bg-[var(--surface)]/96 shadow-[var(--shadow-xs)]'}`}
+    >
       <div className="flex min-w-0 items-center gap-2">
         <button
           type="button"

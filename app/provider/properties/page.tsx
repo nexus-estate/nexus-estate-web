@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 
+import { CollectionToolbar } from '@/components/portal/collection-toolbar';
 import { PageHeader } from '@/components/portal/page-header';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
@@ -26,6 +27,8 @@ function formatPrice(value: number, locale: string) {
 export default function ProviderPropertiesPage() {
   const locale = useLocale();
   const t = useTranslations('provider');
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const workspace = useProviderAuthorization();
   const properties = useProviderProperties(
     workspace.hasProviderPermission('property:read'),
@@ -83,6 +86,14 @@ export default function ProviderPropertiesPage() {
               ? t('properties.listingPropertyNotActive')
               : t('properties.lifecycleFailed');
 
+  const filtered = (properties.data ?? []).filter(
+    (item) =>
+      (!statusFilter || item.status === statusFilter) &&
+      item.title
+        .toLocaleLowerCase(locale)
+        .includes(query.trim().toLocaleLowerCase(locale)),
+  );
+
   return (
     <>
       <PageHeader
@@ -92,7 +103,8 @@ export default function ProviderPropertiesPage() {
           <Link
             href="/provider/properties/new"
             aria-disabled={!canCreate}
-            className={`inline-flex bg-[var(--primary)] px-4 py-2 text-sm text-white ${
+            tabIndex={canCreate ? undefined : -1}
+            className={`provider-button provider-button-primary ${
               canCreate ? 'hover:opacity-90' : 'pointer-events-none opacity-50'
             }`}
           >
@@ -100,6 +112,20 @@ export default function ProviderPropertiesPage() {
           </Link>
         }
       />
+      {canRead && (
+        <CollectionToolbar
+          query={query}
+          onQuery={setQuery}
+          status={statusFilter}
+          onStatus={setStatusFilter}
+          statuses={['DRAFT', 'ACTIVE', 'ARCHIVED'].map((value) => ({
+            value,
+            label: t(`properties.status.${value}`),
+          }))}
+          onRefresh={() => void properties.refetch()}
+          refreshing={properties.isFetching}
+        />
+      )}
       {workspace.state === 'LOADING' ? (
         <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
       ) : blockedByLifecycle ? (
@@ -122,13 +148,15 @@ export default function ProviderPropertiesPage() {
             ? t('permissionDenied')
             : t('properties.loadFailed')}
         </p>
-      ) : (properties.data?.length ?? 0) === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center text-sm text-[var(--text-muted)]">
-          {t('properties.empty')}
+          {query || statusFilter
+            ? t('controls.noResults')
+            : t('properties.empty')}
         </div>
       ) : (
         <ul className="divide-y divide-[var(--border-muted)] border border-[var(--border)] bg-[var(--surface)]">
-          {(properties.data ?? []).map((estate: Estate) => (
+          {filtered.map((estate: Estate) => (
             <li
               key={estate.id}
               className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
@@ -156,8 +184,25 @@ export default function ProviderPropertiesPage() {
                     <div className="flex items-center gap-2">
                       {canUpdate && estate.status !== 'ARCHIVED' && (
                         <Link
+                          className="app-button app-button-secondary"
+                          href={`/provider/media?estateId=${estate.id}`}
+                        >
+                          {t('properties.media')}
+                        </Link>
+                      )}
+                      {workspace.hasProviderPermission('listing:create') &&
+                        estate.status === 'ACTIVE' && (
+                          <Link
+                            className="app-button app-button-primary"
+                            href={`/provider/listings/new?estateId=${estate.id}`}
+                          >
+                            {t('properties.createListing')}
+                          </Link>
+                        )}
+                      {canUpdate && estate.status !== 'ARCHIVED' && (
+                        <Link
                           href={`/provider/properties/${estate.id}/edit`}
-                          className="border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--surface-hover)]"
+                          className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold transition-colors hover:bg-[var(--surface-hover)]"
                         >
                           {t('properties.edit')}
                         </Link>
@@ -167,7 +212,7 @@ export default function ProviderPropertiesPage() {
                           type="button"
                           disabled={pendingAction !== null}
                           onClick={() => runLifecycle('activate', estate.id)}
-                          className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
+                          className="rounded-lg border border-[var(--primary)] px-3 py-2 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary-soft)] disabled:opacity-50"
                         >
                           {pendingAction === 'activate'
                             ? t('properties.activating')
@@ -181,7 +226,7 @@ export default function ProviderPropertiesPage() {
                             type="button"
                             disabled={pendingAction !== null}
                             onClick={() => runLifecycle('archive', estate.id)}
-                            className="border border-[var(--danger)] px-3 py-1.5 text-xs font-medium text-[var(--danger)] disabled:opacity-50"
+                            className="rounded-lg border border-[var(--danger)] px-3 py-2 text-xs font-semibold text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)] disabled:opacity-50"
                           >
                             {pendingAction === 'archive'
                               ? t('properties.archiving')
@@ -193,7 +238,7 @@ export default function ProviderPropertiesPage() {
                           type="button"
                           disabled={pendingAction !== null}
                           onClick={() => runLifecycle('restore', estate.id)}
-                          className="border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] disabled:opacity-50"
+                          className="rounded-lg border border-[var(--primary)] px-3 py-2 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary-soft)] disabled:opacity-50"
                         >
                           {pendingAction === 'restore'
                             ? t('properties.restoring')

@@ -8,6 +8,7 @@ import type {
 } from './estate.types';
 
 export const estateApi = {
+  listPublic: () => publicApiClient.get<Estate[]>('/estates'),
   listMine: () => providerApiClient.get<Estate[]>('/estates/mine'),
   getMine: (id: string) => providerApiClient.get<Estate>(`/estates/${id}/mine`),
   getById: (id: string) => publicApiClient.get<Estate>(`/estates/${id}`),

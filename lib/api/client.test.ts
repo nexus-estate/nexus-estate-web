@@ -6,6 +6,7 @@ import {
   setRealmAccessToken,
 } from './client';
 import { ApiError } from './errors';
+import { mediaApi } from './media/media.api';
 
 const fetchMock = jest.fn();
 
@@ -58,6 +59,33 @@ describe('apiClient', () => {
     expect(headers.get('Content-Type')).toBe('application/json');
     expect(headers.get('Authorization')).toBeNull();
     expect(headers.get('x-lang')).toBe('en');
+  });
+
+  it('uploads multipart images with provider authentication and a browser-generated boundary', async () => {
+    setRealmAccessToken('customer', 'customer-token');
+    localStorage.setItem('nexus.provider.active_id', 'provider-1');
+    const media = {
+      id: 'media-1',
+      estateId: 'estate-1',
+      mediaUrl: 'estate/image.png',
+      type: 'image',
+      sortOrder: 0,
+    };
+    fetchMock.mockResolvedValue(
+      mockResponse({ status: true, data: media }, 201),
+    );
+    const file = new File(['png'], 'image.png', { type: 'image/png' });
+    await expect(mediaApi.upload('estate-1', file)).resolves.toEqual(media);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'http://localhost:50001/api/v1/estates/estate-1/media',
+    );
+    const request = fetchMock.mock.calls[0][1] as RequestInit;
+    const headers = new Headers(request.headers);
+    expect(headers.get('Authorization')).toBe('Bearer customer-token');
+    expect(headers.get('X-Provider-Id')).toBe('provider-1');
+    expect(headers.get('Content-Type')).toBeNull();
+    expect(request.body).toBeInstanceOf(FormData);
+    expect((request.body as FormData).get('file')).toEqual(file);
   });
 
   it('propagates the shared locale independently across realm clients', async () => {

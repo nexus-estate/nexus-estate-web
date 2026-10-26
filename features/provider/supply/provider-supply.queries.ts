@@ -12,6 +12,9 @@ import type {
   Listing,
   ListingEligibleProperty,
 } from '@/lib/api/listing/listing.types';
+import { mediaApi } from '@/lib/api/media/media.api';
+import { promotionApi } from '@/lib/api/promotion/promotion.api';
+import type { CreateBannerRequest } from '@/lib/api/promotion/promotion.api';
 import { useProviderContext } from '../context/provider-context.provider';
 import { providerKeys } from '../query-keys';
 
@@ -76,6 +79,28 @@ export function useProviderListings(enabled = true) {
     queryKey: providerKeys.listings(providerId),
     queryFn: () => listingApi.mine(),
     enabled,
+  });
+}
+
+/** No owner detail endpoint exists; reuse the provider-scoped mine query/cache. */
+export function useProviderListing(id: string, enabled = true) {
+  const { providerId } = useProviderContext();
+  return useQuery({
+    queryKey: providerKeys.listings(providerId),
+    queryFn: () => listingApi.mine(),
+    select: (listings) => listings.find((listing) => listing.id === id),
+    enabled: enabled && Boolean(id),
+  });
+}
+
+/** Existing media reads are public and only support ACTIVE estates. */
+export function useProviderEstateMedia(estateId: string, enabled = true) {
+  const { providerId } = useProviderContext();
+  return useQuery({
+    queryKey: providerKeys.media(providerId, estateId),
+    queryFn: () => mediaApi.listPublic(estateId),
+    enabled: enabled && Boolean(estateId),
+    staleTime: 60_000,
   });
 }
 
@@ -214,6 +239,27 @@ export function useArchiveProviderListing() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => listingApi.archive(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: providerKeys.listings(providerId),
+      });
+    },
+    onError: (error) =>
+      refreshAuthorizationOnForbidden(error, queryClient, providerId),
+  });
+}
+
+export function useCreateListingBanner() {
+  const { providerId } = useProviderContext();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      listingId,
+      data,
+    }: {
+      listingId: string;
+      data: CreateBannerRequest;
+    }) => promotionApi.createBanner(listingId, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: providerKeys.listings(providerId),

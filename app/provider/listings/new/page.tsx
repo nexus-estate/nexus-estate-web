@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 import { PageHeader } from '@/components/portal/page-header';
@@ -26,7 +26,14 @@ export default function NewProviderListingPage() {
   const canCreate = workspace.hasProviderPermission('listing:create');
   const eligibleProperties = useListingEligibleProperties(canCreate);
   const createListing = useCreateProviderListing();
-  const [estateId, setEstateId] = useState('');
+  const search = useSearchParams();
+  const [selectedId, setEstateId] = useState<string | null>(null);
+  const candidateId = selectedId ?? search.get('estateId') ?? '';
+  const estateId = eligibleProperties.data?.some(
+    (estate) => estate.id === candidateId,
+  )
+    ? candidateId
+    : '';
 
   const canSubmit = canCreate && !createListing.isPending;
   const blockedByLifecycle =
@@ -145,7 +152,7 @@ export default function NewProviderListingPage() {
           <button
             type="submit"
             disabled={!canSubmit || !estateId || !dependenciesReady}
-            className="bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+            className="app-button app-button-primary"
           >
             {createListing.isPending
               ? t('listings.submitting')
@@ -153,7 +160,7 @@ export default function NewProviderListingPage() {
           </button>
           <Link
             href="/provider/listings"
-            className="border border-[var(--border)] px-6 py-2.5 text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
+            className="app-button app-button-secondary"
           >
             {t('listings.cancel')}
           </Link>

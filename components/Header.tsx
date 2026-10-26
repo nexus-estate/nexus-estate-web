@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/portal/language-switcher';
+import { NexusBrand } from '@/components/portal/nexus-brand';
 import { useAuth } from '@/hooks/use-auth';
 import { getProviderUrl } from '@/lib/platform/urls';
 
@@ -22,17 +23,17 @@ export default function Header() {
   const signedIn = status === 'authenticated' && user;
 
   return (
-    <header className="sticky inset-x-0 top-0 z-50 border-b border-white/10 bg-[var(--brand-strong)]/96 text-[var(--text-on-dark)] shadow-[var(--shadow-xs)] backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-[var(--content-max)] items-center justify-between px-5 sm:px-8 lg:px-10">
+    <header className="sticky inset-x-0 top-0 z-50 border-b border-[#e8e7e1] bg-white/95 text-[var(--brand-strong)] backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-[var(--content-max)] items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
         <Link
           href="/"
-          className="font-display text-xl tracking-wide"
+          className="flex shrink-0 items-center gap-3 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--brand)]"
           aria-label={t('brand')}
         >
-          NEXUS
+          <NexusBrand />
         </Link>
         <nav
-          className="hidden items-center gap-7 lg:flex"
+          className="hidden h-full items-center gap-8 lg:flex"
           aria-label={t('navigation')}
         >
           {nav.map(({ label, href }) =>
@@ -40,7 +41,7 @@ export default function Header() {
               <a
                 key={href}
                 href={href}
-                className="text-sm text-white/75 transition-colors hover:text-white"
+                className="flex h-full items-center border-b-2 border-transparent text-sm font-medium text-[#5c6861] transition-colors hover:text-[var(--brand)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
                 aria-current={pathname === href ? 'page' : undefined}
               >
                 {label}
@@ -49,7 +50,7 @@ export default function Header() {
               <Link
                 key={href}
                 href={href}
-                className="text-sm text-white/75 transition-colors hover:text-white"
+                className={`flex h-full items-center border-b-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] ${pathname === href ? 'border-[var(--brand)] text-[var(--brand)]' : 'border-transparent text-[#5c6861] hover:text-[var(--brand)]'}`}
                 aria-current={pathname === href ? 'page' : undefined}
               >
                 {label}
@@ -58,7 +59,13 @@ export default function Header() {
           )}
         </nav>
         <div className="flex items-center gap-3">
-          <div className="hidden w-28 sm:block [&_button]:border-white/15 [&_button]:bg-white/5 [&_button]:text-white/75 [&_button:hover]:bg-white/10 [&_button:hover]:text-white">
+          <a
+            className="app-button app-button-primary hidden sm:inline-flex"
+            href={getProviderUrl('/provider/properties/new')}
+          >
+            {t('postEstate')}
+          </a>
+          <div className="hidden w-28 sm:block [&_button]:border-[#d9ddd7] [&_button]:bg-white [&_button]:text-[var(--brand)] [&_button:hover]:bg-[#f4f5f0]">
             <LanguageSwitcher />
           </div>
           {signedIn ? (
@@ -67,7 +74,7 @@ export default function Header() {
                 type="button"
                 onClick={() => setAccountOpen(!accountOpen)}
                 aria-expanded={accountOpen}
-                className="rounded-[var(--radius-md)] border border-white/20 bg-white/5 px-3 py-2 text-sm font-medium transition-colors hover:bg-white/10"
+                className="max-w-48 truncate border border-[#d9ddd7] px-3 py-2 text-sm font-medium transition-colors hover:bg-[#f4f5f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
               >
                 {user.email}
               </button>
@@ -101,21 +108,18 @@ export default function Header() {
             <div className="hidden gap-2 sm:flex">
               <Link
                 href="/signin"
-                className="rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                className="px-3 py-2 text-sm font-medium text-[var(--brand)] transition-colors hover:bg-[#f4f5f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
               >
                 {t('signIn')}
               </Link>
-              <Link
-                href="/signup"
-                className="rounded-[var(--radius-md)] border border-[var(--brand-accent)] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--brand-accent)] hover:text-[var(--brand-strong)]"
-              >
+              <Link href="/signup" className="app-button app-button-primary">
                 {t('signUp')}
               </Link>
             </div>
           )}
           <button
             type="button"
-            className="rounded-[var(--radius-md)] p-2 transition-colors hover:bg-white/10 lg:hidden"
+            className="p-2 transition-colors hover:bg-[#f4f5f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] lg:hidden"
             aria-label={mobileOpen ? t('closeMenu') : t('openMenu')}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -134,7 +138,7 @@ export default function Header() {
       </div>
       {mobileOpen && (
         <nav
-          className="border-t border-white/10 bg-[var(--brand-strong)] px-5 py-4 shadow-[var(--shadow-md)] lg:hidden"
+          className="border-t border-[#e8e7e1] bg-white px-5 py-4 shadow-[var(--shadow-md)] lg:hidden"
           aria-label={t('navigation')}
         >
           {nav.map(({ label, href }) =>
@@ -143,7 +147,7 @@ export default function Header() {
                 key={href}
                 href={href}
                 onClick={() => setMobileOpen(false)}
-                className="block border-b border-white/10 py-3 text-sm text-white/80 transition-colors hover:text-white"
+                className="block border-b border-[#e8e7e1] py-3 text-sm text-[var(--brand)] transition-colors hover:bg-[#f4f5f0]"
               >
                 {label}
               </a>
@@ -152,15 +156,22 @@ export default function Header() {
                 key={href}
                 href={href}
                 onClick={() => setMobileOpen(false)}
-                className="block border-b border-white/10 py-3 text-sm text-white/80 transition-colors hover:text-white"
+                className="block border-b border-[#e8e7e1] py-3 text-sm text-[var(--brand)] transition-colors hover:bg-[#f4f5f0]"
               >
                 {label}
               </Link>
             ),
           )}
+          <a
+            href={getProviderUrl('/provider/properties/new')}
+            className="app-button app-button-primary my-3 w-full"
+            onClick={() => setMobileOpen(false)}
+          >
+            {t('postEstate')}
+          </a>
           {signedIn ? (
             <button
-              className="py-3 text-left text-sm text-white/80"
+              className="py-3 text-left text-sm text-[var(--brand)]"
               onClick={() => {
                 void logout();
                 setMobileOpen(false);

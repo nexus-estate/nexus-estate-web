@@ -3,6 +3,14 @@ import { getWebPlatform } from '@/lib/platform/config';
 import { getPlatformRequestDecision } from '@/lib/platform/routes';
 
 export function proxy(request: NextRequest) {
+  if (
+    process.env.NODE_ENV === 'development' &&
+    (request.nextUrl.pathname === '/api/v1' ||
+      request.nextUrl.pathname.startsWith('/api/v1/'))
+  ) {
+    return NextResponse.next();
+  }
+
   const platform = getWebPlatform();
   const decision = getPlatformRequestDecision(
     platform,

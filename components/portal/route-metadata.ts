@@ -17,6 +17,15 @@ const navigation = (labelKey: string, href: string): PortalBreadcrumb => ({
 
 export const PORTAL_ROUTE_METADATA: readonly PortalRouteMetadata[] = [
   {
+    path: '/provider/media',
+    labelKey: 'navigation.providerMedia',
+    match: 'prefix',
+    breadcrumbs: [
+      navigation('navigation.provider', '/provider'),
+      navigation('navigation.providerMedia', '/provider/media'),
+    ],
+  },
+  {
     path: '/admin/authorization/permissions',
     labelKey: 'navigation.permissions',
     match: 'prefix',

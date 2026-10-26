@@ -19,6 +19,9 @@ export const providerKeys = {
   listings: (providerId: string | null) =>
     [...providerKeys.scope(providerId), 'listings'] as const,
 
+  media: (providerId: string | null, estateId: string) =>
+    [...providerKeys.scope(providerId), 'estate-media', estateId] as const,
+
   eligibleProperties: (providerId: string | null) =>
     [...providerKeys.scope(providerId), 'eligible-properties'] as const,
 };

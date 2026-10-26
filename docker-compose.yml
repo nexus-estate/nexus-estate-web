@@ -1,35 +1,67 @@
 name: nexus-estate
 
+x-web-dev: &web-dev
+  image: nexus-estate-web:dev
+  build:
+    context: .
+    dockerfile: Dockerfile
+    target: development
+  init: true
+  restart: unless-stopped
+  command: npm run dev -- --hostname 0.0.0.0 --port 3000
+  extra_hosts:
+    - 'host.docker.internal:host-gateway'
+  volumes:
+    - .:/app
+    # Container dependencies and build cache must not come from the host.
+    # Each service receives its own anonymous volumes.
+    - /app/node_modules
+    - /app/.next
+  healthcheck:
+    test:
+      - CMD
+      - node
+      - -e
+      - >-
+        require('http').get('http://127.0.0.1:3000/api/healthz', (response) =>
+        process.exit(response.statusCode === 200 ? 0 : 1)).on('error', () =>
+        process.exit(1))
+    interval: 15s
+    timeout: 10s
+    retries: 5
+    start_period: 60s
+
+x-web-dev-environment: &web-dev-environment
+  NODE_ENV: development
+  NEXT_TELEMETRY_DISABLED: '1'
+  DEV_ALLOWED_ORIGINS: ${DEV_ALLOWED_ORIGINS:-}
+  API_PROXY_TARGET: ${API_PROXY_TARGET:-http://host.docker.internal:3001/api/v1}
+  NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
+  NEXT_PUBLIC_MARKETPLACE_URL: ${NEXT_PUBLIC_MARKETPLACE_URL:-http://localhost:3000}
+  NEXT_PUBLIC_PROVIDER_URL: ${NEXT_PUBLIC_PROVIDER_URL:-http://localhost:3003}
+  NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3002}
+
 services:
-  web:
-    image: nexus-estate-web:local
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runner
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:50001/api/v1}
-        NEXT_PUBLIC_MARKETPLACE_URL: ${NEXT_PUBLIC_MARKETPLACE_URL:-http://localhost:3000}
-        NEXT_PUBLIC_PROVIDER_URL: ${NEXT_PUBLIC_PROVIDER_URL:-http://localhost:3000}
-        NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3000}
+  marketplace:
+    <<: *web-dev
     ports:
-      - '${WEB_PORT:-3000}:3000'
+      - '3000:3000'
     environment:
-      NODE_ENV: production
-      NEXT_TELEMETRY_DISABLED: '1'
-      WEB_PLATFORM: ${WEB_PLATFORM:-marketplace}
-    init: true
-    restart: unless-stopped
-    healthcheck:
-      test:
-        - CMD
-        - node
-        - -e
-        - >-
-          require('http').get('http://127.0.0.1:3000/api/healthz', (response) =>
-          process.exit(response.statusCode < 500 ? 0 : 1)).on('error', () =>
-          process.exit(1))
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
+      <<: *web-dev-environment
+      WEB_PLATFORM: marketplace
+
+  provider:
+    <<: *web-dev
+    ports:
+      - '3003:3000'
+    environment:
+      <<: *web-dev-environment
+      WEB_PLATFORM: provider
+
+  admin:
+    <<: *web-dev
+    ports:
+      - '3002:3000'
+    environment:
+      <<: *web-dev-environment
+      WEB_PLATFORM: admin

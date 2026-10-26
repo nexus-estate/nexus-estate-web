@@ -39,14 +39,18 @@
     "matrix": "Ma trận permission",
     "subjects": "Đối tượng phân quyền",
     "subject": "Chi tiết đối tượng",
-    "audit": "Audit phân quyền"
+    "audit": "Audit phân quyền",
+    "providerMedia": "Media"
   },
   "pagination": {
     "previous": "Trước",
     "next": "Sau",
     "pageOf": "Trang {current} / {total}"
   },
-  "language": { "vietnamese": "Tiếng Việt", "english": "English" },
+  "language": {
+    "vietnamese": "Tiếng Việt",
+    "english": "English"
+  },
   "errors": {
     "unexpected": "Đã xảy ra lỗi. Vui lòng thử lại.",
     "requestId": "Mã yêu cầu: {requestId}",

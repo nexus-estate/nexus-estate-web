@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import {
@@ -10,6 +10,7 @@ import NewProviderListingPage from './page';
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
+  useSearchParams: () => new URLSearchParams('estateId=estate-1'),
 }));
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -62,4 +63,32 @@ test('renders permission denied when eligible-properties is forbidden', () => {
   expect(screen.getByRole('alert')).not.toHaveTextContent(
     'listings.loadFailed',
   );
+});
+
+test('preselects only an eligible estate from the URL', () => {
+  jest.mocked(useListingEligibleProperties).mockReturnValue({
+    isLoading: false,
+    isError: false,
+    data: [{ id: 'estate-1', title: 'Estate one' }],
+  } as never);
+  const { unmount } = render(<NewProviderListingPage />);
+  expect(screen.getByRole('combobox')).toHaveValue('estate-1');
+  expect(
+    screen.getByRole('button', { name: 'listings.createDraft' }),
+  ).toBeEnabled();
+  fireEvent.change(screen.getByRole('combobox'), { target: { value: '' } });
+  expect(
+    screen.getByRole('button', { name: 'listings.createDraft' }),
+  ).toBeDisabled();
+  unmount();
+  jest.mocked(useListingEligibleProperties).mockReturnValue({
+    isLoading: false,
+    isError: false,
+    data: [{ id: 'estate-2', title: 'Estate two' }],
+  } as never);
+  render(<NewProviderListingPage />);
+  expect(screen.getByRole('combobox')).toHaveValue('');
+  expect(
+    screen.getByRole('button', { name: 'listings.createDraft' }),
+  ).toBeDisabled();
 });
