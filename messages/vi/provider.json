@@ -126,6 +126,7 @@
   },
   "listings": {
     "title": "Tin đăng",
+    "list": "Danh sách tin đăng",
     "description": "Vòng đời xuất bản cho nguồn cung của Provider này.",
     "new": "Tin đăng mới",
     "newTitle": "Tạo tin đăng",
@@ -139,7 +140,8 @@
     "archiving": "Đang lưu trữ…",
     "createBanner": "Tạo banner",
     "bannerTitle": "Tạo banner cho tin đăng",
-    "bannerDescription": "Chọn số ngày quảng bá cho tin đăng đã xuất bản.",
+    "bannerDescription": "Chọn số ngày quảng bá cho tin đăng đã xuất bản. Tin chỉ hiển thị nổi bật khi đang xuất bản, bất động sản đang hoạt động và promotion còn hạn. Lưu trữ tin sẽ ngừng hiển thị nổi bật, nhưng không tạm dừng thời hạn promotion.",
+    "archivedVisibilityNote": "Tin đã lưu trữ không hiển thị trên marketplace hoặc trong mục nổi bật, kể cả khi promotion còn hạn.",
     "bannerSubmitting": "Đang tạo…",
     "bannerFailed": "Không thể tạo banner.",
     "propertyNotActive": "Bất động sản phải ở trạng thái đang hoạt động trước khi xuất bản Listing.",
@@ -179,6 +181,17 @@
     "noAccount": "Chưa có Provider account."
   },
   "overview": {
+    "dashboardTitle": "Quản lý tin đăng & bất động sản",
+    "dashboardDescription": "Tạo và quản lý tin đăng cùng bất động sản của bạn trên Marketplace.",
+    "totalListings": "Tổng tin đăng",
+    "activeListings": "Đang hoạt động",
+    "draftListings": "Bản nháp",
+    "totalProperties": "Tổng bất động sản",
+    "recentListings": "Tin đăng gần đây",
+    "allListings": "Tất cả ({count})",
+    "searchListings": "Tìm tin đăng, địa chỉ...",
+    "draftWork": "{count} tin đăng bản nháp để xem lại",
+    "action": "Thao tác",
     "title": "Tổng quan Provider",
     "description": "Quản lý bất động sản, tin đăng và hoạt động kinh doanh của bạn tại một nơi.",
     "workspace": "Không gian làm việc Provider",
@@ -274,6 +287,21 @@
     "estateMissing": "Bất động sản liên kết với tin đăng này không còn khả dụng.",
     "estatePermissionDenied": "Bạn cần quyền xem bất động sản để đọc thông tin bất động sản liên kết.",
     "privateMediaUnavailable": "Bộ ảnh hiện chưa khả dụng cho bất động sản nháp hoặc đã lưu trữ.",
-    "view": "Xem chi tiết"
+    "view": "Xem chi tiết",
+    "archiveConfirmTitle": "Tạm dừng tin đăng này?",
+    "archiveConfirmBody": "Tin đăng sẽ được lưu trữ và không còn hiển thị trên Marketplace.",
+    "detailLabel": "Chi tiết tin đăng",
+    "sidebarInfo": "Thông tin tin đăng",
+    "links": "Liên kết",
+    "viewEstate": "Xem bất động sản trong Provider",
+    "viewMarketplace": "Xem trên Marketplace",
+    "coordinates": "Tọa độ",
+    "estateStatus": "Trạng thái bất động sản",
+    "noDescription": "Bất động sản này chưa có mô tả.",
+    "sections": {
+      "details": "Thông tin chi tiết",
+      "description": "Mô tả",
+      "location": "Vị trí"
+    }
   }
 }

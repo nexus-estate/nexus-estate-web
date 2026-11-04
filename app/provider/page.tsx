@@ -1,29 +1,89 @@
 'use client';
 
+import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
+import { MarketplaceIcon } from '@/components/customer/marketplace-icon';
 import {
+  useProviderEstateMedia,
   useProviderListings,
   useProviderProperties,
 } from '@/features/provider/supply/provider-supply.queries';
 import { useProviderEntryState } from '@/features/provider/use-provider-entry-state';
+import type { Listing, ListingStatus } from '@/lib/api/listing/listing.types';
+import { getEstateImages } from '@/lib/api/media/estate-images';
+import { mediaApi } from '@/lib/api/media/media.api';
 
-function Arrow() {
+type ListingFilter = 'ALL' | ListingStatus;
+
+function ListingCover({
+  listing,
+  enabled,
+}: {
+  listing: Listing;
+  enabled: boolean;
+}) {
+  const media = useProviderEstateMedia(listing.estateId, enabled);
+  const cover = getEstateImages(media.data ?? [], listing.estateId)[0];
+  const [failed, setFailed] = useState(false);
+
   return (
-    <svg
-      className="h-4 w-4 shrink-0"
-      viewBox="0 0 20 20"
-      fill="none"
-      aria-hidden="true"
+    <span className="provider-dashboard-cover">
+      {cover && !failed ? (
+        <Image
+          src={mediaApi.imageUrl(listing.estateId, cover.id)}
+          alt=""
+          fill
+          unoptimized
+          sizes="64px"
+          className="object-cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <MarketplaceIcon name="images" className="h-5 w-5 text-[#7a9b8d]" />
+      )}
+    </span>
+  );
+}
+
+function ListingIdentity({
+  listing,
+  mediaEnabled,
+  canOpen,
+}: {
+  listing: Listing;
+  mediaEnabled: boolean;
+  canOpen: boolean;
+}) {
+  const content = (
+    <>
+      <ListingCover listing={listing} enabled={mediaEnabled} />
+      <span className="min-w-0">
+        <strong>{listing.estate.title}</strong>
+        <small>
+          <MarketplaceIcon name="pin" className="h-3 w-3 shrink-0" />
+          {[
+            listing.estate.addressLine,
+            listing.estate.ward?.name,
+            listing.estate.province?.name,
+          ]
+            .filter(Boolean)
+            .join(', ')}
+        </small>
+      </span>
+    </>
+  );
+
+  return canOpen ? (
+    <Link
+      href={`/provider/listings/${listing.id}`}
+      className="provider-dashboard-listing-link"
     >
-      <path
-        d="M3.5 10h12m-5-5 5 5-5 5"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+      {content}
+    </Link>
+  ) : (
+    <span className="provider-dashboard-listing-link">{content}</span>
   );
 }
 
@@ -31,24 +91,55 @@ export default function ProviderPage() {
   const t = useTranslations('provider');
   const locale = useLocale();
   const workspace = useProviderEntryState();
-  const account = workspace.account.data;
-  const auth = workspace.authorization.data;
+  const [filter, setFilter] = useState<ListingFilter>('ALL');
+  const [search, setSearch] = useState('');
   const isActive = workspace.state === 'ACTIVE';
-  const permissions =
-    auth?.permissions.map((permission) => permission.code) ?? [];
-  const canReadProperties = isActive && permissions.includes('property:read');
-  const canReadListings = isActive && permissions.includes('listing:read');
-  const canCreateProperty = isActive && permissions.includes('property:create');
-  const canCreateListing = isActive && permissions.includes('listing:create');
-  const properties = useProviderProperties(canReadProperties);
+  const permissions = new Set(
+    workspace.authorization.data?.permissions.map((item) => item.code) ?? [],
+  );
+  const canReadListings = isActive && permissions.has('listing:read');
+  const canReadProperties = isActive && permissions.has('property:read');
+  const canCreateListing = isActive && permissions.has('listing:create');
+  const canCreateProperty = isActive && permissions.has('property:create');
   const listings = useProviderListings(canReadListings);
+  const properties = useProviderProperties(canReadProperties);
+  const allListings = listings.data ?? [];
+  const published = allListings.filter(
+    (listing) => listing.status === 'PUBLISHED',
+  ).length;
+  const drafts = allListings.filter(
+    (listing) => listing.status === 'DRAFT',
+  ).length;
+  const sorted = [...allListings].sort((a, b) =>
+    b.updatedAt.localeCompare(a.updatedAt),
+  );
+  const query = search.trim().toLocaleLowerCase(locale);
+  const visible = sorted
+    .filter(
+      (listing) =>
+        (filter === 'ALL' || listing.status === filter) &&
+        (!query ||
+          [
+            listing.estate.title,
+            listing.estate.addressLine,
+            listing.estate.ward?.name,
+            listing.estate.province?.name,
+          ].some((part) => part?.toLocaleLowerCase(locale).includes(query))),
+    )
+    .slice(0, 8);
+  const estateStatus = new Map(
+    properties.data?.map((estate) => [estate.id, estate.status]) ?? [],
+  );
+  const price = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: 'VND',
+    maximumFractionDigits: 0,
+  });
+  const date = new Intl.DateTimeFormat(locale, { dateStyle: 'short' });
 
   if (workspace.state === 'LOADING') {
     return (
-      <div
-        className="provider-card p-8 text-sm text-[var(--text-muted)]"
-        role="status"
-      >
+      <div role="status" className="provider-dashboard-message">
         {t('loading')}
       </div>
     );
@@ -56,310 +147,338 @@ export default function ProviderPage() {
 
   if (workspace.state === 'NO_PROVIDER') {
     return (
-      <div className="provider-welcome">
-        <span className="provider-eyebrow">{t('overview.workspace')}</span>
-        <h1>{t('overview.noProviderTitle')}</h1>
-        <p>{t('overview.noProviderBody')}</p>
+      <div className="provider-dashboard-message">
+        <h1 className="text-xl font-semibold">
+          {t('overview.noProviderTitle')}
+        </h1>
+        <p className="mt-2 text-[var(--text-muted)]">
+          {t('overview.noProviderBody')}
+        </p>
         <Link
-          className="provider-button provider-button-primary mt-7"
+          className="provider-button provider-button-primary mt-5"
           href="/provider/onboarding"
         >
-          {t('onboarding.start')} <Arrow />
+          {t('onboarding.start')}
         </Link>
       </div>
     );
   }
 
-  const lifecycleKey =
-    workspace.state === 'PENDING'
-      ? 'pending_verification'
-      : workspace.state === 'ACTIVE'
-        ? 'active_verified'
+  if (!isActive) {
+    const lifecycleKey =
+      workspace.state === 'PENDING'
+        ? 'pending_verification'
         : workspace.state.toLowerCase();
-  const stateText = t(`lifecycle.${lifecycleKey}`);
-  const propertyCount =
-    properties.isError || !canReadProperties
-      ? '—'
-      : properties.isLoading
-        ? '…'
-        : (properties.data?.length ?? 0);
-  const listingCount =
-    listings.isError || !canReadListings
-      ? '—'
-      : listings.isLoading
-        ? '…'
-        : (listings.data?.length ?? 0);
-  const publishedCount =
-    listings.isError || !canReadListings
-      ? '—'
-      : listings.isLoading
-        ? '…'
-        : (listings.data?.filter((listing) => listing.status === 'PUBLISHED')
-            .length ?? 0);
-  const drafts =
-    properties.data?.filter((property) => property.status === 'DRAFT').length ??
-    0;
-  const recentProperties = [...(properties.data ?? [])]
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    .slice(0, 4);
+    return (
+      <div className="provider-dashboard-message">
+        <h1 className="text-xl font-semibold">{t('overview.nextStep')}</h1>
+        <p className="mt-2 text-[var(--text-muted)]">
+          {t(`lifecycle.${lifecycleKey}`)}
+        </p>
+        {workspace.state === 'ERROR' ? (
+          <button
+            type="button"
+            className="provider-button provider-button-primary mt-5"
+            onClick={() => {
+              void workspace.account.refetch();
+              void workspace.authorization.refetch();
+            }}
+          >
+            {t('overview.retry')}
+          </button>
+        ) : (
+          <Link
+            className="provider-button provider-button-primary mt-5"
+            href="/provider/account"
+          >
+            {t('nav.account')}
+          </Link>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-7 pb-8">
-      <section className="provider-hero">
-        <div className="relative z-10 max-w-2xl">
-          <span className="provider-eyebrow text-[#b9e9df]">
-            {t('overview.workspace')}
-          </span>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-            {account?.displayName ?? t('overview.title')}
-          </h1>
-          <p className="mt-3 max-w-xl text-sm leading-7 text-white/75">
-            {t('overview.description')}
+    <div className="provider-dashboard space-y-5 pb-8">
+      <header className="provider-dashboard-hero">
+        <Image
+          src="/images/hero-villa.webp"
+          alt=""
+          fill
+          priority
+          sizes="(min-width: 1024px) 1200px, 100vw"
+          className="object-cover object-center"
+        />
+        <div className="provider-dashboard-hero-content">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#17624c]">
+            Nexus Estate Provider
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            {canCreateProperty && (
-              <Link
-                className="provider-button provider-button-light"
-                href="/provider/properties/new"
-              >
-                {t('properties.new')} <Arrow />
-              </Link>
-            )}
+          <h1 className="mt-2 text-2xl font-bold text-[#10352b] sm:text-3xl">
+            {t('overview.dashboardTitle')}
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-[#3f564c]">
+            {t('overview.dashboardDescription')}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
             {canCreateListing && (
               <Link
-                className="provider-button provider-button-outline"
                 href="/provider/listings/new"
+                className="provider-button provider-button-primary"
               >
-                {t('listings.new')} <Arrow />
+                <span aria-hidden="true" className="text-lg leading-none">
+                  +
+                </span>
+                {t('listings.newTitle')}
               </Link>
             )}
-            {!isActive && (
+            {canCreateProperty && (
               <Link
-                className="provider-button provider-button-light"
-                href="/provider/account"
+                href="/provider/properties/new"
+                className="provider-button border border-[#93b7a7] bg-white text-[#164c3b]"
               >
-                {t('nav.account')} <Arrow />
+                <MarketplaceIcon name="building" className="h-4 w-4" />
+                {t('properties.new')}
               </Link>
             )}
           </div>
         </div>
-        <div className="provider-hero-mark" aria-hidden="true">
-          N
-        </div>
-      </section>
+      </header>
 
-      <section
-        className="provider-status-strip"
-        aria-label={t('overview.platformState')}
-      >
-        <div className="flex items-start gap-3">
-          <span
-            className={`provider-status-dot ${isActive ? 'bg-emerald-500' : 'bg-amber-500'}`}
-          />
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.13em] text-[var(--text-subtle)]">
-              {t('overview.platformState')}
-            </p>
-            <p className="mt-1 font-semibold text-[var(--text)]">{stateText}</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {account?.status && (
-            <span className="provider-chip">
-              {t(`status.${account.status.toLowerCase()}`)}
-            </span>
-          )}
-          {account?.type && (
-            <span className="provider-chip">{t(`types.${account.type}`)}</span>
-          )}
-          {account?.verificationStatus && (
-            <span className="provider-chip">
-              {t(`status.${account.verificationStatus.toLowerCase()}`)}
-            </span>
-          )}
-          {auth?.roles.map((role) => (
-            <span key={role.code} className="provider-chip">
-              {role.name}
-            </span>
-          ))}
-          {workspace.state === 'ERROR' && (
-            <button
-              className="provider-text-link"
-              type="button"
-              onClick={() => {
-                void workspace.account.refetch();
-                void workspace.authorization.refetch();
-              }}
-            >
-              {t('overview.retry')} <Arrow />
-            </button>
-          )}
-        </div>
-      </section>
-
-      {isActive && (
-        <>
-          <section
-            aria-label={t('overview.inventory')}
-            className="grid gap-4 sm:grid-cols-3"
-          >
-            <Link
-              className="provider-stat provider-card"
-              href="/provider/properties"
-            >
-              <span className="provider-stat-label">{t('nav.properties')}</span>
-              <span className="provider-stat-value">{propertyCount}</span>
-              <span className="provider-stat-note">
-                {canReadProperties && properties.isSuccess
-                  ? t('overview.propertyDrafts', { count: drafts })
-                  : t('overview.viewAll')}{' '}
-                <Arrow />
-              </span>
-            </Link>
-            <Link
-              className="provider-stat provider-card"
-              href="/provider/listings"
-            >
-              <span className="provider-stat-label">{t('nav.listings')}</span>
-              <span className="provider-stat-value">{listingCount}</span>
-              <span className="provider-stat-note">
-                {t('overview.manageListings')} <Arrow />
-              </span>
-            </Link>
-            <Link
-              className="provider-stat provider-card"
-              href="/provider/listings"
-            >
-              <span className="provider-stat-label">
-                {t('overview.published')}
-              </span>
-              <span className="provider-stat-value">{publishedCount}</span>
-              <span className="provider-stat-note">
-                {t('overview.viewPublished')} <Arrow />
-              </span>
-            </Link>
-          </section>
-
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)]">
-            <section className="provider-card overflow-hidden">
-              <div className="flex items-center justify-between gap-3 border-b border-[var(--border-muted)] px-5 py-5 sm:px-6">
-                <div>
-                  <h2 className="text-lg font-semibold text-[var(--text)]">
-                    {t('overview.recentProperties')}
-                  </h2>
-                  <p className="mt-1 text-sm text-[var(--text-muted)]">
-                    {t('overview.recentDescription')}
-                  </p>
-                </div>
-                <Link
-                  className="provider-text-link"
-                  href="/provider/properties"
-                >
-                  {t('overview.viewAll')} <Arrow />
-                </Link>
+      {(listings.isSuccess || properties.isSuccess) && (
+        <section
+          className="provider-dashboard-kpis"
+          aria-label={t('overview.inventory')}
+        >
+          {listings.isSuccess && (
+            <>
+              <div className="provider-dashboard-kpi">
+                <span className="provider-dashboard-kpi-icon">
+                  <MarketplaceIcon name="grid" />
+                </span>
+                <span className="text-xs text-[#4d6258]">
+                  {t('overview.totalListings')}
+                </span>
+                <strong>{allListings.length}</strong>
               </div>
-              {properties.isLoading ? (
-                <p className="p-6 text-sm text-[var(--text-muted)]">
-                  {t('loading')}
-                </p>
-              ) : properties.isError ? (
-                <p role="alert" className="p-6 text-sm text-[var(--danger)]">
-                  {t('properties.loadFailed')}
-                </p>
-              ) : recentProperties.length === 0 ? (
-                <div className="p-8 text-center">
-                  <p className="text-sm text-[var(--text-muted)]">
-                    {canReadProperties
-                      ? t('properties.empty')
-                      : t('permissionDenied')}
-                  </p>
-                  {canCreateProperty && (
-                    <Link
-                      className="provider-button provider-button-primary mt-5"
-                      href="/provider/properties/new"
-                    >
-                      {t('properties.new')} <Arrow />
-                    </Link>
-                  )}
-                </div>
-              ) : (
-                <ul className="divide-y divide-[var(--border-muted)]">
-                  {recentProperties.map((property) => (
-                    <li
-                      key={property.id}
-                      className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-[var(--text)]">
-                          {property.title}
-                        </p>
-                        <p className="mt-1 text-xs text-[var(--text-muted)]">
-                          {property.province.name} ·{' '}
-                          {new Intl.NumberFormat(locale, {
-                            style: 'currency',
-                            currency: 'VND',
-                            maximumFractionDigits: 0,
-                          }).format(property.price)}
-                        </p>
-                      </div>
-                      <span
-                        className={`provider-property-status ${property.status === 'ACTIVE' ? 'provider-property-status-active' : ''}`}
-                      >
-                        {t(`properties.status.${property.status}`)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            <section className="provider-card p-5 sm:p-6">
-              <h2 className="text-lg font-semibold">
-                {t('overview.quickActions')}
-              </h2>
-              <p className="mt-1 text-sm text-[var(--text-muted)]">
-                {t('overview.quickActionsDescription')}
-              </p>
-              <div className="mt-5 space-y-2">
-                <Link className="provider-action" href="/provider/properties">
-                  <span>{t('nav.properties')}</span>
-                  <Arrow />
-                </Link>
-                <Link className="provider-action" href="/provider/listings">
-                  <span>{t('nav.listings')}</span>
-                  <Arrow />
-                </Link>
-                <Link className="provider-action" href="/provider/media">
-                  <span>{t('nav.media')}</span>
-                  <Arrow />
-                </Link>
-                <Link className="provider-action" href="/provider/account">
-                  <span>{t('nav.account')}</span>
-                  <Arrow />
-                </Link>
-                <Link
-                  className="provider-action"
-                  href="/provider/authorization"
-                >
-                  <span>{t('nav.authorization')}</span>
-                  <Arrow />
-                </Link>
+              <div className="provider-dashboard-kpi">
+                <span className="provider-dashboard-kpi-icon">
+                  <MarketplaceIcon name="check" />
+                </span>
+                <span className="text-xs text-[#4d6258]">
+                  {t('overview.activeListings')}
+                </span>
+                <strong>{published}</strong>
               </div>
-            </section>
-          </div>
-        </>
+              <div className="provider-dashboard-kpi">
+                <span className="provider-dashboard-kpi-icon">
+                  <MarketplaceIcon name="clock" />
+                </span>
+                <span className="text-xs text-[#4d6258]">
+                  {t('overview.draftListings')}
+                </span>
+                <strong>{drafts}</strong>
+              </div>
+            </>
+          )}
+          {properties.isSuccess && (
+            <div className="provider-dashboard-kpi">
+              <span className="provider-dashboard-kpi-icon">
+                <MarketplaceIcon name="building" />
+              </span>
+              <span className="text-xs text-[#4d6258]">
+                {t('overview.totalProperties')}
+              </span>
+              <strong>{properties.data.length}</strong>
+            </div>
+          )}
+        </section>
       )}
 
-      {!isActive && (
-        <section className="provider-card p-6">
-          <h2 className="text-lg font-semibold">{t('overview.nextStep')}</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
-            {stateText}
-          </p>
-          <Link className="provider-text-link mt-5" href="/provider/account">
-            {t('nav.account')} <Arrow />
-          </Link>
+      {canReadListings && drafts > 0 && (
+        <button
+          type="button"
+          className="provider-dashboard-task"
+          onClick={() => setFilter('DRAFT')}
+        >
+          <MarketplaceIcon
+            name="clock"
+            className="h-4 w-4 shrink-0 text-[#0a7a55]"
+          />
+          <span>{t('overview.draftWork', { count: drafts })}</span>
+          <MarketplaceIcon name="arrow" className="ml-auto h-4 w-4 shrink-0" />
+        </button>
+      )}
+
+      {canReadListings && (
+        <section
+          className="provider-dashboard-listings"
+          aria-labelledby="dashboard-listings-title"
+        >
+          <div className="provider-dashboard-listings-header">
+            <h2
+              id="dashboard-listings-title"
+              className="flex items-center gap-2 text-lg font-bold text-[#14362b]"
+            >
+              <MarketplaceIcon name="grid" className="h-5 w-5 text-[#0a7854]" />
+              {t('overview.recentListings')}
+            </h2>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/provider/listings"
+                className="text-sm font-semibold text-[#0a704e] hover:underline"
+              >
+                {t('overview.viewAll')} <span aria-hidden="true">→</span>
+              </Link>
+              {canCreateListing && (
+                <Link
+                  href="/provider/listings/new"
+                  className="provider-button provider-button-primary hidden sm:inline-flex"
+                >
+                  <span aria-hidden="true">+</span>
+                  {t('listings.newTitle')}
+                </Link>
+              )}
+            </div>
+          </div>
+          <div className="provider-dashboard-tools">
+            <div
+              className="provider-dashboard-filters"
+              role="group"
+              aria-label={t('controls.status')}
+            >
+              {(['ALL', 'PUBLISHED', 'DRAFT', 'ARCHIVED'] as const).map(
+                (value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={filter === value}
+                    className={filter === value ? 'is-active' : ''}
+                    onClick={() => setFilter(value)}
+                  >
+                    {value === 'ALL'
+                      ? t('overview.allListings', { count: allListings.length })
+                      : `${t(`listings.status.${value}`)} (${allListings.filter((listing) => listing.status === value).length})`}
+                  </button>
+                ),
+              )}
+            </div>
+            <label className="provider-dashboard-search">
+              <MarketplaceIcon name="search" className="h-4 w-4 shrink-0" />
+              <span className="sr-only">{t('overview.searchListings')}</span>
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={t('overview.searchListings')}
+              />
+            </label>
+          </div>
+          {listings.isLoading ? (
+            <p role="status" className="provider-dashboard-empty">
+              {t('loading')}
+            </p>
+          ) : listings.isError ? (
+            <div role="alert" className="provider-dashboard-empty">
+              <p>{t('listings.loadFailed')}</p>
+              <button
+                type="button"
+                className="mt-3 text-[#0a704e] underline"
+                onClick={() => void listings.refetch()}
+              >
+                {t('controls.refresh')}
+              </button>
+            </div>
+          ) : visible.length === 0 ? (
+            <p className="provider-dashboard-empty">
+              {search || filter !== 'ALL'
+                ? t('controls.noResults')
+                : t('listings.empty')}
+            </p>
+          ) : (
+            <div className="provider-dashboard-table-wrap">
+              <table className="provider-dashboard-table">
+                <thead>
+                  <tr>
+                    <th>{t('nav.listings')}</th>
+                    <th>{t('properties.fields.type')}</th>
+                    <th>{t('properties.fields.price')}</th>
+                    <th>{t('controls.status')}</th>
+                    <th>{t('listingDetail.updatedAt')}</th>
+                    {canReadProperties && <th>{t('overview.action')}</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {visible.map((listing) => (
+                    <tr key={listing.id}>
+                      <td data-label={t('nav.listings')}>
+                        <ListingIdentity
+                          listing={listing}
+                          canOpen={canReadProperties}
+                          mediaEnabled={
+                            listing.status === 'PUBLISHED' ||
+                            (canReadProperties &&
+                              estateStatus.get(listing.estateId) === 'ACTIVE')
+                          }
+                        />
+                      </td>
+                      <td data-label={t('properties.fields.type')}>
+                        {t(`properties.types.${listing.estate.type}`)}
+                      </td>
+                      <td
+                        data-label={t('properties.fields.price')}
+                        className="provider-dashboard-price"
+                      >
+                        {price.format(listing.estate.price)}
+                      </td>
+                      <td data-label={t('controls.status')}>
+                        <span
+                          className={`provider-dashboard-badge provider-dashboard-badge-${listing.status.toLowerCase()}`}
+                        >
+                          {t(`listings.status.${listing.status}`)}
+                        </span>
+                      </td>
+                      <td
+                        data-label={t('listingDetail.updatedAt')}
+                        className="whitespace-nowrap"
+                      >
+                        {date.format(new Date(listing.updatedAt))}
+                      </td>
+                      {canReadProperties && (
+                        <td
+                          data-label={t('overview.action')}
+                          className="provider-dashboard-action-cell"
+                        >
+                          <Link
+                            href={`/provider/listings/${listing.id}`}
+                            className="provider-dashboard-view"
+                            aria-label={`${t('listingDetail.view')}: ${listing.estate.title}`}
+                            title={t('listingDetail.view')}
+                          >
+                            <MarketplaceIcon name="arrow" className="h-4 w-4" />
+                          </Link>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {sorted.length > 8 && (
+            <div className="border-t border-[#e6ece8] px-5 py-3 text-right">
+              <Link
+                href="/provider/listings"
+                className="text-sm font-semibold text-[#0a704e] hover:underline"
+              >
+                {t('overview.viewAll')} →
+              </Link>
+            </div>
+          )}
         </section>
+      )}
+      {!canReadListings && (
+        <div role="status" className="provider-dashboard-message">
+          {t('permissionDenied')}
+        </div>
       )}
     </div>
   );

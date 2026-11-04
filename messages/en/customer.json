@@ -13,7 +13,10 @@
     "navigation": "Marketplace navigation",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "postEstate": "Post an estate"
+    "postEstate": "Post an estate",
+    "buy": "Buy",
+    "rent": "Rent",
+    "providers": "Providers"
   },
   "home": {
     "eyebrow": "Nexus property marketplace",
@@ -70,7 +73,35 @@
       "resort": "Resort",
       "farm": "Farm",
       "other": "Other"
-    }
+    },
+    "marketplaceDescription": "Buy, rent and discover real estate. Find the right space for your next chapter.",
+    "marketplaceSearchPlaceholder": "Enter a location or keyword…",
+    "viewAllShort": "View all",
+    "exploreNeeds": "Explore by need",
+    "highlights": {
+      "0": "Search your way",
+      "1": "Property photography",
+      "2": "Explore by location",
+      "3": "Enquire with the seller"
+    },
+    "needs": {
+      "buy": "Buy a home",
+      "rent": "Rent a home",
+      "apartment": "Apartments",
+      "type": "By property type",
+      "location": "By location"
+    },
+    "promotedTitle": "Featured listings",
+    "promotedDescription": "Properties currently receiving promoted visibility",
+    "promotionBadge": "Featured",
+    "viewAllPromoted": "View all featured listings",
+    "collapsePromoted": "Show carousel",
+    "previousPromoted": "Previous featured listings",
+    "nextPromoted": "Next featured listings",
+    "promotedEmpty": "There are no featured listings at the moment.",
+    "promotedUnavailable": "Featured listings could not be loaded. Please try again.",
+    "latestEstates": "Latest properties",
+    "latestEstatesDescription": "Explore the most recently added properties"
   },
   "properties": {
     "title": "Explore properties",
@@ -102,7 +133,13 @@
     "bathrooms": "{value} bathrooms",
     "location": "{city}{district, select, undefined {} other {, {district}}}",
     "noImage": "No photos yet",
-    "loadingImage": "Loading photos…"
+    "loadingImage": "Loading photos…",
+    "sort": "Sort by",
+    "sortNewest": "Newest",
+    "sortPriceAsc": "Price: low to high",
+    "sortPriceDesc": "Price: high to low",
+    "activeFilters": "Active filters",
+    "removeFilter": "Remove filter: {label}"
   },
   "propertyDetail": {
     "contactUnavailable": "Contact details will be available when the owner publishes a listing for this property.",
@@ -140,7 +177,13 @@
     "contactPoster": "Contact the advertiser",
     "enquiryHelp": "Leave your details to enquire about this property.",
     "contactPendingTitle": "Contact not yet available",
-    "contactPendingDescription": "The owner has not published contact details for this property yet."
+    "contactPendingDescription": "The owner has not published contact details for this property yet.",
+    "typeLabel": "Property type",
+    "overview": "Overview",
+    "overviewTitle": "Property overview",
+    "location": "Location",
+    "sections": "Property sections",
+    "viewMap": "View on map"
   },
   "listing": {
     "back": "Back to dashboard",
@@ -161,6 +204,7 @@
     "descriptionPlaceholder": "Describe the property in more detail…",
     "address": "Address",
     "city": "City",
+    "ward": "Ward/Commune",
     "district": "District",
     "addressDetail": "Street address",
     "cityPlaceholder": "Ho Chi Minh City",

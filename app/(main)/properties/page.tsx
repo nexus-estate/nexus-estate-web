@@ -1,18 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { EstateCard } from '@/components/customer/estate-card';
+import { MarketplaceIcon } from '@/components/customer/marketplace-icon';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { estateApi, locationApi } from '@/lib/api/estate/estate.api';
+import { useLocations } from '@/hooks/use-locations';
+import { estateApi } from '@/lib/api/estate/estate.api';
 import type {
   Estate,
   EstatePurpose,
   EstateType,
-  Province,
-  Ward,
 } from '@/lib/api/estate/estate.types';
 
 const types: EstateType[] = [
@@ -41,6 +41,11 @@ type MarketplaceFilters = {
 };
 
 export default function PropertiesPage() {
+  const searchParams = useSearchParams();
+  return <PropertyResults key={searchParams.toString()} />;
+}
+
+function PropertyResults() {
   const t = useTranslations('customer');
   const commonT = useTranslations('common');
   const searchParams = useSearchParams();
@@ -48,8 +53,6 @@ export default function PropertiesPage() {
     queryKey: ['marketplace', 'public-estates'],
     queryFn: estateApi.listPublic,
   });
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
   const [filters, setFilters] = useState<MarketplaceFilters>({
     type: (searchParams.get('type') as EstateType | null) ?? '',
     purpose: (searchParams.get('purpose') as EstatePurpose | null) ?? '',
@@ -58,6 +61,7 @@ export default function PropertiesPage() {
     q: searchParams.get('q') ?? '',
     page: 1,
   });
+  const [sort, setSort] = useState('newest');
   const query = filters.q.trim().toLocaleLowerCase();
   const filtered = (estates.data ?? [])
     .filter(
@@ -77,24 +81,17 @@ export default function PropertiesPage() {
             estate.ward.name,
           ].some((value) => value?.toLocaleLowerCase().includes(query))),
     )
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    .sort((a, b) =>
+      sort === 'price_asc'
+        ? a.price - b.price
+        : sort === 'price_desc'
+          ? b.price - a.price
+          : b.createdAt.localeCompare(a.createdAt),
+    );
   const total = filtered.length;
   const properties = filtered.slice((filters.page - 1) * 12, filters.page * 12);
 
-  useEffect(() => {
-    void locationApi
-      .provinces()
-      .then(setProvinces)
-      .catch(() => setProvinces([]));
-  }, []);
-
-  useEffect(() => {
-    if (!filters.provinceId) return;
-    void locationApi
-      .wards(filters.provinceId)
-      .then(setWards)
-      .catch(() => setWards([]));
-  }, [filters.provinceId]);
+  const { provinces, wards, wardsPending } = useLocations(filters.provinceId);
 
   const change = useCallback(
     (
@@ -116,27 +113,18 @@ export default function PropertiesPage() {
     });
 
   return (
-    <div className="min-h-screen bg-[#f8f7f3]">
-      <div className="border-b border-[#e5e5dc] bg-white">
-        <div className="mx-auto max-w-[var(--content-max)] px-5 py-12 sm:px-8 lg:px-10 lg:py-16">
-          <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[.2em] text-[var(--brand-accent)]">
-              {t('home.eyebrow')}
-            </p>
-            <h1 className="mt-4 font-display text-5xl tracking-[-.04em] text-[var(--brand-strong)] sm:text-6xl">
-              {filters.purpose === 'RENT'
-                ? t('properties.titleRent')
-                : t('properties.title')}
-            </h1>
-            <p className="mt-4 text-base leading-7 text-[#647069]">
-              {t('properties.description')}
-            </p>
-          </div>
-        </div>
+    <div className="mp-container mp-browse">
+      <div className="mp-browse-heading">
+        <h1>
+          {filters.purpose === 'RENT'
+            ? t('properties.titleRent')
+            : t('properties.title')}
+        </h1>
+        <p>{t('properties.description')}</p>
       </div>
-      <div className="mx-auto max-w-[var(--content-max)] px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+      <div>
         <form
-          className="grid gap-4 border border-[#e5e5dc] bg-white p-5 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto] lg:items-end"
+          className="mp-filter-bar"
           onSubmit={(event) => event.preventDefault()}
         >
           <label className="block text-sm font-semibold text-[var(--text)] lg:col-span-1">
@@ -167,6 +155,7 @@ export default function PropertiesPage() {
           <label className="block text-sm font-semibold text-[var(--text)]">
             {t('properties.type')}
             <select
+              id="property-type"
               value={filters.type}
               onChange={(event) => change('type', event.target.value)}
               className="app-control mt-2 px-3 py-2 text-sm font-normal"
@@ -180,8 +169,9 @@ export default function PropertiesPage() {
             </select>
           </label>
           <label className="block text-sm font-semibold text-[var(--text)]">
-            {t('home.quickSearch')}
+            {t('listing.city')}
             <select
+              id="property-province"
               value={filters.provinceId}
               onChange={(event) =>
                 setFilters((current) => ({
@@ -202,10 +192,10 @@ export default function PropertiesPage() {
             </select>
           </label>
           <label className="block text-sm font-semibold text-[var(--text)]">
-            {t('listing.district')}
+            {t('listing.ward')}
             <select
               value={filters.wardId}
-              disabled={!filters.provinceId}
+              disabled={!filters.provinceId || wardsPending}
               onChange={(event) => change('wardId', event.target.value)}
               className="app-control mt-2 px-3 py-2 text-sm font-normal"
             >
@@ -217,19 +207,73 @@ export default function PropertiesPage() {
               ))}
             </select>
           </label>
-          <button
-            type="button"
-            onClick={reset}
-            style={{ color: '#123b3a' }}
-            className="min-h-10 border border-[#d6dcd5] px-4 text-sm font-semibold text-[var(--brand)] transition-colors hover:bg-[#f4f5f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
-          >
+          <button type="button" onClick={reset} className="mp-filter-reset">
             {t('properties.reset')}
           </button>
         </form>
-        <div className="mt-10 flex flex-col gap-2 border-b border-[#e5e5dc] pb-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold text-[var(--text)]">
-            {t('properties.results', { count: total })}
+        <div
+          className="mp-active-filters"
+          aria-label={t('properties.activeFilters')}
+        >
+          {(['q', 'purpose', 'type', 'provinceId', 'wardId'] as const)
+            .filter((key) => filters[key])
+            .map((key) => {
+              const value = filters[key];
+              const label =
+                key === 'purpose'
+                  ? t(`properties.${value === 'RENT' ? 'rent' : 'buy'}`)
+                  : key === 'type'
+                    ? t(`home.propertyTypes.${value.toLowerCase()}`)
+                    : key === 'provinceId'
+                      ? (provinces.find((province) => province.id === value)
+                          ?.name ?? value)
+                      : key === 'wardId'
+                        ? (wards.find((ward) => ward.id === value)?.name ??
+                          value)
+                        : value;
+              return (
+                <button
+                  key={key}
+                  aria-label={t('properties.removeFilter', { label })}
+                  onClick={() =>
+                    setFilters((current) => ({
+                      ...current,
+                      [key]: '',
+                      ...(key === 'provinceId' ? { wardId: '' } : {}),
+                      page: 1,
+                    }))
+                  }
+                >
+                  {label}
+                  <MarketplaceIcon name="close" />
+                </button>
+              );
+            })}
+        </div>
+        <div className="mp-results-heading">
+          <h2 aria-live="polite">
+            {estates.isLoading
+              ? commonT('status.loading')
+              : estates.isError
+                ? t('properties.title')
+                : t('properties.results', { count: total })}
           </h2>
+          <label>
+            {t('properties.sort')}
+            <select
+              value={sort}
+              onChange={(event) => {
+                setSort(event.target.value);
+                setFilters((current) => ({ ...current, page: 1 }));
+              }}
+            >
+              <option value="newest">{t('properties.sortNewest')}</option>
+              <option value="price_asc">{t('properties.sortPriceAsc')}</option>
+              <option value="price_desc">
+                {t('properties.sortPriceDesc')}
+              </option>
+            </select>
+          </label>
         </div>
         {estates.isLoading ? (
           <LoadingState label={commonT('status.loading')} />
@@ -250,14 +294,14 @@ export default function PropertiesPage() {
             </button>
           </div>
         ) : properties.length ? (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mp-property-grid">
             {properties.map((property) => (
               <EstateCard key={property.id} estate={property} />
             ))}
           </div>
         ) : (
-          <div className="mt-6 border border-[#e5e5dc] bg-white px-6 py-16 text-center">
-            <p className="font-display text-3xl text-[var(--brand-strong)]">
+          <div className="mp-empty">
+            <p className="text-xl font-semibold text-[var(--brand-strong)]">
               {t('properties.empty')}
             </p>
             <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#647069]">
@@ -266,7 +310,6 @@ export default function PropertiesPage() {
             <button
               type="button"
               onClick={reset}
-              style={{ color: '#123b3a' }}
               className="mt-6 border border-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-[var(--brand)] transition-colors hover:bg-[#f4f5f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
             >
               {t('properties.reset')}

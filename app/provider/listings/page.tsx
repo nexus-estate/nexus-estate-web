@@ -199,6 +199,11 @@ export default function ProviderListingsPage() {
                           maximumFractionDigits: 0,
                         }).format(listing.estate.price)}
                       </div>
+                      {listing.status === 'ARCHIVED' && (
+                        <p className="mt-1 max-w-xl text-xs text-[var(--text-muted)]">
+                          {t('listings.archivedVisibilityNote')}
+                        </p>
+                      )}
                     </div>
                     <span
                       className={`text-xs font-semibold uppercase tracking-wide ${statusTone(listing.status)}`}

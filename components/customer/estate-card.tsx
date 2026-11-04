@@ -2,54 +2,109 @@
 
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { EstateImage } from '@/components/customer/estate-image';
-import type { Estate } from '@/lib/api/estate/estate.types';
+import type { ListingEstate } from '@/lib/api/listing/listing.types';
+import { EstateImage } from './estate-image';
+import { MarketplaceIcon } from './marketplace-icon';
 
-export function EstateCard({ estate }: { estate: Estate }) {
+/** One card for estates and published listings; callers retain their route identity. */
+export function EstateCard({
+  estate,
+  href,
+  sponsored = false,
+  compact = false,
+  variant = 'standard',
+}: {
+  estate: ListingEstate;
+  href?: string;
+  sponsored?: boolean;
+  compact?: boolean;
+  variant?: 'standard' | 'promoted';
+}) {
   const locale = useLocale();
   const t = useTranslations('customer');
-  const type = estate.type.toLowerCase();
-  const price = new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: 'VND',
-    maximumFractionDigits: 0,
-  }).format(estate.price);
-
+  const price = estate.price
+    ? new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: 'VND',
+        maximumFractionDigits: 0,
+      }).format(estate.price)
+    : t('properties.contact');
   return (
     <Link
-      href={`/properties/estate/${estate.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-xl border border-[#e2e8e3] bg-white transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-[#9bc3b3] hover:shadow-[0_12px_30px_rgb(22_55_45_/_0.09)]"
+      href={href ?? `/properties/estate/${estate.id}`}
+      className={`mp-property-card group${compact ? ' mp-property-card-compact' : ''}${variant === 'promoted' ? ' mp-property-card-promoted' : ''}`}
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-[#e7eee9]">
+      <div className="mp-property-cover">
         <EstateImage
           estateId={estate.id}
           title={estate.title}
-          sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw"
+          sizes={
+            compact
+              ? '120px'
+              : variant === 'promoted'
+                ? '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 90vw'
+                : '(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw'
+          }
           className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
-        <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-[#285346] shadow-sm">
-          {estate.purpose === 'RENT'
-            ? t('properties.listingRent')
-            : t('properties.listingBuy')}
-        </span>
+        {!compact && (
+          <span className="mp-cover-badge">
+            {t(`home.propertyTypes.${estate.type.toLowerCase()}`)}
+          </span>
+        )}
+        {variant === 'promoted' && (
+          <span className="mp-promotion-badge">
+            <MarketplaceIcon name="flame" />
+            {t('home.promotionBadge')}
+          </span>
+        )}
+        {sponsored && variant !== 'promoted' && (
+          <span className="mp-sponsored">{t('home.sponsoredLabel')}</span>
+        )}
       </div>
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <p className="text-xs font-medium text-[#66776e]">
-          {estate.province.name} · {estate.ward.name}
-        </p>
-        <h3 className="mt-2 line-clamp-2 text-base font-semibold leading-6 text-[#163d32] group-hover:text-[#17664f]">
+      <div className="mp-property-body">
+        <h3 className="line-clamp-1" title={estate.title}>
           {estate.title}
         </h3>
-        <p className="mt-3 text-lg font-bold text-[#16543f]">{price}</p>
-        <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1 border-t border-[#edf0ec] pt-3 text-xs text-[#65746b]">
-          {estate.area !== null && estate.area > 0 && (
-            <span>{t('properties.area', { value: estate.area })}</span>
-          )}
-          {estate.bedrooms !== null && estate.bedrooms > 0 && (
-            <span>{t('properties.bedrooms', { value: estate.bedrooms })}</span>
-          )}
-          <span>{t(`home.propertyTypes.${type}`)}</span>
-        </div>
+        <p className="mp-property-location">
+          <MarketplaceIcon name="pin" />
+          <span className="truncate">
+            {[estate.ward.name, estate.province.name]
+              .filter(Boolean)
+              .join(', ')}
+          </span>
+        </p>
+        <p className="mp-property-price">{price}</p>
+        {!compact && (
+          <div className="mp-card-facts">
+            {estate.area !== null && (
+              <span aria-label={t('properties.area', { value: estate.area })}>
+                <MarketplaceIcon name="area" />
+                {estate.area} m²
+              </span>
+            )}
+            {estate.bedrooms !== null && (
+              <span
+                aria-label={t('properties.bedrooms', {
+                  value: estate.bedrooms,
+                })}
+              >
+                <MarketplaceIcon name="bed" />
+                {estate.bedrooms}
+              </span>
+            )}
+            {estate.bathrooms !== null && (
+              <span
+                aria-label={t('properties.bathrooms', {
+                  value: estate.bathrooms,
+                })}
+              >
+                <MarketplaceIcon name="bath" />
+                {estate.bathrooms}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </Link>
   );

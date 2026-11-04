@@ -1,35 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { PropertyDetailLayout } from '@/components/customer/property-detail/property-detail-layout';
+import { ApiError } from '@/lib/api/core/error';
 import { listingApi } from '@/lib/api/listing/listing.api';
-import type { Listing } from '@/lib/api/listing/listing.types';
 
 export default function PropertyDetailPage() {
   const locale = useLocale();
   const t = useTranslations('customer.propertyDetail');
-  const params = useParams();
-  const [listing, setListing] = useState<Listing | null>(null);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    async function fetch() {
-      try {
-        setListing(await listingApi.getById(params.id as string));
-      } catch (err) {
-        console.error('Failed to fetch property:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetch();
-  }, [params.id]);
+  const customerT = useTranslations('customer');
+  const params = useParams<{ id: string }>();
+  const query = useQuery({
+    queryKey: ['marketplace', 'listing', params.id],
+    queryFn: () => listingApi.getById(params.id),
+    enabled: Boolean(params.id),
+  });
+  const listing = query.data;
+  const notFound =
+    query.error instanceof ApiError && query.error.status === 404;
 
-  if (loading)
+  if (query.isLoading)
     return (
-      <div className="min-h-screen bg-[var(--background)]">
+      <div
+        role="status"
+        aria-label={customerT('home.loading')}
+        className="min-h-screen bg-[var(--background)]"
+      >
         <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
           <div className="skeleton aspect-[16/7] w-full rounded-[var(--radius-xl)]" />
           <div className="skeleton mt-8 h-10 max-w-xl" />
@@ -42,8 +41,17 @@ export default function PropertyDetailPage() {
       <div className="flex min-h-[55vh] items-center justify-center bg-[var(--background)] px-5 text-center">
         <div>
           <h1 className="font-display text-4xl text-[var(--brand-strong)]">
-            {t('notFound')}
+            {notFound ? t('notFound') : customerT('home.unavailable')}
           </h1>
+          {!notFound && (
+            <button
+              type="button"
+              onClick={() => void query.refetch()}
+              className="mp-button mt-5"
+            >
+              {customerT('properties.retry')}
+            </button>
+          )}
           <Link
             href="/properties"
             className="mt-5 inline-block border-b border-[var(--brand)] pb-1 text-sm font-semibold text-[var(--brand)]"

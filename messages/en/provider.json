@@ -126,6 +126,7 @@
   },
   "listings": {
     "title": "Listings",
+    "list": "Listing list",
     "description": "Publication lifecycle for this Provider's supply.",
     "new": "New Listing",
     "newTitle": "Create Listing",
@@ -139,7 +140,8 @@
     "archiving": "Archiving…",
     "createBanner": "Create banner",
     "bannerTitle": "Create listing banner",
-    "bannerDescription": "Choose how many days to promote this published listing.",
+    "bannerDescription": "Choose how many days to promote this published listing. Featured placement requires a published listing, an active property and an unexpired promotion. Archiving removes the featured placement but does not pause the promotion period.",
+    "archivedVisibilityNote": "Archived listings do not appear on the marketplace or in featured placements, even while their promotion is still valid.",
     "bannerSubmitting": "Creating…",
     "bannerFailed": "The banner could not be created.",
     "propertyNotActive": "The Property must be active before its Listing can be published.",
@@ -179,6 +181,17 @@
     "noAccount": "No Provider account is available."
   },
   "overview": {
+    "dashboardTitle": "Manage listings & properties",
+    "dashboardDescription": "Create and manage your listings and properties on Marketplace.",
+    "totalListings": "Total listings",
+    "activeListings": "Active listings",
+    "draftListings": "Drafts",
+    "totalProperties": "Total properties",
+    "recentListings": "Recent listings",
+    "allListings": "All ({count})",
+    "searchListings": "Search listings, addresses...",
+    "draftWork": "Review {count} draft listings",
+    "action": "Action",
     "title": "Provider overview",
     "description": "Manage your properties, listings and business activity in one place.",
     "workspace": "Provider workspace",
@@ -274,6 +287,21 @@
     "estateMissing": "The estate linked to this listing is no longer available.",
     "estatePermissionDenied": "You need property read permission to view the linked estate.",
     "privateMediaUnavailable": "Photos are currently unavailable for draft or archived estates.",
-    "view": "View details"
+    "view": "View details",
+    "archiveConfirmTitle": "Pause this listing?",
+    "archiveConfirmBody": "This listing will be archived and removed from Marketplace visibility.",
+    "detailLabel": "Listing detail",
+    "sidebarInfo": "Listing information",
+    "links": "Links",
+    "viewEstate": "View estate in Provider",
+    "viewMarketplace": "View on Marketplace",
+    "coordinates": "Coordinates",
+    "estateStatus": "Estate status",
+    "noDescription": "No description is available for this estate.",
+    "sections": {
+      "details": "Property details",
+      "description": "Description",
+      "location": "Location"
+    }
   }
 }

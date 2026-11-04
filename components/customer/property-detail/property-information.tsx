@@ -2,18 +2,18 @@
 
 import { useTranslations } from 'next-intl';
 import type { ListingEstate } from '@/lib/api/listing/listing.types';
+import { MarketplaceIcon, type MarketplaceIconName } from '../marketplace-icon';
 
 export function PropertySummary({ property }: { property: ListingEstate }) {
   const customerT = useTranslations('customer');
   return (
-    <header className="min-w-0">
-      <p className="text-[11px] font-semibold uppercase tracking-[.16em] text-[var(--brand)]">
+    <header className="mp-property-summary">
+      <span className="mp-badge">
         {customerT(`home.propertyTypes.${property.type.toLowerCase()}`)}
-      </p>
-      <h1 className="mt-3 break-words text-[30px] font-semibold leading-[1.2] tracking-[-.035em] text-[var(--brand-strong)] sm:text-4xl">
-        {property.title}
-      </h1>
-      <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
+      </span>
+      <h1>{property.title}</h1>
+      <p>
+        <MarketplaceIcon name="pin" />
         {[property.addressLine, property.ward.name, property.province.name]
           .filter(Boolean)
           .join(', ')}
@@ -24,70 +24,126 @@ export function PropertySummary({ property }: { property: ListingEstate }) {
 
 export function PropertyInformation({ property }: { property: ListingEstate }) {
   const t = useTranslations('customer.propertyDetail');
-  const purpose =
+  const customerT = useTranslations('customer');
+  const purpose = t(
     property.purpose === 'SALE'
-      ? t('forSale')
+      ? 'forSale'
       : property.purpose === 'RENT'
-        ? t('forRent')
-        : t('forSaleOrRent');
-  const facts = [
-    {
-      value: property.area === null ? '—' : `${property.area} m²`,
-      label: t('areaLabel'),
-    },
-    { value: property.bedrooms ?? '—', label: t('bedrooms') },
-    { value: property.bathrooms ?? '—', label: t('bathrooms') },
-    { value: purpose, label: t('purposeLabel') },
+        ? 'forRent'
+        : 'forSaleOrRent',
+  );
+  const propertyType = customerT(
+    `home.propertyTypes.${property.type.toLowerCase()}`,
+  );
+  const facts: {
+    value: string | number;
+    label: string;
+    icon: MarketplaceIconName;
+  }[] = [
+    ...(property.area !== null
+      ? [
+          {
+            value: `${property.area} m²`,
+            label: t('areaLabel'),
+            icon: 'area' as const,
+          },
+        ]
+      : []),
+    ...(property.bedrooms !== null
+      ? [
+          {
+            value: property.bedrooms,
+            label: t('bedrooms'),
+            icon: 'bed' as const,
+          },
+        ]
+      : []),
+    ...(property.bathrooms !== null
+      ? [
+          {
+            value: property.bathrooms,
+            label: t('bathrooms'),
+            icon: 'bath' as const,
+          },
+        ]
+      : []),
+    { value: propertyType, label: t('typeLabel'), icon: 'building' },
+    { value: purpose, label: t('purposeLabel'), icon: 'tag' },
+  ];
+  const hasDescription = Boolean(property.description?.trim());
+  const address = [
+    property.addressLine,
+    property.ward.name,
+    property.province.name,
+  ]
+    .filter(Boolean)
+    .join(', ');
+  const hasCoordinates =
+    property.latitude !== null && property.longitude !== null;
+  const overview = [
+    { label: t('typeLabel'), value: propertyType },
+    { label: t('purposeLabel'), value: purpose },
+    ...facts.filter((fact) => ['area', 'bed', 'bath'].includes(fact.icon)),
+    ...(property.floors !== null
+      ? [{ label: t('floors'), value: property.floors }]
+      : []),
   ];
   return (
-    <div className="min-w-0 space-y-9 lg:space-y-10">
-      <dl className="grid grid-cols-2 gap-y-6 border-y border-[var(--border)] py-6 sm:grid-cols-4">
-        {facts.map((fact, index) => (
-          <div
-            key={fact.label}
-            className={`flex min-w-0 flex-col px-4 first:pl-0 sm:px-5 ${index === 2 ? 'pl-0 sm:pl-5' : ''} ${index % 2 === 0 ? 'border-r border-[var(--border)]' : ''} ${index < 3 ? 'sm:border-r sm:border-[var(--border)]' : ''}`}
-          >
-            <dt className="order-last mt-1 text-xs text-[var(--text-muted)]">
-              {fact.label}
-            </dt>
-            <dd
-              className={`font-semibold leading-7 text-[var(--brand-strong)] ${index === 3 ? 'text-base' : 'text-2xl'}`}
-            >
-              {fact.value}
-            </dd>
+    <div className="mp-property-information">
+      <dl className="mp-detail-facts">
+        {facts.map((fact) => (
+          <div key={fact.label}>
+            <MarketplaceIcon name={fact.icon} />
+            <div>
+              <dt>{fact.label}</dt>
+              <dd>{fact.value}</dd>
+            </div>
           </div>
         ))}
       </dl>
-      {property.description?.trim() && (
-        <section aria-labelledby="property-description-title">
-          <h2
-            id="property-description-title"
-            className="text-xl font-semibold tracking-tight text-[var(--brand-strong)]"
-          >
-            {t('descriptionTitle')}
-          </h2>
-          <p className="mt-4 max-w-3xl whitespace-pre-line break-words text-[15px] leading-7 text-[var(--text-muted)]">
+      <nav className="mp-section-nav" aria-label={t('sections')}>
+        <a href="#property-overview">{t('overview')}</a>
+        {hasDescription && (
+          <a href="#property-description">{t('descriptionTitle')}</a>
+        )}
+        {address && <a href="#property-location">{t('location')}</a>}
+      </nav>
+      <section id="property-overview" className="mp-detail-section">
+        <h2>{t('overviewTitle')}</h2>
+        <dl className="mp-overview">
+          {overview.map((fact) => (
+            <div key={fact.label}>
+              <dt>{fact.label}</dt>
+              <dd>{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+      {hasDescription && (
+        <section id="property-description" className="mp-detail-section">
+          <h2>{t('descriptionTitle')}</h2>
+          <p className="whitespace-pre-line break-words">
             {property.description}
           </p>
         </section>
       )}
-      {property.floors !== null && (
-        <section
-          aria-labelledby="property-additional-title"
-          className="border-t border-[var(--border)] pt-8"
-        >
-          <h2
-            id="property-additional-title"
-            className="text-xl font-semibold tracking-tight text-[var(--brand-strong)]"
-          >
-            {t('additionalTitle')}
-          </h2>
-          <dl className="mt-4 flex max-w-sm items-center justify-between gap-4 text-sm">
-            <dt className="text-[var(--text-muted)]">{t('floors')}</dt>
-            <dd className="font-semibold text-[var(--text)]">
-              {property.floors}
-            </dd>
-          </dl>
+      {address && (
+        <section id="property-location" className="mp-detail-section">
+          <h2>{t('location')}</h2>
+          <div className="mp-location">
+            <MarketplaceIcon name="pin" />
+            <p>{address}</p>
+          </div>
+          {hasCoordinates && (
+            <a
+              className="mp-map-link"
+              href={`https://www.openstreetmap.org/?mlat=${property.latitude}&mlon=${property.longitude}#map=16/${property.latitude}/${property.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t('viewMap')} <MarketplaceIcon name="arrow" />
+            </a>
+          )}
         </section>
       )}
     </div>

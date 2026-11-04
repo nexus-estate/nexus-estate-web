@@ -6,7 +6,7 @@ export interface PortalBreadcrumb {
 interface PortalRouteMetadata {
   path: string;
   labelKey: string;
-  match: 'exact' | 'prefix';
+  match: 'exact' | 'prefix' | 'dynamic';
   breadcrumbs: readonly PortalBreadcrumb[];
 }
 
@@ -119,6 +119,15 @@ export const PORTAL_ROUTE_METADATA: readonly PortalRouteMetadata[] = [
     ],
   },
   {
+    path: '/provider/listings/:id',
+    labelKey: 'navigation.providerListingDetail',
+    match: 'dynamic',
+    breadcrumbs: [
+      navigation('navigation.providerListings', '/provider/listings'),
+      { labelKey: 'navigation.providerListingDetail' },
+    ],
+  },
+  {
     path: '/provider/listings/new',
     labelKey: 'navigation.providerListingNew',
     match: 'exact',
@@ -165,10 +174,19 @@ export const PORTAL_ROUTE_METADATA: readonly PortalRouteMetadata[] = [
 
 export function getPortalRouteMetadata(pathname: string) {
   return PORTAL_ROUTE_METADATA.filter((route) =>
-    route.match === 'prefix'
-      ? pathname === route.path || pathname.startsWith(`${route.path}/`)
-      : pathname === route.path,
-  ).sort((a, b) => b.path.length - a.path.length)[0];
+    route.match === 'dynamic'
+      ? new RegExp(`^${route.path.replace(/:[^/]+/g, '[^/]+')}/?$`).test(
+          pathname,
+        )
+      : route.match === 'prefix'
+        ? pathname === route.path || pathname.startsWith(`${route.path}/`)
+        : pathname === route.path,
+  ).sort((a, b) => {
+    const priority = { exact: 2, dynamic: 1, prefix: 0 };
+    return (
+      priority[b.match] - priority[a.match] || b.path.length - a.path.length
+    );
+  })[0];
 }
 
 export function getPortalBreadcrumbs(pathname: string) {

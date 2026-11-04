@@ -23,6 +23,7 @@ export function ListingActions({ listing }: { listing: Listing }) {
   const archive = useArchiveProviderListing();
   const banner = useCreateListingBanner();
   const [bannerOpen, setBannerOpen] = useState(false);
+  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
   const [promotionId, setPromotionId] = useState('');
   const [durationDays, setDurationDays] = useState('7');
   const [durationError, setDurationError] = useState(false);
@@ -45,6 +46,11 @@ export function ListingActions({ listing }: { listing: Listing }) {
   };
   return (
     <div className="space-y-3">
+      {listing.status === 'ARCHIVED' && (
+        <p className="text-sm text-[var(--text-muted)]">
+          {t('listings.archivedVisibilityNote')}
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         {listing.status === 'DRAFT' && canPublish && (
           <Button
@@ -64,7 +70,7 @@ export function ListingActions({ listing }: { listing: Listing }) {
             variant="outline"
             loading={archive.isPending}
             disabled={busy}
-            onClick={() => run('archive')}
+            onClick={() => setArchiveConfirmOpen(true)}
           >
             {archive.isPending
               ? t('listings.archiving')
@@ -87,6 +93,38 @@ export function ListingActions({ listing }: { listing: Listing }) {
           </Button>
         )}
       </div>
+      <Modal
+        isOpen={archiveConfirmOpen}
+        onClose={() => setArchiveConfirmOpen(false)}
+        title={t('listingDetail.archiveConfirmTitle')}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setArchiveConfirmOpen(false)}
+            >
+              {t('listings.cancel')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              loading={archive.isPending}
+              disabled={busy}
+              onClick={() => {
+                setArchiveConfirmOpen(false);
+                run('archive');
+              }}
+            >
+              {t('listings.archive')}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm leading-6 text-[var(--text-muted)]">
+          {t('listingDetail.archiveConfirmBody')}
+        </p>
+      </Modal>
       {error !== null && !bannerOpen && (
         <p role="alert" className="text-sm text-[var(--danger)]">
           {errorText}

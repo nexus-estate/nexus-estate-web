@@ -1,11 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { PageHeader } from '@/components/portal/page-header';
-import { ListingEstateSummary } from '@/components/provider/listing/listing-estate-summary';
-import { ListingOverview } from '@/components/provider/listing/listing-overview';
+import { ListingDetailView } from '@/components/provider/listing/listing-detail-view';
 import { Button } from '@/components/ui/Button';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import {
@@ -27,19 +24,7 @@ export default function ProviderListingDetailPage() {
     canRead && canReadEstate && Boolean(estateId),
   );
   return (
-    <div className="mx-auto max-w-6xl">
-      <PageHeader
-        title={t('listingDetail.title')}
-        description={t('listingDetail.description')}
-        actions={
-          <Link
-            href="/provider/listings"
-            className="app-button app-button-secondary"
-          >
-            {t('listingDetail.back')}
-          </Link>
-        }
-      />
+    <div className="mx-auto max-w-[90rem]">
       {workspace.state === 'LOADING' ? (
         <p role="status">{t('loading')}</p>
       ) : workspace.state !== 'ACTIVE_VERIFIED' ? (
@@ -73,7 +58,6 @@ export default function ProviderListingDetailPage() {
         <p role="alert">{t('listingDetail.notFound')}</p>
       ) : (
         <>
-          <ListingOverview listing={listing.data} />
           {!canReadEstate ? (
             <p role="alert" className="mt-6">
               {t('listingDetail.estatePermissionDenied')}
@@ -104,7 +88,7 @@ export default function ProviderListingDetailPage() {
               </Button>
             </div>
           ) : (
-            <ListingEstateSummary key={estateId} estate={estate.data} />
+            <ListingDetailView listing={listing.data} estate={estate.data} />
           )}
         </>
       )}
