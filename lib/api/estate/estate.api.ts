@@ -8,12 +8,21 @@ import type {
 } from './estate.types';
 
 export const estateApi = {
+  listPublic: () => publicApiClient.get<Estate[]>('/estates'),
   listMine: () => providerApiClient.get<Estate[]>('/estates/mine'),
+  getMine: (id: string) => providerApiClient.get<Estate>(`/estates/${id}/mine`),
   getById: (id: string) => publicApiClient.get<Estate>(`/estates/${id}`),
   create: (data: CreateEstateRequest) =>
     providerApiClient.post<Estate>('/estates', data),
   update: (id: string, data: UpdateEstateRequest) =>
     providerApiClient.patch<Estate>(`/estates/${id}`, data),
+  activate: (id: string) =>
+    providerApiClient.post<Estate>(`/estates/${id}/activate`),
+  archive: (id: string) =>
+    providerApiClient.post<Estate>(`/estates/${id}/archive`),
+  restore: (id: string) =>
+    providerApiClient.post<Estate>(`/estates/${id}/restore`),
+  /** Legacy DELETE compatibility; lifecycle UI uses archive(). */
   remove: (id: string) => providerApiClient.delete<boolean>(`/estates/${id}`),
 };
 

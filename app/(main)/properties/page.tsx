@@ -1,21 +1,35 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { PropertyCard } from '@/components/customer/property-card';
+import { EstateCard } from '@/components/customer/estate-card';
+import { MarketplaceIcon } from '@/components/customer/marketplace-icon';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { locationApi } from '@/lib/api/estate/estate.api';
+import { useLocations } from '@/hooks/use-locations';
+import { estateApi } from '@/lib/api/estate/estate.api';
 import type {
+  Estate,
   EstatePurpose,
   EstateType,
-  Province,
-  Ward,
 } from '@/lib/api/estate/estate.types';
-import { listingApi } from '@/lib/api/listing/listing.api';
-import type { Listing } from '@/lib/api/listing/listing.types';
 
-const types: EstateType[] = ['APARTMENT', 'HOUSE', 'VILLA', 'LAND', 'OFFICE'];
+const types: EstateType[] = [
+  'APARTMENT',
+  'HOUSE',
+  'VILLA',
+  'TOWNHOUSE',
+  'LAND',
+  'OFFICE',
+  'SHOPHOUSE',
+  'WAREHOUSE',
+  'COMMERCIAL',
+  'HOTEL',
+  'RESORT',
+  'FARM',
+  'OTHER',
+];
 const purposes: EstatePurpose[] = ['SALE', 'RENT'];
 type MarketplaceFilters = {
   type: EstateType | '';
@@ -27,14 +41,18 @@ type MarketplaceFilters = {
 };
 
 export default function PropertiesPage() {
+  const searchParams = useSearchParams();
+  return <PropertyResults key={searchParams.toString()} />;
+}
+
+function PropertyResults() {
   const t = useTranslations('customer');
   const commonT = useTranslations('common');
   const searchParams = useSearchParams();
-  const [properties, setProperties] = useState<Listing[]>([]);
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const estates = useQuery({
+    queryKey: ['marketplace', 'public-estates'],
+    queryFn: estateApi.listPublic,
+  });
   const [filters, setFilters] = useState<MarketplaceFilters>({
     type: (searchParams.get('type') as EstateType | null) ?? '',
     purpose: (searchParams.get('purpose') as EstatePurpose | null) ?? '',
@@ -43,57 +61,37 @@ export default function PropertiesPage() {
     q: searchParams.get('q') ?? '',
     page: 1,
   });
-  const [total, setTotal] = useState(0);
+  const [sort, setSort] = useState('newest');
+  const query = filters.q.trim().toLocaleLowerCase();
+  const filtered = (estates.data ?? [])
+    .filter(
+      (estate: Estate) =>
+        (!filters.type || estate.type === filters.type) &&
+        (!filters.purpose ||
+          estate.purpose === filters.purpose ||
+          estate.purpose === 'SALE_OR_RENT') &&
+        (!filters.provinceId || estate.provinceId === filters.provinceId) &&
+        (!filters.wardId || estate.wardId === filters.wardId) &&
+        (!query ||
+          [
+            estate.title,
+            estate.description,
+            estate.addressLine,
+            estate.province.name,
+            estate.ward.name,
+          ].some((value) => value?.toLocaleLowerCase().includes(query))),
+    )
+    .sort((a, b) =>
+      sort === 'price_asc'
+        ? a.price - b.price
+        : sort === 'price_desc'
+          ? b.price - a.price
+          : b.createdAt.localeCompare(a.createdAt),
+    );
+  const total = filtered.length;
+  const properties = filtered.slice((filters.page - 1) * 12, filters.page * 12);
 
-  useEffect(() => {
-    void locationApi
-      .provinces()
-      .then(setProvinces)
-      .catch(() => setProvinces([]));
-  }, []);
-
-  useEffect(() => {
-    if (!filters.provinceId) return;
-    void locationApi
-      .wards(filters.provinceId)
-      .then(setWards)
-      .catch(() => setWards([]));
-  }, [filters.provinceId]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      setLoading(true);
-      setError(false);
-      try {
-        const response = await listingApi.list({
-          page: filters.page,
-          limit: 12,
-          type: filters.type || undefined,
-          purpose: filters.purpose || undefined,
-          provinceId: filters.provinceId,
-          wardId: filters.wardId,
-          q: filters.q,
-        });
-        const result = response.items;
-        if (!cancelled) {
-          setProperties(result);
-          setTotal(response.meta.total);
-        }
-      } catch {
-        if (!cancelled) {
-          setProperties([]);
-          setTotal(0);
-          setError(true);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [filters]);
+  const { provinces, wards, wardsPending } = useLocations(filters.provinceId);
 
   const change = useCallback(
     (
@@ -115,21 +113,18 @@ export default function PropertiesPage() {
     });
 
   return (
-    <div className="bg-[var(--background)]">
-      <div className="mx-auto max-w-[var(--content-max)] px-5 py-10 sm:px-8 lg:px-10 lg:py-14">
-        <div className="max-w-2xl">
-          <p className="eyebrow">{t('home.eyebrow')}</p>
-          <h1 className="mt-4 font-display text-5xl tracking-[-.03em] text-[var(--brand-strong)]">
-            {filters.purpose === 'RENT'
-              ? t('properties.titleRent')
-              : t('properties.title')}
-          </h1>
-          <p className="mt-4 text-base leading-7 text-[var(--text-muted)]">
-            {t('properties.description')}
-          </p>
-        </div>
+    <div className="mp-container mp-browse">
+      <div className="mp-browse-heading">
+        <h1>
+          {filters.purpose === 'RENT'
+            ? t('properties.titleRent')
+            : t('properties.title')}
+        </h1>
+        <p>{t('properties.description')}</p>
+      </div>
+      <div>
         <form
-          className="app-panel mt-9 grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_auto] lg:items-end"
+          className="mp-filter-bar"
           onSubmit={(event) => event.preventDefault()}
         >
           <label className="block text-sm font-semibold text-[var(--text)] lg:col-span-1">
@@ -160,6 +155,7 @@ export default function PropertiesPage() {
           <label className="block text-sm font-semibold text-[var(--text)]">
             {t('properties.type')}
             <select
+              id="property-type"
               value={filters.type}
               onChange={(event) => change('type', event.target.value)}
               className="app-control mt-2 px-3 py-2 text-sm font-normal"
@@ -173,8 +169,9 @@ export default function PropertiesPage() {
             </select>
           </label>
           <label className="block text-sm font-semibold text-[var(--text)]">
-            {t('home.quickSearch')}
+            {t('listing.city')}
             <select
+              id="property-province"
               value={filters.provinceId}
               onChange={(event) =>
                 setFilters((current) => ({
@@ -195,10 +192,10 @@ export default function PropertiesPage() {
             </select>
           </label>
           <label className="block text-sm font-semibold text-[var(--text)]">
-            {t('listing.district')}
+            {t('listing.ward')}
             <select
               value={filters.wardId}
-              disabled={!filters.provinceId}
+              disabled={!filters.provinceId || wardsPending}
               onChange={(event) => change('wardId', event.target.value)}
               className="app-control mt-2 px-3 py-2 text-sm font-normal"
             >
@@ -210,36 +207,150 @@ export default function PropertiesPage() {
               ))}
             </select>
           </label>
-          <button
-            type="button"
-            onClick={reset}
-            className="min-h-10 rounded-[var(--radius-md)] border border-[var(--border)] px-4 text-sm font-semibold text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
-          >
+          <button type="button" onClick={reset} className="mp-filter-reset">
             {t('properties.reset')}
           </button>
         </form>
-        <div className="mt-8 flex flex-col gap-2 border-b border-[var(--border-muted)] pb-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold text-[var(--text)]">
-            {t('properties.results', { count: total })}
-          </h2>
-          {error && (
-            <p role="alert" className="text-sm text-[var(--danger)]">
-              {commonT('status.error')}
-            </p>
-          )}
+        <div
+          className="mp-active-filters"
+          aria-label={t('properties.activeFilters')}
+        >
+          {(['q', 'purpose', 'type', 'provinceId', 'wardId'] as const)
+            .filter((key) => filters[key])
+            .map((key) => {
+              const value = filters[key];
+              const label =
+                key === 'purpose'
+                  ? t(`properties.${value === 'RENT' ? 'rent' : 'buy'}`)
+                  : key === 'type'
+                    ? t(`home.propertyTypes.${value.toLowerCase()}`)
+                    : key === 'provinceId'
+                      ? (provinces.find((province) => province.id === value)
+                          ?.name ?? value)
+                      : key === 'wardId'
+                        ? (wards.find((ward) => ward.id === value)?.name ??
+                          value)
+                        : value;
+              return (
+                <button
+                  key={key}
+                  aria-label={t('properties.removeFilter', { label })}
+                  onClick={() =>
+                    setFilters((current) => ({
+                      ...current,
+                      [key]: '',
+                      ...(key === 'provinceId' ? { wardId: '' } : {}),
+                      page: 1,
+                    }))
+                  }
+                >
+                  {label}
+                  <MarketplaceIcon name="close" />
+                </button>
+              );
+            })}
         </div>
-        {loading ? (
+        <div className="mp-results-heading">
+          <h2 aria-live="polite">
+            {estates.isLoading
+              ? commonT('status.loading')
+              : estates.isError
+                ? t('properties.title')
+                : t('properties.results', { count: total })}
+          </h2>
+          <label>
+            {t('properties.sort')}
+            <select
+              value={sort}
+              onChange={(event) => {
+                setSort(event.target.value);
+                setFilters((current) => ({ ...current, page: 1 }));
+              }}
+            >
+              <option value="newest">{t('properties.sortNewest')}</option>
+              <option value="price_asc">{t('properties.sortPriceAsc')}</option>
+              <option value="price_desc">
+                {t('properties.sortPriceDesc')}
+              </option>
+            </select>
+          </label>
+        </div>
+        {estates.isLoading ? (
           <LoadingState label={commonT('status.loading')} />
+        ) : estates.isError ? (
+          <div
+            role="alert"
+            className="mt-6 rounded-xl border border-[#e5e5dc] bg-white px-6 py-12 text-center"
+          >
+            <p className="text-sm text-[var(--danger)]">
+              {t('properties.tryAgain')}
+            </p>
+            <button
+              type="button"
+              onClick={() => void estates.refetch()}
+              className="mt-5 rounded-lg border border-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-[var(--brand)]"
+            >
+              {t('properties.retry')}
+            </button>
+          </div>
         ) : properties.length ? (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mp-property-grid">
             {properties.map((property) => (
-              <PropertyCard key={property.id} listing={property} />
+              <EstateCard key={property.id} estate={property} />
             ))}
           </div>
         ) : (
-          <div className="app-panel-muted mt-6 px-6 py-16 text-center text-sm text-[var(--text-muted)]">
-            {t('properties.empty')}
+          <div className="mp-empty">
+            <p className="text-xl font-semibold text-[var(--brand-strong)]">
+              {t('properties.empty')}
+            </p>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#647069]">
+              {t('properties.emptyHint')}
+            </p>
+            <button
+              type="button"
+              onClick={reset}
+              className="mt-6 border border-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-[var(--brand)] transition-colors hover:bg-[#f4f5f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
+            >
+              {t('properties.reset')}
+            </button>
           </div>
+        )}
+        {total > 12 && !estates.isError && (
+          <nav
+            aria-label={t('properties.pagination')}
+            className="mt-8 flex items-center justify-center gap-4"
+          >
+            <button
+              type="button"
+              disabled={filters.page === 1}
+              onClick={() =>
+                setFilters((current) => ({
+                  ...current,
+                  page: current.page - 1,
+                }))
+              }
+              className="rounded-lg border border-[#cfdcd0] bg-white px-4 py-2 text-sm font-semibold text-[#245845] disabled:opacity-40"
+            >
+              {t('properties.previous')}
+            </button>
+            <span className="text-sm text-[#68796d]">
+              {filters.page} / {Math.ceil(total / 12)}
+            </span>
+            <button
+              type="button"
+              disabled={filters.page >= Math.ceil(total / 12)}
+              onClick={() =>
+                setFilters((current) => ({
+                  ...current,
+                  page: current.page + 1,
+                }))
+              }
+              className="rounded-lg border border-[#cfdcd0] bg-white px-4 py-2 text-sm font-semibold text-[#245845] disabled:opacity-40"
+            >
+              {t('properties.next')}
+            </button>
+          </nav>
         )}
       </div>
     </div>

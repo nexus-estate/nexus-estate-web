@@ -13,6 +13,15 @@ export const providerKeys = {
   properties: (providerId: string | null) =>
     [...providerKeys.scope(providerId), 'properties'] as const,
 
+  property: (providerId: string | null, propertyId: string) =>
+    [...providerKeys.properties(providerId), propertyId] as const,
+
   listings: (providerId: string | null) =>
     [...providerKeys.scope(providerId), 'listings'] as const,
+
+  media: (providerId: string | null, estateId: string) =>
+    [...providerKeys.scope(providerId), 'estate-media', estateId] as const,
+
+  eligibleProperties: (providerId: string | null) =>
+    [...providerKeys.scope(providerId), 'eligible-properties'] as const,
 };

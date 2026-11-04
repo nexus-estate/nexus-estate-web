@@ -3,20 +3,22 @@ import { defineConfig, devices } from '@playwright/test';
 const e2ePort = process.env.E2E_PORT ?? '3000';
 const integration = process.env.E2E_INTEGRATION === 'true';
 const multiPlatform = process.env.E2E_MULTI_PLATFORM === 'true';
-const providerPort = process.env.E2E_PROVIDER_PORT ?? '3001';
+const providerPort = process.env.E2E_PROVIDER_PORT ?? '3003';
 const adminPort = process.env.E2E_ADMIN_PORT ?? '3002';
 const platformUrlEnv = {
   NEXT_PUBLIC_MARKETPLACE_URL:
     process.env.NEXT_PUBLIC_MARKETPLACE_URL ?? 'http://localhost:3000',
   NEXT_PUBLIC_PROVIDER_URL:
-    process.env.NEXT_PUBLIC_PROVIDER_URL ?? 'http://localhost:3001',
+    process.env.NEXT_PUBLIC_PROVIDER_URL ?? 'http://localhost:3003',
   NEXT_PUBLIC_ADMIN_URL:
     process.env.NEXT_PUBLIC_ADMIN_URL ?? 'http://localhost:3002',
 };
 
 export default defineConfig({
   testDir: './e2e',
-  testIgnore: integration ? [] : ['**/platform-lifecycle.spec.ts'],
+  testIgnore: integration
+    ? []
+    : ['**/platform-lifecycle.spec.ts', '**/provider-supply-lifecycle.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

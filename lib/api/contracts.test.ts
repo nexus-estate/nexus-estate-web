@@ -224,6 +224,9 @@ test('uses the finalized estate marketplace wire contract', async () => {
   await locationApi.wards('province-id');
   await estateApi.create(providerEstate);
   await estateApi.listMine();
+  await estateApi.activate('estate-id');
+  await estateApi.archive('estate-id');
+  await estateApi.restore('estate-id');
   await listingApi.list({
     q: 'main',
     type: 'APARTMENT',
@@ -252,6 +255,9 @@ test('uses the finalized estate marketplace wire contract', async () => {
   expect(providerGet).toHaveBeenCalledWith('/estates/mine');
   expect(providerGet).toHaveBeenCalledWith('/listings/mine');
   expect(providerPost).toHaveBeenCalledWith('/estates', providerEstate);
+  expect(providerPost).toHaveBeenCalledWith('/estates/estate-id/activate');
+  expect(providerPost).toHaveBeenCalledWith('/estates/estate-id/archive');
+  expect(providerPost).toHaveBeenCalledWith('/estates/estate-id/restore');
   expect(providerPost).toHaveBeenCalledWith('/listings', {
     estateId: 'estate-id',
   });

@@ -1,7 +1,11 @@
 {
   "title": "Cổng Provider",
-  "footer": { "back": "Về Marketplace", "signOut": "Đăng xuất" },
+  "footer": {
+    "back": "Về Marketplace",
+    "signOut": "Đăng xuất"
+  },
   "loading": "Đang tải Provider workspace…",
+  "permissionDenied": "Permission Provider hiện tại không cho phép thao tác này.",
   "identity": {
     "providerPlatform": "Nền tảng Provider",
     "notEnrolled": "Chưa đăng ký"
@@ -44,19 +48,38 @@
     "properties": "Bất động sản",
     "listings": "Tin đăng",
     "account": "Tài khoản",
-    "authorization": "Phân quyền"
+    "authorization": "Phân quyền",
+    "media": "Media"
   },
   "properties": {
     "title": "Bất động sản",
     "description": "Nguồn cung thuộc sở hữu của Provider đang chọn.",
     "new": "Bất động sản mới",
+    "edit": "Chỉnh sửa",
+    "editTitle": "Chỉnh sửa bất động sản",
+    "editDescription": "Cập nhật bất động sản thuộc Provider.",
     "newTitle": "Tạo bất động sản",
     "newDescription": "Đăng ký bất động sản thuộc Provider này. Việc tạo tin đăng là bước riêng.",
     "create": "Tạo bất động sản",
     "cancel": "Hủy",
     "submitting": "Đang tạo…",
+    "updating": "Đang cập nhật…",
+    "update": "Cập nhật bất động sản",
     "loadFailed": "Không thể tải bất động sản.",
     "createFailed": "Không thể tạo bất động sản.",
+    "updateFailed": "Không thể cập nhật bất động sản.",
+    "activate": "Kích hoạt",
+    "activating": "Đang kích hoạt…",
+    "archive": "Lưu trữ",
+    "archiving": "Đang lưu trữ…",
+    "restore": "Khôi phục",
+    "restoring": "Đang khôi phục…",
+    "archiveFailed": "Không thể lưu trữ bất động sản.",
+    "activationIncomplete": "Bất động sản còn thiếu thông tin cần thiết để kích hoạt.",
+    "publishedListingConflict": "Không thể lưu trữ bất động sản khi đang có Listing đã xuất bản.",
+    "invalidStatusTransition": "Trạng thái vòng đời bất động sản đã thay đổi. Vui lòng tải lại và thử lại.",
+    "listingPropertyNotActive": "Bất động sản phải ở trạng thái đang hoạt động trước khi xuất bản Listing.",
+    "lifecycleFailed": "Không thể hoàn tất thao tác vòng đời bất động sản.",
     "empty": "Chưa có bất động sản nào. Hãy tạo bất động sản đầu tiên để bắt đầu.",
     "fields": {
       "title": "Tiêu đề",
@@ -92,10 +115,18 @@
       "SALE": "Bán",
       "RENT": "Cho thuê",
       "SALE_OR_RENT": "Bán hoặc cho thuê"
-    }
+    },
+    "status": {
+      "DRAFT": "Bản nháp",
+      "ACTIVE": "Đang hoạt động",
+      "ARCHIVED": "Đã lưu trữ"
+    },
+    "media": "Thêm ảnh",
+    "createListing": "Tạo tin đăng"
   },
   "listings": {
     "title": "Tin đăng",
+    "list": "Danh sách tin đăng",
     "description": "Vòng đời xuất bản cho nguồn cung của Provider này.",
     "new": "Tin đăng mới",
     "newTitle": "Tạo tin đăng",
@@ -103,21 +134,39 @@
     "createDraft": "Tạo bản nháp",
     "cancel": "Hủy",
     "submitting": "Đang tạo…",
+    "publish": "Xuất bản",
+    "publishing": "Đang xuất bản…",
+    "archive": "Lưu trữ",
+    "archiving": "Đang lưu trữ…",
+    "createBanner": "Tạo banner",
+    "bannerTitle": "Tạo banner cho tin đăng",
+    "bannerDescription": "Chọn số ngày quảng bá cho tin đăng đã xuất bản. Tin chỉ hiển thị nổi bật khi đang xuất bản, bất động sản đang hoạt động và promotion còn hạn. Lưu trữ tin sẽ ngừng hiển thị nổi bật, nhưng không tạm dừng thời hạn promotion.",
+    "archivedVisibilityNote": "Tin đã lưu trữ không hiển thị trên marketplace hoặc trong mục nổi bật, kể cả khi promotion còn hạn.",
+    "bannerSubmitting": "Đang tạo…",
+    "bannerFailed": "Không thể tạo banner.",
+    "propertyNotActive": "Bất động sản phải ở trạng thái đang hoạt động trước khi xuất bản Listing.",
     "loadFailed": "Không thể tải tin đăng.",
     "createFailed": "Không thể tạo tin đăng.",
+    "actionFailed": "Không thể hoàn tất thao tác với tin đăng.",
     "empty": "Chưa có tin đăng nào. Hãy tạo tin nháp từ một bất động sản.",
     "draftNote": "Tin đăng được tạo dưới dạng bản nháp. Việc xuất bản sẽ được thực hiện rõ ràng sau khi rà soát.",
     "noProperties": "Provider này chưa có bất động sản. Hãy tạo bất động sản trước.",
     "noEligibleProperties": "Mọi bất động sản của Provider này đều đã có tin đăng. Hãy tạo bất động sản khác trước.",
     "fields": {
       "property": "Bất động sản",
-      "propertyPlaceholder": "Chọn bất động sản"
+      "propertyPlaceholder": "Chọn bất động sản",
+      "promotionId": "Mã promotion",
+      "promotionIdPlaceholder": "Dán mã promotion",
+      "durationDays": "Số ngày quảng bá"
     },
     "status": {
       "DRAFT": "Bản nháp",
       "PUBLISHED": "Đã xuất bản",
       "ARCHIVED": "Đã lưu trữ"
-    }
+    },
+    "startsImmediately": "Bắt đầu: Ngay sau khi tạo.",
+    "invalidDuration": "Nhập số ngày là số nguyên dương, tối thiểu 1 ngày.",
+    "durationOption": "{days} ngày"
   },
   "labels": {
     "provider": "Provider",
@@ -132,8 +181,32 @@
     "noAccount": "Chưa có Provider account."
   },
   "overview": {
+    "dashboardTitle": "Quản lý tin đăng & bất động sản",
+    "dashboardDescription": "Tạo và quản lý tin đăng cùng bất động sản của bạn trên Marketplace.",
+    "totalListings": "Tổng tin đăng",
+    "activeListings": "Đang hoạt động",
+    "draftListings": "Bản nháp",
+    "totalProperties": "Tổng bất động sản",
+    "recentListings": "Tin đăng gần đây",
+    "allListings": "Tất cả ({count})",
+    "searchListings": "Tìm tin đăng, địa chỉ...",
+    "draftWork": "{count} tin đăng bản nháp để xem lại",
+    "action": "Thao tác",
     "title": "Tổng quan Provider",
-    "description": "Trạng thái vận hành của Provider đang chọn.",
+    "description": "Quản lý bất động sản, tin đăng và hoạt động kinh doanh của bạn tại một nơi.",
+    "workspace": "Không gian làm việc Provider",
+    "inventory": "Tổng quan nguồn cung",
+    "propertyDrafts": "{count} bản nháp cần hoàn thiện",
+    "manageListings": "Quản lý tất cả tin đăng",
+    "published": "Tin đã xuất bản",
+    "viewPublished": "Quản lý tin đăng",
+    "recentProperties": "Bất động sản gần đây",
+    "recentDescription": "Các bất động sản vừa được cập nhật",
+    "viewAll": "Xem tất cả",
+    "quickActions": "Truy cập nhanh",
+    "quickActionsDescription": "Đến ngay khu vực bạn cần quản lý.",
+    "nextStep": "Bước tiếp theo",
+    "retry": "Thử lại",
     "business": "Doanh nghiệp",
     "membershipAccess": "Membership và quyền truy cập",
     "platformState": "Trạng thái nền tảng",
@@ -163,5 +236,72 @@
   "account": {
     "providerId": "Mã Provider",
     "created": "Ngày tạo"
+  },
+  "controls": {
+    "search": "Tìm theo tiêu đề…",
+    "status": "Trạng thái",
+    "allStatuses": "Tất cả trạng thái",
+    "refresh": "Làm mới",
+    "noResults": "Không có kết quả phù hợp."
+  },
+  "media": {
+    "title": "Media · Hình ảnh bất động sản",
+    "description": "Chọn bất động sản và tải hình ảnh lên để chuẩn bị nội dung tin đăng.",
+    "help": "Ảnh được lưu trực tiếp vào bất động sản đã chọn.",
+    "choose": "Chọn ảnh hoặc kéo thả tại đây",
+    "formats": "JPEG, PNG · Tối đa 5 MB mỗi ảnh",
+    "invalidFile": "Chỉ nhận ảnh JPEG hoặc PNG, tối đa 5 MB mỗi ảnh.",
+    "permissionDenied": "Bạn cần quyền cập nhật bất động sản để tải ảnh lên.",
+    "uploadFailed": "Tải ảnh thất bại. Những ảnh đã tải thành công vẫn được lưu; hãy thử lại các ảnh còn lại.",
+    "upload": "Tải lên {count} ảnh",
+    "uploading": "Đang tải ảnh…",
+    "remove": "Bỏ ảnh đã chọn",
+    "property": "Bất động sản",
+    "selectProperty": "Chọn bất động sản…",
+    "noProperties": "Tạo bất động sản trước khi tải ảnh lên.",
+    "sessionNote": "Hiển thị ảnh tải lên trong phiên này. Ảnh tải thành công đã được lưu trên hệ thống.",
+    "status": {
+      "ready": "Sẵn sàng tải lên",
+      "uploading": "Đang tải…",
+      "uploaded": "Đã lưu",
+      "failed": "Chưa tải được · Có thể thử lại"
+    }
+  },
+  "listingDetail": {
+    "title": "Chi tiết tin đăng",
+    "description": "Thông tin xuất bản và bất động sản liên kết.",
+    "back": "Quay lại tin đăng",
+    "overview": "Thông tin tin đăng",
+    "listingId": "Mã tin đăng",
+    "estateId": "Mã bất động sản",
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Cập nhật",
+    "publishedAt": "Ngày xuất bản",
+    "linkedEstate": "Bất động sản được đăng",
+    "editEstate": "Chỉnh sửa bất động sản",
+    "manageMedia": "Quản lý hình ảnh",
+    "gallery": "Hình ảnh bất động sản",
+    "floors": "Số tầng",
+    "notFound": "Tin đăng này không khả dụng trong workspace Provider của bạn.",
+    "estateLoading": "Đang tải bất động sản liên kết…",
+    "estateMissing": "Bất động sản liên kết với tin đăng này không còn khả dụng.",
+    "estatePermissionDenied": "Bạn cần quyền xem bất động sản để đọc thông tin bất động sản liên kết.",
+    "privateMediaUnavailable": "Bộ ảnh hiện chưa khả dụng cho bất động sản nháp hoặc đã lưu trữ.",
+    "view": "Xem chi tiết",
+    "archiveConfirmTitle": "Tạm dừng tin đăng này?",
+    "archiveConfirmBody": "Tin đăng sẽ được lưu trữ và không còn hiển thị trên Marketplace.",
+    "detailLabel": "Chi tiết tin đăng",
+    "sidebarInfo": "Thông tin tin đăng",
+    "links": "Liên kết",
+    "viewEstate": "Xem bất động sản trong Provider",
+    "viewMarketplace": "Xem trên Marketplace",
+    "coordinates": "Tọa độ",
+    "estateStatus": "Trạng thái bất động sản",
+    "noDescription": "Bất động sản này chưa có mô tả.",
+    "sections": {
+      "details": "Thông tin chi tiết",
+      "description": "Mô tả",
+      "location": "Vị trí"
+    }
   }
 }

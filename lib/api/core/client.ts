@@ -4,6 +4,7 @@ import {
   normalizeLocale,
   type Locale,
 } from '@/lib/constants';
+import { getApiBaseUrl } from './base-url';
 import { ApiError, createApiError, isRecord } from './error';
 import { coordinateRefresh } from './refresh-coordinator';
 import {
@@ -22,7 +23,6 @@ export interface ApiClientOptions {
   timeoutMs?: number;
   credentials?: RequestCredentials;
 }
-const DEFAULT_API_URL = 'http://localhost:50001/api/v1';
 const DEFAULT_TIMEOUT_MS = 15_000;
 const tokenMemory = new Map<string, string | null>();
 export function setRealmAccessToken(realm: Realm, token: string | null) {
@@ -67,6 +67,9 @@ export class ApiClient {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   }
+  upload<T>(path: string, body: FormData) {
+    return this.request<T>(path, { method: 'POST', body });
+  }
   patch<T, B = unknown>(path: string, body?: B, init?: RequestInit) {
     return this.request<T>(path, {
       ...init,
@@ -92,7 +95,11 @@ export class ApiClient {
     const headers = new Headers(init.headers);
     if (!headers.has('Accept')) headers.set('Accept', 'application/json');
     if (!headers.has('x-lang')) headers.set('x-lang', getLocale());
-    if (init.body !== undefined && !headers.has('Content-Type'))
+    if (
+      init.body !== undefined &&
+      !(init.body instanceof FormData) &&
+      !headers.has('Content-Type')
+    )
       headers.set('Content-Type', 'application/json');
     const token = this.config.getAccessToken?.();
     if (token && !headers.has('Authorization'))
@@ -106,15 +113,12 @@ export class ApiClient {
       this.options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     );
     try {
-      const response = await fetch(
-        `${(process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL).replace(/\/$/, '')}${path}`,
-        {
-          ...init,
-          headers,
-          credentials: this.options.credentials ?? 'same-origin',
-          signal: init.signal ?? controller.signal,
-        },
-      );
+      const response = await fetch(`${getApiBaseUrl()}${path}`, {
+        ...init,
+        headers,
+        credentials: this.options.credentials ?? 'same-origin',
+        signal: init.signal ?? controller.signal,
+      });
       const requestId = response.headers.get('x-request-id') ?? undefined;
       const text = await response.text();
       let payload: unknown;

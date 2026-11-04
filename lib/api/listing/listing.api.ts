@@ -1,12 +1,16 @@
 import { publicApiClient, providerApiClient } from '../client';
 import type {
   CreateListingInput,
+  ListingEligibleProperty,
   Listing,
   ListingPageResponse,
   ListingQuery,
 } from './listing.types';
 
 export const listingApi = {
+  promoted() {
+    return publicApiClient.get<Listing[]>('/listings/promoted');
+  },
   list(query: ListingQuery = {}) {
     const params = new URLSearchParams();
     Object.entries(query).forEach(([key, value]) => {
@@ -27,8 +31,18 @@ export const listingApi = {
     return providerApiClient.post<Listing>('/listings', data);
   },
 
+  eligibleProperties() {
+    return providerApiClient.get<ListingEligibleProperty[]>(
+      '/listings/eligible-properties',
+    );
+  },
+
   publish(id: string) {
     return providerApiClient.post<Listing>(`/listings/${id}/publish`);
+  },
+
+  archive(id: string) {
+    return providerApiClient.post<Listing>(`/listings/${id}/archive`);
   },
 
   mine() {

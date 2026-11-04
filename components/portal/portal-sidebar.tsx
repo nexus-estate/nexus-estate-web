@@ -2,7 +2,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import {
+  MarketplaceIcon,
+  type MarketplaceIconName,
+} from '@/components/customer/marketplace-icon';
 import { LanguageSwitcher } from './language-switcher';
+import { NexusBrand } from './nexus-brand';
 import {
   getActiveNavigationHref,
   type NavigationMatch,
@@ -11,9 +16,11 @@ import {
 export interface PortalNavItem {
   label: string;
   href: string;
+  icon?: MarketplaceIconName;
   requiredPermission?: string;
   section?: string;
   match?: NavigationMatch;
+  children?: Array<{ label: string; href: string }>;
 }
 
 export function PortalSidebar({
@@ -23,6 +30,7 @@ export function PortalSidebar({
   onClose,
   identity,
   footer,
+  appearance = 'default',
 }: {
   platform: string;
   items: PortalNavItem[];
@@ -30,10 +38,14 @@ export function PortalSidebar({
   onClose: () => void;
   identity?: React.ReactNode;
   footer?: React.ReactNode;
+  appearance?: 'default' | 'administration';
 }) {
   const pathname = usePathname();
   const t = useTranslations('common');
-  const activeHref = getActiveNavigationHref(pathname, items);
+  const activeHref = getActiveNavigationHref(pathname, [
+    ...items,
+    ...items.flatMap((item) => item.children ?? []),
+  ]);
 
   return (
     <>
@@ -46,26 +58,38 @@ export function PortalSidebar({
         className={`fixed inset-0 z-30 bg-[var(--overlay)] transition-opacity lg:hidden ${open ? 'block' : 'hidden'}`}
       />
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-[var(--portal-sidebar-width)] border-r border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-xs)] transition-transform duration-200 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed inset-y-0 left-0 z-40 w-[var(--portal-sidebar-width)] border-r shadow-[var(--shadow-xs)] transition-transform duration-200 lg:translate-x-0 ${appearance === 'administration' ? 'border-white/10 bg-[#052e27] text-white' : 'border-[var(--border)] bg-[var(--surface)]'} ${open ? 'translate-x-0' : '-translate-x-full'}`}
         aria-label={t('navigation.portal')}
       >
-        <div className="flex h-full flex-col px-3 py-4">
-          <div className="border-b border-[var(--border-muted)] px-3 pb-5">
-            <div className="text-base font-semibold tracking-tight text-[var(--text)]">
-              Nexus Estate
-            </div>
-            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">
-              {t('navigation.portalLabel', { platform })}
-            </div>
+        <div className="flex h-full flex-col overflow-y-auto px-3 py-4">
+          <div
+            className={`border-b px-3 pb-5 ${appearance === 'administration' ? 'border-white/10' : 'border-[var(--border-muted)]'}`}
+          >
+            <NexusBrand
+              dark={appearance === 'administration'}
+              providerPortal={platform.toLowerCase() === 'provider'}
+            />
+            {platform.toLowerCase() !== 'provider' && (
+              <div
+                className={`mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] ${appearance === 'administration' ? 'text-[#d6c493]' : 'text-[var(--text-subtle)]'}`}
+              >
+                {t('navigation.portalLabel', { platform })}
+              </div>
+            )}
             {identity && <div className="mt-4">{identity}</div>}
           </div>
 
           <nav
-            className="mt-4 space-y-0.5"
+            className="mt-4 space-y-1"
             aria-label={t('navigation.platformNavigation', { platform })}
           >
             {items.map((item, index) => {
-              const active = activeHref === item.href;
+              const active =
+                activeHref === item.href ||
+                (item.match === 'prefix' &&
+                  pathname.startsWith(`${item.href}/`)) ||
+                item.children?.some((child) => activeHref === child.href) ===
+                  true;
               const showSection =
                 item.section &&
                 (index === 0 || items[index - 1]?.section !== item.section);
@@ -73,7 +97,9 @@ export function PortalSidebar({
               return (
                 <div key={item.href}>
                   {showSection && (
-                    <div className="px-3 pb-1 pt-4 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">
+                    <div
+                      className={`px-3 pb-1 pt-5 text-[10px] font-semibold uppercase tracking-[0.14em] ${appearance === 'administration' ? 'text-white/40' : 'text-[var(--text-subtle)]'}`}
+                    >
                       {item.section}
                     </div>
                   )}
@@ -81,8 +107,25 @@ export function PortalSidebar({
                     onClick={onClose}
                     href={item.href}
                     aria-current={active ? 'page' : undefined}
-                    className={`relative block rounded-[var(--radius-md)] px-3 py-2 text-sm transition-colors ${active ? 'bg-[var(--surface-selected)] font-semibold text-[var(--primary)]' : 'text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]'}`}
+                    className={`relative flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-sm transition-colors ${appearance === 'administration' ? (active ? 'bg-white/10 font-semibold text-white' : 'text-white/65 hover:bg-white/[0.07] hover:text-white') : active ? 'bg-[var(--surface-selected)] font-semibold text-[var(--primary)]' : 'text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]'}`}
                   >
+                    {appearance === 'administration' && (
+                      <span
+                        aria-hidden="true"
+                        className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${active ? 'bg-[#d9bb78] text-[#163735]' : 'bg-white/[0.07] text-white/70'}`}
+                      >
+                        {item.icon ? (
+                          <MarketplaceIcon
+                            name={item.icon}
+                            className="h-4 w-4"
+                          />
+                        ) : (
+                          <span className="text-xs font-bold">
+                            {item.label.slice(0, 1)}
+                          </span>
+                        )}
+                      </span>
+                    )}
                     {active && (
                       <span
                         aria-hidden="true"
@@ -91,18 +134,39 @@ export function PortalSidebar({
                     )}
                     {item.label}
                   </Link>
+                  {item.children && active && (
+                    <div className="ml-10 mt-1 space-y-1 border-l border-white/15 pl-3">
+                      {item.children.map((child) => (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          onClick={onClose}
+                          aria-current={
+                            activeHref === child.href ? 'page' : undefined
+                          }
+                          className={`block rounded px-2 py-2 text-xs ${activeHref === child.href ? 'font-semibold text-white' : 'text-white/65 hover:text-white'}`}
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </nav>
 
-          <div className="mt-auto border-t border-[var(--border-muted)] pt-4">
+          <div
+            className={`mt-auto border-t pt-4 ${appearance === 'administration' ? 'border-white/10' : 'border-[var(--border-muted)]'}`}
+          >
             {footer}
-            <div className="px-3 text-xs text-[var(--text-muted)]">
+            <div
+              className={`px-3 text-xs ${appearance === 'administration' ? 'text-white/45' : 'text-[var(--text-muted)]'}`}
+            >
               <span className="sr-only">{t('navigation.portal')}</span>
               {t('status.signedInWorkspace')}
             </div>
-            <LanguageSwitcher />
+            <LanguageSwitcher dark={appearance === 'administration'} />
           </div>
         </div>
       </aside>

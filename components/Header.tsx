@@ -1,92 +1,103 @@
 'use client';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { MarketplaceIcon } from '@/components/customer/marketplace-icon';
 import { LanguageSwitcher } from '@/components/portal/language-switcher';
+import { NexusBrand } from '@/components/portal/nexus-brand';
 import { useAuth } from '@/hooks/use-auth';
 import { getProviderUrl } from '@/lib/platform/urls';
 
 export default function Header() {
   const t = useTranslations('customer.nav');
+  const customerT = useTranslations('customer');
   const { user, status, logout } = useAuth();
   const pathname = usePathname();
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const nav = [
-    { label: t('home'), href: '/' },
-    { label: t('properties'), href: '/properties' },
-    { label: t('account'), href: '/profile' },
-    { label: t('provider'), href: getProviderUrl('/provider') },
-  ];
   const signedIn = status === 'authenticated' && user;
-
+  const nav = [
+    { label: t('buy'), href: '/properties?purpose=SALE' },
+    { label: t('rent'), href: '/properties?purpose=RENT' },
+    { label: t('properties'), href: '/properties' },
+    { label: t('providers'), href: getProviderUrl('/provider') },
+  ];
+  const links = nav.map(({ label, href }) =>
+    href.startsWith('http') ? (
+      <a key={href} href={href} onClick={() => setMobileOpen(false)}>
+        {label}
+      </a>
+    ) : (
+      <Link key={href} href={href} onClick={() => setMobileOpen(false)}>
+        {label}
+      </Link>
+    ),
+  );
   return (
-    <header className="sticky inset-x-0 top-0 z-50 border-b border-white/10 bg-[var(--brand-strong)]/96 text-[var(--text-on-dark)] shadow-[var(--shadow-xs)] backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-[var(--content-max)] items-center justify-between px-5 sm:px-8 lg:px-10">
-        <Link
-          href="/"
-          className="font-display text-xl tracking-wide"
-          aria-label={t('brand')}
-        >
-          NEXUS
+    <header
+      className="mp-header"
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          setAccountOpen(false);
+          setMobileOpen(false);
+        }
+      }}
+    >
+      <div className="mp-container mp-header-inner">
+        <Link href="/" aria-label={t('brand')} className="mp-brand">
+          <NexusBrand marketplace />
         </Link>
-        <nav
-          className="hidden items-center gap-7 lg:flex"
-          aria-label={t('navigation')}
-        >
-          {nav.map(({ label, href }) =>
-            href.startsWith('http') ? (
-              <a
-                key={href}
-                href={href}
-                className="text-sm text-white/75 transition-colors hover:text-white"
-                aria-current={pathname === href ? 'page' : undefined}
-              >
-                {label}
-              </a>
-            ) : (
-              <Link
-                key={href}
-                href={href}
-                className="text-sm text-white/75 transition-colors hover:text-white"
-                aria-current={pathname === href ? 'page' : undefined}
-              >
-                {label}
-              </Link>
-            ),
-          )}
+        <nav className="mp-desktop-nav" aria-label={t('navigation')}>
+          {links}
         </nav>
-        <div className="flex items-center gap-3">
-          <div className="hidden w-28 sm:block [&_button]:border-white/15 [&_button]:bg-white/5 [&_button]:text-white/75 [&_button:hover]:bg-white/10 [&_button:hover]:text-white">
+        {pathname.startsWith('/properties/') && (
+          <form action="/properties" className="mp-header-search">
+            <label className="sr-only" htmlFor="header-search">
+              {customerT('properties.search')}
+            </label>
+            <input
+              id="header-search"
+              name="q"
+              type="search"
+              placeholder={customerT('home.marketplaceSearchPlaceholder')}
+            />
+            <button type="submit" aria-label={customerT('properties.search')}>
+              <MarketplaceIcon name="search" />
+            </button>
+          </form>
+        )}
+        <div className="mp-header-actions">
+          <div className="mp-header-language">
             <LanguageSwitcher />
           </div>
           {signedIn ? (
-            <div className="relative">
+            <div
+              className="relative"
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget))
+                  setAccountOpen(false);
+              }}
+            >
               <button
-                type="button"
+                className="mp-account-button"
                 onClick={() => setAccountOpen(!accountOpen)}
                 aria-expanded={accountOpen}
-                className="rounded-[var(--radius-md)] border border-white/20 bg-white/5 px-3 py-2 text-sm font-medium transition-colors hover:bg-white/10"
+                aria-controls="marketplace-account"
               >
                 {user.email}
               </button>
               {accountOpen && (
-                <div className="absolute right-0 mt-2 w-52 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] py-1 text-[var(--text)] shadow-[var(--shadow-md)]">
-                  <Link
-                    className="block px-3 py-2 text-sm transition-colors hover:bg-[var(--surface-hover)]"
-                    href="/profile"
-                  >
+                <div id="marketplace-account" className="mp-account-menu">
+                  <Link href="/profile" onClick={() => setAccountOpen(false)}>
                     {t('account')}
                   </Link>
-                  <a
-                    className="block px-3 py-2 text-sm transition-colors hover:bg-[var(--surface-hover)]"
-                    href={getProviderUrl('/provider')}
-                  >
-                    {t('provider')}
+                  <a href={getProviderUrl('/provider')}>{t('provider')}</a>
+                  <a href={getProviderUrl('/provider/properties/new')}>
+                    {t('postEstate')}
                   </a>
                   <button
-                    className="w-full border-t border-[var(--border-muted)] px-3 py-2 text-left text-sm font-medium text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)]"
                     onClick={() => {
                       void logout();
                       setAccountOpen(false);
@@ -98,82 +109,51 @@ export default function Header() {
               )}
             </div>
           ) : (
-            <div className="hidden gap-2 sm:flex">
-              <Link
-                href="/signin"
-                className="rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
-              >
-                {t('signIn')}
-              </Link>
-              <Link
-                href="/signup"
-                className="rounded-[var(--radius-md)] border border-[var(--brand-accent)] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--brand-accent)] hover:text-[var(--brand-strong)]"
-              >
+            <div className="mp-auth">
+              <Link href="/signin">{t('signIn')}</Link>
+              <Link href="/signup" className="mp-button">
                 {t('signUp')}
               </Link>
             </div>
           )}
           <button
-            type="button"
-            className="rounded-[var(--radius-md)] p-2 transition-colors hover:bg-white/10 lg:hidden"
+            className="mp-menu-toggle"
             aria-label={mobileOpen ? t('closeMenu') : t('openMenu')}
             aria-expanded={mobileOpen}
+            aria-controls="marketplace-mobile-nav"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-              <path
-                d="M4 6h16M4 12h16M4 18h16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
+            <MarketplaceIcon name={mobileOpen ? 'close' : 'menu'} />
           </button>
         </div>
       </div>
       {mobileOpen && (
         <nav
-          className="border-t border-white/10 bg-[var(--brand-strong)] px-5 py-4 shadow-[var(--shadow-md)] lg:hidden"
+          id="marketplace-mobile-nav"
+          className="mp-mobile-nav mp-container"
           aria-label={t('navigation')}
         >
-          {nav.map(({ label, href }) =>
-            href.startsWith('http') ? (
-              <a
-                key={href}
-                href={href}
-                onClick={() => setMobileOpen(false)}
-                className="block border-b border-white/10 py-3 text-sm text-white/80 transition-colors hover:text-white"
-              >
-                {label}
-              </a>
-            ) : (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setMobileOpen(false)}
-                className="block border-b border-white/10 py-3 text-sm text-white/80 transition-colors hover:text-white"
-              >
-                {label}
-              </Link>
-            ),
-          )}
+          {links}
+          <a href={getProviderUrl('/provider/properties/new')}>
+            {t('postEstate')}
+          </a>
           {signedIn ? (
-            <button
-              className="py-3 text-left text-sm text-white/80"
-              onClick={() => {
-                void logout();
-                setMobileOpen(false);
-              }}
-            >
-              {t('signOut')}
-            </button>
+            <Link href="/profile" onClick={() => setMobileOpen(false)}>
+              {t('account')}
+            </Link>
           ) : (
-            <div className="flex gap-4 py-3 text-sm">
-              <Link href="/signin">{t('signIn')}</Link>
-              <Link href="/signup">{t('signUp')}</Link>
+            <div className="flex gap-5">
+              <Link href="/signin" onClick={() => setMobileOpen(false)}>
+                {t('signIn')}
+              </Link>
+              <Link href="/signup" onClick={() => setMobileOpen(false)}>
+                {t('signUp')}
+              </Link>
             </div>
           )}
+          <div className="w-32 py-3">
+            <LanguageSwitcher />
+          </div>
         </nav>
       )}
     </header>

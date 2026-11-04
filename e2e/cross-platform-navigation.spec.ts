@@ -5,8 +5,10 @@ test.skip(
   'Cross-platform navigation runs with all three local runtimes.',
 );
 
-const marketplaceUrl = 'http://localhost:3000';
-const providerUrl = 'http://localhost:3001';
+const marketplaceUrl =
+  process.env.NEXT_PUBLIC_MARKETPLACE_URL ?? 'http://localhost:3000';
+const providerUrl =
+  process.env.NEXT_PUBLIC_PROVIDER_URL ?? 'http://localhost:3003';
 
 async function mockCustomerSession(page: Page) {
   await page.route('**/api/v1/**', async (route) => {

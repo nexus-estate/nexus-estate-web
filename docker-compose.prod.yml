@@ -1,0 +1,58 @@
+name: nexus-estate
+
+x-web-runtime: &web-runtime
+  image: nexus-estate-web:local
+  init: true
+  restart: unless-stopped
+  healthcheck:
+    test:
+      - CMD
+      - node
+      - -e
+      - >-
+        require('http').get('http://127.0.0.1:3000/api/healthz', (response) =>
+        process.exit(response.statusCode < 500 ? 0 : 1)).on('error', () =>
+        process.exit(1))
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 20s
+
+services:
+  marketplace:
+    <<: *web-runtime
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
+        NEXT_PUBLIC_MARKETPLACE_URL: ${NEXT_PUBLIC_MARKETPLACE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_PROVIDER_URL: ${NEXT_PUBLIC_PROVIDER_URL:-http://localhost:3003}
+        NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3002}
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: '1'
+      WEB_PLATFORM: marketplace
+
+  provider:
+    <<: *web-runtime
+    pull_policy: never
+    ports:
+      - '3003:3000'
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: '1'
+      WEB_PLATFORM: provider
+
+  admin:
+    <<: *web-runtime
+    pull_policy: never
+    ports:
+      - '3002:3000'
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: '1'
+      WEB_PLATFORM: admin

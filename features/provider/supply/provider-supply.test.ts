@@ -33,12 +33,15 @@ describe('provider supply routes', () => {
     );
   });
 
-  it('keeps the generic provider route as fallback for supply lists', () => {
+  it('resolves listing detail routes without shadowing the create route', () => {
     expect(getPortalRouteMetadata('/provider/properties')?.match).toBe(
       'prefix',
     );
     expect(getPortalRouteMetadata('/provider/listings/extra')?.labelKey).toBe(
-      'navigation.providerListings',
+      'navigation.providerListingDetail',
+    );
+    expect(getPortalRouteMetadata('/provider/listings/new')?.labelKey).toBe(
+      'navigation.providerListingNew',
     );
   });
 });
@@ -87,6 +90,7 @@ describe('estate wire contract (API #37)', () => {
   const estate = {
     id: 'estate-1',
     providerId: 'provider-1',
+    status: 'DRAFT' as const,
     title: 'Contract estate',
     description: null,
     type: 'APARTMENT' as const,

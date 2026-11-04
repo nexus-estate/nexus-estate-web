@@ -29,6 +29,7 @@
     "providerProperties": "Properties",
     "providerPropertyNew": "New Property",
     "providerListings": "Listings",
+    "providerListingDetail": "Listing detail",
     "providerListingNew": "New Listing",
     "admin": "Administration overview",
     "providerReview": "Provider review",
@@ -39,14 +40,18 @@
     "matrix": "Permission matrix",
     "subjects": "Authorization subjects",
     "subject": "Subject details",
-    "audit": "Authorization audit"
+    "audit": "Authorization audit",
+    "providerMedia": "Media"
   },
   "pagination": {
     "previous": "Previous",
     "next": "Next",
     "pageOf": "Page {current} of {total}"
   },
-  "language": { "vietnamese": "Tiếng Việt", "english": "English" },
+  "language": {
+    "vietnamese": "Tiếng Việt",
+    "english": "English"
+  },
   "errors": {
     "unexpected": "Something went wrong. Please try again.",
     "requestId": "Request ID: {requestId}",

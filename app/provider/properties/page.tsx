@@ -1,10 +1,19 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 
+import { CollectionToolbar } from '@/components/portal/collection-toolbar';
 import { PageHeader } from '@/components/portal/page-header';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
-import { useProviderProperties } from '@/features/provider/supply/provider-supply.queries';
+import {
+  useActivateProviderProperty,
+  useArchiveProviderProperty,
+  useProviderProperties,
+  useRestoreProviderProperty,
+} from '@/features/provider/supply/provider-supply.queries';
+import { ApiError } from '@/lib/api/core/error';
 import type { Estate } from '@/lib/api/estate/estate.types';
 
 function formatPrice(value: number, locale: string) {
@@ -18,14 +27,72 @@ function formatPrice(value: number, locale: string) {
 export default function ProviderPropertiesPage() {
   const locale = useLocale();
   const t = useTranslations('provider');
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const workspace = useProviderAuthorization();
   const properties = useProviderProperties(
-    workspace.state === 'ACTIVE_VERIFIED',
+    workspace.hasProviderPermission('property:read'),
   );
+  const activateProperty = useActivateProviderProperty();
+  const archiveProperty = useArchiveProviderProperty();
+  const restoreProperty = useRestoreProviderProperty();
 
-  const canCreate = workspace.canMutate;
+  const canCreate = workspace.hasProviderPermission('property:create');
+  const canRead = workspace.hasProviderPermission('property:read');
+  const canUpdate = workspace.hasProviderPermission('property:update');
+  const canArchive = workspace.hasProviderPermission('property:archive');
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
+  const [lifecycleError, setLifecycleError] = useState<unknown>(null);
+
+  const pendingActionFor = (propertyId: string) => {
+    if (activateProperty.isPending && activateProperty.variables === propertyId)
+      return 'activate';
+    if (archiveProperty.isPending && archiveProperty.variables === propertyId)
+      return 'archive';
+    if (restoreProperty.isPending && restoreProperty.variables === propertyId)
+      return 'restore';
+    return null;
+  };
+
+  const runLifecycle = (
+    action: 'activate' | 'archive' | 'restore',
+    propertyId: string,
+  ) => {
+    setLifecycleError(null);
+    const options = {
+      onSuccess: () => setLifecycleError(null),
+      onError: (error: unknown) => setLifecycleError(error),
+    };
+    if (action === 'activate') activateProperty.mutate(propertyId, options);
+    if (action === 'archive') archiveProperty.mutate(propertyId, options);
+    if (action === 'restore') restoreProperty.mutate(propertyId, options);
+  };
+
+  const lifecycleErrorMessage =
+    lifecycleError instanceof ApiError && lifecycleError.status === 403
+      ? t('permissionDenied')
+      : lifecycleError instanceof ApiError &&
+          lifecycleError.code === 'PROPERTY_ACTIVATION_INCOMPLETE'
+        ? t('properties.activationIncomplete')
+        : lifecycleError instanceof ApiError &&
+            lifecycleError.code === 'PROPERTY_PUBLISHED_LISTING_CONFLICT'
+          ? t('properties.publishedListingConflict')
+          : lifecycleError instanceof ApiError &&
+              lifecycleError.code === 'PROPERTY_INVALID_STATUS_TRANSITION'
+            ? t('properties.invalidStatusTransition')
+            : lifecycleError instanceof ApiError &&
+                lifecycleError.code === 'LISTING_PROPERTY_NOT_ACTIVE'
+              ? t('properties.listingPropertyNotActive')
+              : t('properties.lifecycleFailed');
+
+  const filtered = (properties.data ?? []).filter(
+    (item) =>
+      (!statusFilter || item.status === statusFilter) &&
+      item.title
+        .toLocaleLowerCase(locale)
+        .includes(query.trim().toLocaleLowerCase(locale)),
+  );
 
   return (
     <>
@@ -36,7 +103,8 @@ export default function ProviderPropertiesPage() {
           <Link
             href="/provider/properties/new"
             aria-disabled={!canCreate}
-            className={`inline-flex bg-[var(--primary)] px-4 py-2 text-sm text-white ${
+            tabIndex={canCreate ? undefined : -1}
+            className={`provider-button provider-button-primary ${
               canCreate ? 'hover:opacity-90' : 'pointer-events-none opacity-50'
             }`}
           >
@@ -44,40 +112,151 @@ export default function ProviderPropertiesPage() {
           </Link>
         }
       />
+      {canRead && (
+        <CollectionToolbar
+          query={query}
+          onQuery={setQuery}
+          status={statusFilter}
+          onStatus={setStatusFilter}
+          statuses={['DRAFT', 'ACTIVE', 'ARCHIVED'].map((value) => ({
+            value,
+            label: t(`properties.status.${value}`),
+          }))}
+          onRefresh={() => void properties.refetch()}
+          refreshing={properties.isFetching}
+        />
+      )}
       {workspace.state === 'LOADING' ? (
         <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
       ) : blockedByLifecycle ? (
         <p className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
+      ) : !canRead ? (
+        <p
+          role="alert"
+          className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]"
+        >
+          {t('permissionDenied')}
+        </p>
       ) : properties.isLoading ? (
         <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
       ) : properties.isError ? (
         <p role="alert" className="text-sm text-[var(--danger)]">
-          {t('properties.loadFailed')}
+          {properties.error instanceof ApiError &&
+          properties.error.status === 403
+            ? t('permissionDenied')
+            : t('properties.loadFailed')}
         </p>
-      ) : (properties.data?.length ?? 0) === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center text-sm text-[var(--text-muted)]">
-          {t('properties.empty')}
+          {query || statusFilter
+            ? t('controls.noResults')
+            : t('properties.empty')}
         </div>
       ) : (
         <ul className="divide-y divide-[var(--border-muted)] border border-[var(--border)] bg-[var(--surface)]">
-          {(properties.data ?? []).map((estate: Estate) => (
+          {filtered.map((estate: Estate) => (
             <li
               key={estate.id}
               className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
             >
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium">
-                  {estate.title}
-                </div>
-                <div className="mt-0.5 text-xs text-[var(--text-muted)]">
-                  {formatPrice(estate.price, locale)} · {estate.province.name}
-                </div>
-              </div>
+              {(() => {
+                const pendingAction = pendingActionFor(estate.id);
+                return (
+                  <>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="truncate text-sm font-medium">
+                          {estate.title}
+                        </div>
+                        <StatusBadge
+                          status={estate.status}
+                          label={t(`properties.status.${estate.status}`)}
+                          size="sm"
+                        />
+                      </div>
+                      <div className="mt-0.5 text-xs text-[var(--text-muted)]">
+                        {formatPrice(estate.price, locale)} ·{' '}
+                        {estate.province.name}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {canUpdate && estate.status !== 'ARCHIVED' && (
+                        <Link
+                          className="app-button app-button-secondary"
+                          href={`/provider/media?estateId=${estate.id}`}
+                        >
+                          {t('properties.media')}
+                        </Link>
+                      )}
+                      {workspace.hasProviderPermission('listing:create') &&
+                        estate.status === 'ACTIVE' && (
+                          <Link
+                            className="app-button app-button-primary"
+                            href={`/provider/listings/new?estateId=${estate.id}`}
+                          >
+                            {t('properties.createListing')}
+                          </Link>
+                        )}
+                      {canUpdate && estate.status !== 'ARCHIVED' && (
+                        <Link
+                          href={`/provider/properties/${estate.id}/edit`}
+                          className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold transition-colors hover:bg-[var(--surface-hover)]"
+                        >
+                          {t('properties.edit')}
+                        </Link>
+                      )}
+                      {estate.status === 'DRAFT' && canUpdate && (
+                        <button
+                          type="button"
+                          disabled={pendingAction !== null}
+                          onClick={() => runLifecycle('activate', estate.id)}
+                          className="rounded-lg border border-[var(--primary)] px-3 py-2 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary-soft)] disabled:opacity-50"
+                        >
+                          {pendingAction === 'activate'
+                            ? t('properties.activating')
+                            : t('properties.activate')}
+                        </button>
+                      )}
+                      {(estate.status === 'DRAFT' ||
+                        estate.status === 'ACTIVE') &&
+                        canArchive && (
+                          <button
+                            type="button"
+                            disabled={pendingAction !== null}
+                            onClick={() => runLifecycle('archive', estate.id)}
+                            className="rounded-lg border border-[var(--danger)] px-3 py-2 text-xs font-semibold text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)] disabled:opacity-50"
+                          >
+                            {pendingAction === 'archive'
+                              ? t('properties.archiving')
+                              : t('properties.archive')}
+                          </button>
+                        )}
+                      {estate.status === 'ARCHIVED' && canUpdate && (
+                        <button
+                          type="button"
+                          disabled={pendingAction !== null}
+                          onClick={() => runLifecycle('restore', estate.id)}
+                          className="rounded-lg border border-[var(--primary)] px-3 py-2 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary-soft)] disabled:opacity-50"
+                        >
+                          {pendingAction === 'restore'
+                            ? t('properties.restoring')
+                            : t('properties.restore')}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
             </li>
           ))}
         </ul>
+      )}
+      {lifecycleError && (
+        <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
+          {lifecycleErrorMessage}
+        </p>
       )}
     </>
   );

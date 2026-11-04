@@ -7,6 +7,17 @@ export type ProviderStatus = 'ACTIVE' | 'SUSPENDED';
 export type ProviderVerificationStatus =
   'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type ProviderMembershipStatus = 'ACTIVE' | 'SUSPENDED' | 'REMOVED';
+export type ProviderPermissionCode =
+  | 'provider-account:read'
+  | 'provider-account:update'
+  | 'property:read'
+  | 'property:create'
+  | 'property:update'
+  | 'property:archive'
+  | 'listing:read'
+  | 'listing:create'
+  | 'listing:publish'
+  | 'listing:archive';
 export interface ProviderAccount {
   id: string;
   type: ProviderType;

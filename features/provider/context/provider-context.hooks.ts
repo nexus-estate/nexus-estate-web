@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ApiError } from '@/lib/api/core/error';
 import { providerApi } from '@/lib/api/provider/provider.api';
+import type { ProviderPermissionCode } from '@/lib/api/provider/types';
 import { resolveProviderLifecycle } from '../provider-lifecycle';
 import { providerKeys } from '../query-keys';
 import { useProviderContext } from './provider-context.provider';
@@ -20,11 +21,12 @@ export function useProviderAuthorization() {
   });
   const permissions =
     value?.permissions.map((permission) => permission.code) ?? [];
+  const hasProviderPermission = (code: ProviderPermissionCode) =>
+    state === 'ACTIVE_VERIFIED' && permissions.includes(code);
   return {
     ...query,
     state,
-    hasProviderPermission: (code: string) =>
-      state === 'ACTIVE_VERIFIED' && permissions.includes(code),
-    canMutate: state === 'ACTIVE_VERIFIED',
+    hasProviderPermission,
+    can: hasProviderPermission,
   };
 }

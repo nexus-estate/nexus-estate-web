@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -7,13 +7,9 @@ import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/portal/page-header';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import { useCreateProviderProperty } from '@/features/provider/supply/provider-supply.queries';
-import { locationApi } from '@/lib/api/estate/estate.api';
-import type {
-  EstatePurpose,
-  EstateType,
-  Province,
-  Ward,
-} from '@/lib/api/estate/estate.types';
+import { useLocations } from '@/hooks/use-locations';
+import { ApiError } from '@/lib/api/core/error';
+import type { EstatePurpose, EstateType } from '@/lib/api/estate/estate.types';
 
 const ESTATE_TYPES: EstateType[] = [
   'APARTMENT',
@@ -59,41 +55,12 @@ export default function NewProviderPropertyPage() {
     provinceId: '',
     wardId: '',
   });
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
 
-  useEffect(() => {
-    let cancelled = false;
-    void locationApi
-      .provinces()
-      .then((data) => {
-        if (!cancelled) setProvinces(data);
-      })
-      .catch(() => {
-        if (!cancelled) setProvinces([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { provinces, wards, wardsPending } = useLocations(form.provinceId);
 
-  useEffect(() => {
-    if (!form.provinceId) return;
-    let cancelled = false;
-    void locationApi
-      .wards(form.provinceId)
-      .then((data) => {
-        if (!cancelled) setWards(data);
-      })
-      .catch(() => {
-        if (!cancelled) setWards([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [form.provinceId]);
-
-  const canMutate = workspace.canMutate && !createProperty.isPending;
+  const canSubmit =
+    workspace.hasProviderPermission('property:create') &&
+    !createProperty.isPending;
   const blockedByLifecycle =
     workspace.state !== 'LOADING' && workspace.state !== 'ACTIVE_VERIFIED';
 
@@ -109,7 +76,7 @@ export default function NewProviderPropertyPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!canMutate) return;
+    if (!canSubmit) return;
     try {
       const estate = await createProperty.mutateAsync({
         title: form.title,
@@ -155,7 +122,10 @@ export default function NewProviderPropertyPage() {
             role="alert"
             className="border border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]"
           >
-            {t('properties.createFailed')}
+            {createProperty.error instanceof ApiError &&
+            createProperty.error.status === 403
+              ? t('permissionDenied')
+              : t('properties.createFailed')}
           </p>
         )}
 
@@ -318,7 +288,7 @@ export default function NewProviderPropertyPage() {
                 required
                 value={form.wardId}
                 onChange={handleChange('wardId')}
-                disabled={!form.provinceId}
+                disabled={!form.provinceId || wardsPending}
                 className={CONTROL_CLASS}
               >
                 <option value="">
@@ -351,8 +321,8 @@ export default function NewProviderPropertyPage() {
         <div className="flex items-center gap-3">
           <button
             type="submit"
-            disabled={!canMutate}
-            className="bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+            disabled={!canSubmit}
+            className="app-button app-button-primary"
           >
             {createProperty.isPending
               ? t('properties.submitting')
@@ -360,7 +330,7 @@ export default function NewProviderPropertyPage() {
           </button>
           <Link
             href="/provider/properties"
-            className="border border-[var(--border)] px-6 py-2.5 text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
+            className="app-button app-button-secondary"
           >
             {t('properties.cancel')}
           </Link>

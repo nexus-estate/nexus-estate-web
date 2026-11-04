@@ -1,0 +1,43 @@
+import type { Property } from './sdk';
+
+export const SEED_PROPERTIES: Property[] = [
+  {
+    id: 'seed-saigon-penthouse',
+    title: 'Penthouse trung tâm Sài Gòn',
+    type: 'apartment',
+    purpose: 'sale',
+    price: 12500000000,
+    area: 180,
+    bedrooms: 3,
+    bathrooms: 3,
+    city: 'TP. Hồ Chí Minh',
+    district: 'Quận 1',
+    images: ['/images/properties/penthouse-saigon.webp'],
+  },
+  {
+    id: 'seed-dalat-villa',
+    title: 'Biệt thự nghỉ dưỡng Đà Lạt',
+    type: 'villa',
+    purpose: 'sale',
+    price: 8900000000,
+    area: 240,
+    bedrooms: 4,
+    bathrooms: 4,
+    city: 'Đà Lạt',
+    district: 'Trung tâm',
+    images: ['/images/properties/villa-dalat.webp'],
+  },
+  {
+    id: 'seed-danang-residence',
+    title: 'Residence ven biển Đà Nẵng',
+    type: 'apartment',
+    purpose: 'sale',
+    price: 5200000000,
+    area: 120,
+    bedrooms: 2,
+    bathrooms: 2,
+    city: 'Đà Nẵng',
+    district: 'Sơn Trà',
+    images: ['/images/properties/residence-danang.webp'],
+  },
+];
