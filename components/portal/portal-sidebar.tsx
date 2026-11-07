@@ -132,7 +132,7 @@ export function PortalSidebar({
                         className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[var(--primary)]"
                       />
                     )}
-                    {item.label}
+                    <span>{item.label}</span>
                   </Link>
                   {item.children && active && (
                     <div className="ml-10 mt-1 space-y-1 border-l border-white/15 pl-3">
@@ -164,7 +164,7 @@ export function PortalSidebar({
               className={`px-3 text-xs ${appearance === 'administration' ? 'text-white/45' : 'text-[var(--text-muted)]'}`}
             >
               <span className="sr-only">{t('navigation.portal')}</span>
-              {t('status.signedInWorkspace')}
+              <span>{t('status.signedInWorkspace')}</span>
             </div>
             <LanguageSwitcher dark={appearance === 'administration'} />
           </div>

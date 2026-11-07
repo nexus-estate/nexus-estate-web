@@ -5,10 +5,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { estateApi } from '@/lib/api/estate/estate.api';
-import { EstateCard } from './estate-card';
+import { listingApi } from '@/lib/api/listing/listing.api';
 import { MarketplaceIcon, type MarketplaceIconName } from './marketplace-icon';
 import { PromotedListings } from './promoted-listings';
+import { PropertyCard } from './property-card';
 import './marketplace-home.css';
 
 const needs: { key: string; icon: MarketplaceIconName; href: string }[] = [
@@ -22,13 +22,11 @@ const needs: { key: string; icon: MarketplaceIconName; href: string }[] = [
 export function MarketplaceHome() {
   const t = useTranslations('customer');
   const [purpose, setPurpose] = useState('SALE');
-  const estates = useQuery({
-    queryKey: ['marketplace', 'public-estates'],
-    queryFn: estateApi.listPublic,
+  const listings = useQuery({
+    queryKey: ['marketplace', 'listings', { sort: 'newest', limit: 8 }],
+    queryFn: () => listingApi.list({ sort: 'newest', limit: 8 }),
   });
-  const latestEstates = [...(estates.data ?? [])]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, 8);
+  const latestListings = listings.data?.items ?? [];
 
   return (
     <div className="mp-home">
@@ -81,6 +79,8 @@ export function MarketplaceHome() {
               </label>
               <button
                 type="submit"
+                // Autofill extensions may inject fdprocessedid before hydration.
+                suppressHydrationWarning
                 className="mp-button"
                 aria-label={t('home.search')}
               >
@@ -121,23 +121,23 @@ export function MarketplaceHome() {
               <MarketplaceIcon name="arrow" />
             </Link>
           </div>
-          {estates.isError ? (
+          {listings.isError ? (
             <div className="mp-empty" role="alert">
               <p>{t('home.unavailable')}</p>
               <button
                 className="app-button mt-4"
-                onClick={() => void estates.refetch()}
+                onClick={() => void listings.refetch()}
               >
                 {t('properties.retry')}
               </button>
             </div>
-          ) : latestEstates.length ? (
+          ) : latestListings.length ? (
             <div className="mp-property-grid">
-              {latestEstates.map((estate) => (
-                <EstateCard key={estate.id} estate={estate} />
+              {latestListings.map((listing) => (
+                <PropertyCard key={listing.id} listing={listing} />
               ))}
             </div>
-          ) : estates.isLoading ? (
+          ) : listings.isLoading ? (
             <div
               role="status"
               aria-label={t('home.loading')}

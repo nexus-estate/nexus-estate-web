@@ -15,18 +15,42 @@ export type ProviderEntryState =
   | 'ACTIVE'
   | 'CONTEXT_REQUIRED'
   | 'ERROR';
-export function useProviderEntryState(enabled = true) {
+export function useProviderEntryState(enabled = true, pollPending = false) {
   const context = useProviderContext();
   const providerId = context.providerId;
   const account = useQuery({
     queryKey: providerKeys.account(providerId),
     queryFn: providerApi.profile,
     enabled,
+    staleTime: pollPending ? 0 : undefined,
+    refetchInterval: (query) =>
+      pollPending && query.state.data?.verificationStatus === 'PENDING'
+        ? 10_000
+        : false,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: (query) =>
+      pollPending && query.state.data?.verificationStatus === 'PENDING'
+        ? 'always'
+        : false,
   });
   const authorization = useQuery({
     queryKey: providerKeys.authorization(providerId),
     queryFn: providerApi.authorization,
     enabled: enabled && Boolean(account.data),
+    staleTime: pollPending ? 0 : undefined,
+    refetchInterval: (query) =>
+      pollPending &&
+      account.data?.verificationStatus !== 'REJECTED' &&
+      query.state.data?.verificationStatus === 'PENDING'
+        ? 10_000
+        : false,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: (query) =>
+      pollPending &&
+      account.data?.verificationStatus !== 'REJECTED' &&
+      query.state.data?.verificationStatus === 'PENDING'
+        ? 'always'
+        : false,
   });
   const accountError = account.error instanceof ApiError ? account.error : null;
   const authorizationError =
@@ -40,7 +64,10 @@ export function useProviderEntryState(enabled = true) {
   }, [authorization.data?.providerId, context, providerId]);
   const lifecycle = resolveProviderLifecycle({
     account: account.data,
-    authorization: authorization.data,
+    authorization:
+      account.data?.verificationStatus === 'REJECTED'
+        ? undefined
+        : authorization.data,
     accountError,
     authorizationError,
     loading: account.isLoading || authorization.isLoading,

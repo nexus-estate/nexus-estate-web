@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ListingDetailView } from '@/components/provider/listing/listing-detail-view';
+import { PropertyDetail } from '@/components/provider/property/property-detail';
 import { Button } from '@/components/ui/Button';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
 import {
@@ -88,7 +88,7 @@ export default function ProviderListingDetailPage() {
               </Button>
             </div>
           ) : (
-            <ListingDetailView listing={listing.data} estate={estate.data} />
+            <PropertyDetail id={estate.data.id} listingId={id} />
           )}
         </>
       )}

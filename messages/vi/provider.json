@@ -1,5 +1,10 @@
 {
   "title": "Cổng Provider",
+  "reviewStatus": {
+    "approved": "Đã duyệt",
+    "manage": "Vào trang quản lý",
+    "syncError": "Không thể cập nhật kết quả duyệt. Hãy thử lại."
+  },
   "footer": {
     "back": "Về Marketplace",
     "signOut": "Đăng xuất"
@@ -52,15 +57,15 @@
     "media": "Media"
   },
   "properties": {
-    "title": "Bất động sản",
-    "description": "Nguồn cung thuộc sở hữu của Provider đang chọn.",
+    "title": "Bất động sản của tôi",
+    "description": "Quản lý hồ sơ, trạng thái hiển thị và quảng bá tại một nơi.",
     "new": "Bất động sản mới",
     "edit": "Chỉnh sửa",
     "editTitle": "Chỉnh sửa bất động sản",
     "editDescription": "Cập nhật bất động sản thuộc Provider.",
     "newTitle": "Tạo bất động sản",
     "newDescription": "Đăng ký bất động sản thuộc Provider này. Việc tạo tin đăng là bước riêng.",
-    "create": "Tạo bất động sản",
+    "create": "Thêm bất động sản",
     "cancel": "Hủy",
     "submitting": "Đang tạo…",
     "updating": "Đang cập nhật…",
@@ -92,8 +97,8 @@
       "description": "Mô tả",
       "province": "Tỉnh/Thành phố",
       "provincePlaceholder": "Chọn tỉnh/thành phố",
-      "ward": "Phường/Quận",
-      "wardPlaceholder": "Chọn phường/quận",
+      "ward": "Phường/Xã",
+      "wardPlaceholder": "Chọn đơn vị hành chính",
       "addressLine": "Địa chỉ"
     },
     "types": {
@@ -122,7 +127,73 @@
       "ARCHIVED": "Đã lưu trữ"
     },
     "media": "Thêm ảnh",
-    "createListing": "Tạo tin đăng"
+    "createListing": "Tạo tin đăng",
+    "editor": {
+      "breadcrumb": "Đường dẫn",
+      "new": "Tạo mới",
+      "sections": "Các nhóm thông tin",
+      "subtitle": "Hoàn thiện hồ sơ bất động sản của bạn.",
+      "basic": "Thông tin cơ bản",
+      "location": "Vị trí",
+      "images": "Hình ảnh",
+      "basicDescription": "Những thông tin chính về bất động sản.",
+      "imagesDescription": "Có thể bổ sung sau khi tạo bất động sản.",
+      "otherTypes": "Loại bất động sản khác",
+      "preview": "Xem trước hồ sơ",
+      "noImage": "Chưa có ảnh",
+      "titleEmpty": "Tên bất động sản của bạn",
+      "addressEmpty": "Địa chỉ bất động sản",
+      "priceEmpty": "Chưa nhập giá",
+      "bedroomShort": "PN",
+      "bathroomShort": "PT",
+      "profile": "Hồ sơ bất động sản",
+      "profileNote": "Sau khi tạo, bạn có thể thêm hình ảnh và tạo tin đăng.",
+      "editLater": "Thông tin có thể chỉnh sửa sau khi tạo.",
+      "ward": "Phường / Xã",
+      "wardPlaceholder": "Chọn đơn vị hành chính",
+      "labels": {
+        "title": "Tên bất động sản",
+        "type": "Loại bất động sản",
+        "price": "Giá",
+        "area": "Diện tích",
+        "bedrooms": "Phòng ngủ",
+        "bathrooms": "Phòng tắm",
+        "addressLine": "Địa chỉ cụ thể"
+      },
+      "unitType": "Loại đơn vị hành chính",
+      "unitTypes": {
+        "ward": "Phường",
+        "commune": "Xã",
+        "special_zone": "Đặc khu"
+      },
+      "addressPlaceholder": "Số nhà, tên đường, thôn/ấp…",
+      "keepUnit": "Giữ đơn vị hành chính hiện tại",
+      "updateNote": "Thay đổi được áp dụng sau khi lưu hồ sơ.",
+      "archivedImages": "Khôi phục hồ sơ để bổ sung hình ảnh."
+    },
+    "inventory": {
+      "all": "Tất cả",
+      "search": "Tìm theo tên bất động sản…",
+      "allTypes": "Loại bất động sản",
+      "manageImages": "Quản lý ảnh",
+      "imageUnavailable": "Chưa thể hiển thị ảnh",
+      "rentalPeriodUnavailable": "Chưa có thông tin kỳ hạn giá thuê",
+      "bedrooms": "{count} phòng ngủ",
+      "bathrooms": "{count} phòng tắm",
+      "more": "Thao tác khác cho {title}",
+      "count": "{count} bất động sản",
+      "showing": "Hiển thị {from}–{to} trong {total} bất động sản",
+      "pagination": "Phân trang bất động sản",
+      "previous": "Trước",
+      "next": "Tiếp",
+      "retry": "Thử lại",
+      "clear": "Xóa bộ lọc",
+      "emptyTitle": "Kho bất động sản của bạn",
+      "tryFilters": "Thử đổi từ khóa hoặc xóa bộ lọc để xem lại danh sách.",
+      "archiveTitle": "Lưu trữ bất động sản",
+      "archiveConfirm": "Bạn có muốn lưu trữ “{title}”? Bất động sản đã lưu trữ sẽ không thể tạo tin đăng mới.",
+      "eligibilityFailed": "Chưa thể kiểm tra bất động sản đủ điều kiện tạo tin đăng."
+    }
   },
   "listings": {
     "title": "Tin đăng",
@@ -303,5 +374,29 @@
       "description": "Mô tả",
       "location": "Vị trí"
     }
+  },
+  "unified": {
+    "public": "Đang công khai",
+    "private": "Chưa công khai",
+    "unknown": "Chưa xác định trạng thái",
+    "manage": "Quản lý",
+    "promotionUnknown": "Chưa có dữ liệu gói quảng bá",
+    "visibilityError": "Không tải được trạng thái Marketplace. Vui lòng thử lại.",
+    "editProfile": "Chỉnh sửa hồ sơ",
+    "information": "Thông tin bất động sản",
+    "content": "Nội dung hiển thị",
+    "editContent": "Chỉnh sửa nội dung",
+    "sharedContent": "Tiêu đề và mô tả dùng chung từ hồ sơ bất động sản cho các tin đăng.",
+    "marketplace": "Hiển thị trên Marketplace",
+    "selectListing": "Chọn tin đăng",
+    "publicHelp": "Khách hàng có thể tìm và xem tin đăng này trên Marketplace.",
+    "privateHelp": "Tin đăng này chưa hiển thị trên Marketplace.",
+    "unpublish": "Ngừng công khai",
+    "publish": "Đăng công khai",
+    "archived": "Tin đã ngừng công khai. Hiện chưa hỗ trợ đăng lại tin đã lưu trữ.",
+    "activateHelp": "Hoàn thiện tiêu đề, loại bất động sản, mục đích, giá và địa chỉ trong hồ sơ, sau đó kích hoạt hồ sơ trước khi đăng công khai.",
+    "promotion": "Quảng bá bất động sản",
+    "promotionUnavailable": "Hiện chưa thể tra cứu gói quảng bá của căn này. Thông tin gói sẽ xuất hiện khi dịch vụ hỗ trợ tra cứu.",
+    "archiveWarning": "Tin này sẽ bị lưu trữ và không còn hiển thị trên Marketplace. Hiện chưa hỗ trợ đăng lại. Các tin khác của căn vẫn giữ trạng thái riêng. Thao tác này không xác nhận tạm dừng hoặc kéo dài gói quảng bá."
   }
 }

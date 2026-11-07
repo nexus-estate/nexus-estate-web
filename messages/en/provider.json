@@ -1,5 +1,10 @@
 {
   "title": "Provider portal",
+  "reviewStatus": {
+    "approved": "Approved",
+    "manage": "Go to management",
+    "syncError": "Unable to refresh the review result. Please retry."
+  },
   "footer": {
     "back": "Back to Marketplace",
     "signOut": "Sign out"
@@ -52,15 +57,15 @@
     "media": "Media"
   },
   "properties": {
-    "title": "Properties",
-    "description": "Supply inventory owned by the selected Provider.",
+    "title": "My properties",
+    "description": "Manage property profiles, visibility and promotions in one place.",
     "new": "New Property",
     "edit": "Edit",
     "editTitle": "Edit Property",
     "editDescription": "Update a Provider-owned Property.",
     "newTitle": "Create Property",
     "newDescription": "Register a property owned by this Provider. Listing creation is a separate step.",
-    "create": "Create Property",
+    "create": "Add property",
     "cancel": "Cancel",
     "submitting": "Creating…",
     "updating": "Updating…",
@@ -92,8 +97,8 @@
       "description": "Description",
       "province": "City/Province",
       "provincePlaceholder": "Select a city or province",
-      "ward": "Ward/District",
-      "wardPlaceholder": "Select a ward or district",
+      "ward": "Ward/Commune",
+      "wardPlaceholder": "Select an administrative unit",
       "addressLine": "Street address"
     },
     "types": {
@@ -122,7 +127,73 @@
       "ARCHIVED": "Archived"
     },
     "media": "Add images",
-    "createListing": "Create listing"
+    "createListing": "Create listing",
+    "editor": {
+      "breadcrumb": "Breadcrumb",
+      "new": "Create new",
+      "sections": "Information sections",
+      "subtitle": "Complete your property profile.",
+      "basic": "Basic information",
+      "location": "Location",
+      "images": "Images",
+      "basicDescription": "The key details about your property.",
+      "imagesDescription": "Images can be added after creating the property.",
+      "otherTypes": "Other property types",
+      "preview": "Profile preview",
+      "noImage": "No image yet",
+      "titleEmpty": "Your property name",
+      "addressEmpty": "Property address",
+      "priceEmpty": "Price not entered",
+      "bedroomShort": "beds",
+      "bathroomShort": "baths",
+      "profile": "Property profile",
+      "profileNote": "After creating the property, you can add images and create a listing.",
+      "editLater": "You can edit these details after creation.",
+      "ward": "Ward / Commune",
+      "wardPlaceholder": "Select an administrative unit",
+      "labels": {
+        "title": "Property name",
+        "type": "Property type",
+        "price": "Price",
+        "area": "Area",
+        "bedrooms": "Bedrooms",
+        "bathrooms": "Bathrooms",
+        "addressLine": "Street address"
+      },
+      "unitType": "Administrative unit type",
+      "unitTypes": {
+        "ward": "Ward",
+        "commune": "Commune",
+        "special_zone": "Special zone"
+      },
+      "addressPlaceholder": "House number, street, village…",
+      "keepUnit": "Keep current administrative unit",
+      "updateNote": "Changes take effect after saving the property.",
+      "archivedImages": "Restore the property to add images."
+    },
+    "inventory": {
+      "all": "All",
+      "search": "Search by property name…",
+      "allTypes": "Property type",
+      "manageImages": "Manage images",
+      "imageUnavailable": "Image unavailable",
+      "rentalPeriodUnavailable": "Rental period not provided",
+      "bedrooms": "{count} bedrooms",
+      "bathrooms": "{count} bathrooms",
+      "more": "More actions for {title}",
+      "count": "{count} properties",
+      "showing": "Showing {from}–{to} of {total} properties",
+      "pagination": "Property pagination",
+      "previous": "Previous",
+      "next": "Next",
+      "retry": "Try again",
+      "clear": "Clear filters",
+      "emptyTitle": "Your property inventory",
+      "tryFilters": "Try another search or clear the filters to see your properties.",
+      "archiveTitle": "Archive property",
+      "archiveConfirm": "Archive “{title}”? Archived properties cannot be used to create new listings.",
+      "eligibilityFailed": "Unable to check which properties are eligible for a listing."
+    }
   },
   "listings": {
     "title": "Listings",
@@ -303,5 +374,29 @@
       "description": "Description",
       "location": "Location"
     }
+  },
+  "unified": {
+    "public": "Public",
+    "private": "Not public",
+    "unknown": "Visibility unavailable",
+    "manage": "Manage",
+    "promotionUnknown": "Promotion information unavailable",
+    "visibilityError": "Could not load Marketplace visibility. Please retry.",
+    "editProfile": "Edit property",
+    "information": "Property information",
+    "content": "Listing content",
+    "editContent": "Edit content",
+    "sharedContent": "Listings share the title and description from the property profile.",
+    "marketplace": "Marketplace visibility",
+    "selectListing": "Select listing",
+    "publicHelp": "Customers can find and view this listing on Marketplace.",
+    "privateHelp": "This listing is not visible on Marketplace.",
+    "unpublish": "Stop publishing",
+    "publish": "Publish",
+    "archived": "This listing is archived. Republishing archived listings is not supported yet.",
+    "activateHelp": "Complete the title, property type, purpose, price and address, then activate the property before publishing.",
+    "promotion": "Property promotion",
+    "promotionUnavailable": "Promotion lookup is not available for this property yet. Package information will appear when the service supports lookup.",
+    "archiveWarning": "This listing will be archived and hidden from Marketplace. Republishing is not supported yet. Other listings for this property retain their own status. This action does not confirm any pause or extension of promotions."
   }
 }

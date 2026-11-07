@@ -4,16 +4,13 @@ import { useCallback, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { EstateCard } from '@/components/customer/estate-card';
 import { MarketplaceIcon } from '@/components/customer/marketplace-icon';
+import { PropertyCard } from '@/components/customer/property-card';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useLocations } from '@/hooks/use-locations';
-import { estateApi } from '@/lib/api/estate/estate.api';
-import type {
-  Estate,
-  EstatePurpose,
-  EstateType,
-} from '@/lib/api/estate/estate.types';
+import type { EstatePurpose, EstateType } from '@/lib/api/estate/estate.types';
+import { listingApi } from '@/lib/api/listing/listing.api';
+import type { ListingQuery } from '@/lib/api/listing/listing.types';
 
 const types: EstateType[] = [
   'APARTMENT',
@@ -49,10 +46,6 @@ function PropertyResults() {
   const t = useTranslations('customer');
   const commonT = useTranslations('common');
   const searchParams = useSearchParams();
-  const estates = useQuery({
-    queryKey: ['marketplace', 'public-estates'],
-    queryFn: estateApi.listPublic,
-  });
   const [filters, setFilters] = useState<MarketplaceFilters>({
     type: (searchParams.get('type') as EstateType | null) ?? '',
     purpose: (searchParams.get('purpose') as EstatePurpose | null) ?? '',
@@ -61,35 +54,24 @@ function PropertyResults() {
     q: searchParams.get('q') ?? '',
     page: 1,
   });
-  const [sort, setSort] = useState('newest');
-  const query = filters.q.trim().toLocaleLowerCase();
-  const filtered = (estates.data ?? [])
-    .filter(
-      (estate: Estate) =>
-        (!filters.type || estate.type === filters.type) &&
-        (!filters.purpose ||
-          estate.purpose === filters.purpose ||
-          estate.purpose === 'SALE_OR_RENT') &&
-        (!filters.provinceId || estate.provinceId === filters.provinceId) &&
-        (!filters.wardId || estate.wardId === filters.wardId) &&
-        (!query ||
-          [
-            estate.title,
-            estate.description,
-            estate.addressLine,
-            estate.province.name,
-            estate.ward.name,
-          ].some((value) => value?.toLocaleLowerCase().includes(query))),
-    )
-    .sort((a, b) =>
-      sort === 'price_asc'
-        ? a.price - b.price
-        : sort === 'price_desc'
-          ? b.price - a.price
-          : b.createdAt.localeCompare(a.createdAt),
-    );
-  const total = filtered.length;
-  const properties = filtered.slice((filters.page - 1) * 12, filters.page * 12);
+  const [sort, setSort] = useState<ListingQuery['sort']>('newest');
+  const listingQuery: ListingQuery = {
+    ...filters,
+    type: filters.type || undefined,
+    purpose: filters.purpose || undefined,
+    q: filters.q.trim() || undefined,
+    provinceId: filters.provinceId || undefined,
+    wardId: filters.wardId || undefined,
+    sort,
+    limit: 12,
+  };
+  const listings = useQuery({
+    queryKey: ['marketplace', 'listings', listingQuery],
+    queryFn: () => listingApi.list(listingQuery),
+  });
+  const total = listings.data?.meta.total ?? 0;
+  const totalPages = listings.data?.meta.totalPages ?? 0;
+  const properties = listings.data?.items ?? [];
 
   const { provinces, wards, wardsPending } = useLocations(filters.provinceId);
 
@@ -252,9 +234,9 @@ function PropertyResults() {
         </div>
         <div className="mp-results-heading">
           <h2 aria-live="polite">
-            {estates.isLoading
+            {listings.isLoading
               ? commonT('status.loading')
-              : estates.isError
+              : listings.isError
                 ? t('properties.title')
                 : t('properties.results', { count: total })}
           </h2>
@@ -263,7 +245,7 @@ function PropertyResults() {
             <select
               value={sort}
               onChange={(event) => {
-                setSort(event.target.value);
+                setSort(event.target.value as ListingQuery['sort']);
                 setFilters((current) => ({ ...current, page: 1 }));
               }}
             >
@@ -275,9 +257,9 @@ function PropertyResults() {
             </select>
           </label>
         </div>
-        {estates.isLoading ? (
+        {listings.isLoading ? (
           <LoadingState label={commonT('status.loading')} />
-        ) : estates.isError ? (
+        ) : listings.isError ? (
           <div
             role="alert"
             className="mt-6 rounded-xl border border-[#e5e5dc] bg-white px-6 py-12 text-center"
@@ -287,7 +269,7 @@ function PropertyResults() {
             </p>
             <button
               type="button"
-              onClick={() => void estates.refetch()}
+              onClick={() => void listings.refetch()}
               className="mt-5 rounded-lg border border-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-[var(--brand)]"
             >
               {t('properties.retry')}
@@ -296,7 +278,7 @@ function PropertyResults() {
         ) : properties.length ? (
           <div className="mp-property-grid">
             {properties.map((property) => (
-              <EstateCard key={property.id} estate={property} />
+              <PropertyCard key={property.id} listing={property} />
             ))}
           </div>
         ) : (
@@ -316,7 +298,7 @@ function PropertyResults() {
             </button>
           </div>
         )}
-        {total > 12 && !estates.isError && (
+        {total > 12 && !listings.isError && (
           <nav
             aria-label={t('properties.pagination')}
             className="mt-8 flex items-center justify-center gap-4"
@@ -335,11 +317,11 @@ function PropertyResults() {
               {t('properties.previous')}
             </button>
             <span className="text-sm text-[#68796d]">
-              {filters.page} / {Math.ceil(total / 12)}
+              {filters.page} / {totalPages}
             </span>
             <button
               type="button"
-              disabled={filters.page >= Math.ceil(total / 12)}
+              disabled={filters.page >= totalPages}
               onClick={() =>
                 setFilters((current) => ({
                   ...current,

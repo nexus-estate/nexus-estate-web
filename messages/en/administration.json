@@ -18,8 +18,14 @@
   },
   "providerReview": {
     "title": "Provider requests",
+    "unconfirmed": "The server has not confirmed approval. Check the current status before retrying.",
+    "serverDecision": "{name} currently has status: {status}.",
+    "noLongerPending": "{name} is no longer pending. The API does not expose the final decision.",
+    "selectionGone": "The selected application is no longer pending. Select the next application.",
     "description": "Review and approve pending Provider registrations.",
     "approve": "Approve",
+    "reject": "Reject",
+    "rejectUnavailable": "The API does not support rejecting applications or rejection reasons yet.",
     "loading": "Loading requests…",
     "empty": "No pending requests.",
     "emptyDescription": "New Provider registration requests will appear here.",
@@ -40,6 +46,7 @@
     "review": "Actions",
     "viewDetails": "Details",
     "approvedToast": "Provider request approved.",
+    "approvedToastNamed": "{name} was approved.",
     "error": "Unable to load Provider request.",
     "detailTitle": "Provider request",
     "detailDescription": "Review the Customer request for Supply Platform access.",
@@ -64,7 +71,12 @@
     "confirm": "Approve Provider request? This enables the Provider business capability while keeping Customer authentication unchanged.",
     "approveDialogTitle": "Approve {name}?",
     "cancel": "Cancel",
-    "approving": "Approving…"
+    "approving": "Approving…",
+    "documents": "Submitted documents",
+    "documentsUnavailable": "The API does not return application documents yet.",
+    "processedAll": "All pending applications are processed",
+    "processedAllDescription": "The queue will update automatically when a new application arrives.",
+    "selectRequest": "Select an application from the queue to view its details."
   },
   "overview": {
     "title": "Administration",

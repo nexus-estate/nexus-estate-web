@@ -62,6 +62,9 @@ function updatePropertyQueries(
     queryKey: providerKeys.property(providerId, updated.id),
   });
   invalidateEligibleProperties(queryClient, providerId);
+  void queryClient.invalidateQueries({
+    queryKey: providerKeys.listings(providerId),
+  });
 }
 
 export function useProviderProperties(enabled = true) {

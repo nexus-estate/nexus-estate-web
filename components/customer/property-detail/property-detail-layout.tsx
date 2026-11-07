@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { estateApi } from '@/lib/api/estate/estate.api';
+import { listingApi } from '@/lib/api/listing/listing.api';
 import type { ListingEstate } from '@/lib/api/listing/listing.types';
-import { EstateCard } from '../estate-card';
 import { MarketplaceIcon } from '../marketplace-icon';
+import { PropertyCard } from '../property-card';
 import { PropertyGallery } from '../property-gallery';
 import { PropertyContactCard } from './property-contact-card';
 import { PropertyInformation, PropertySummary } from './property-information';
@@ -22,18 +22,21 @@ export function PropertyDetailLayout({
 }) {
   const t = useTranslations('customer.propertyDetail');
   const customerT = useTranslations('customer');
-  const estates = useQuery({
-    queryKey: ['marketplace', 'public-estates'],
-    queryFn: estateApi.listPublic,
+  const listings = useQuery({
+    queryKey: ['marketplace', 'similar-listings', property.provinceId],
+    queryFn: () =>
+      listingApi.list({
+        provinceId: property.provinceId,
+        sort: 'newest',
+        limit: 20,
+      }),
   });
-  const similar = (estates.data ?? [])
+  const similar = (listings.data?.items ?? [])
     .filter(
-      (estate) =>
-        estate.id !== property.id &&
-        (estate.type === property.type ||
-          estate.provinceId === property.provinceId) &&
-        (estate.purpose === property.purpose ||
-          estate.purpose === 'SALE_OR_RENT' ||
+      (listing) =>
+        listing.estateId !== property.id &&
+        (listing.estate.purpose === property.purpose ||
+          listing.estate.purpose === 'SALE_OR_RENT' ||
           property.purpose === 'SALE_OR_RENT'),
     )
     .slice(0, 3);
@@ -79,8 +82,8 @@ export function PropertyDetailLayout({
                   </Link>
                 </div>
                 <div>
-                  {similar.map((estate) => (
-                    <EstateCard estate={estate} key={estate.id} compact />
+                  {similar.map((listing) => (
+                    <PropertyCard listing={listing} key={listing.id} compact />
                   ))}
                 </div>
               </section>

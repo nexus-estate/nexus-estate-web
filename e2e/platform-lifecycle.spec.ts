@@ -128,14 +128,8 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     await providerPage
       .getByRole('button', { name: /Submit for review|Gửi xét duyệt/ })
       .click();
-    const platformState = providerPage.getByRole('region', {
-      name: /Platform state|Trạng thái nền tảng/,
-    });
     await expect(
-      platformState.getByText(/^Pending review$|^Đang chờ duyệt$/),
-    ).toBeVisible();
-    await expect(
-      platformState.getByText(
+      providerPage.getByText(
         /Provider review is in progress\.|Hồ sơ Provider đang được xét duyệt\./,
       ),
     ).toBeVisible();
@@ -146,37 +140,40 @@ test('proves the Customer → Provider → Administration lifecycle and isolatio
     await adminPage.getByRole('button', { name: /Sign in|Đăng nhập/ }).click();
     await expect(adminPage).toHaveURL(/\/admin\/provider-requests(?:\?|$)/);
     await expect(
-      adminPage.getByText(providerName, { exact: true }),
+      adminPage.getByRole('button', { name: new RegExp(providerName) }),
     ).toBeVisible();
     await adminPage
-      .getByRole('row')
-      .filter({ hasText: providerName })
-      .getByRole('button', { name: /Approve|Phê duyệt/ })
+      .getByRole('button', { name: new RegExp(providerName) })
       .click();
     await adminPage
-      .getByRole('dialog')
-      .getByRole('button', { name: /Approve|Phê duyệt/ })
+      .getByRole('button', { name: /^Approve$|^Duyệt hồ sơ$/ })
       .click();
     await expect(
-      adminPage.getByText(/No pending requests\.|Không có yêu cầu đang chờ\./),
-    ).toBeVisible();
+      adminPage.getByRole('button', { name: new RegExp(providerName) }),
+    ).toHaveCount(0);
 
-    await providerPage.reload();
-    await providerPage.goto('/provider');
-    await expect(
-      providerPage.getByText(
-        /Supply access is active\.|Quyền Supply đang hoạt động\./,
-      ),
-    ).toBeVisible();
-    await expect(
-      providerPage.getByText(/Active|Đang hoạt động/, { exact: true }).first(),
-    ).toBeVisible();
-    await expect(
-      providerPage.getByText(/Verified|Đã xác minh/, { exact: true }).first(),
-    ).toBeVisible();
-    await expect(
-      providerPage.getByText('Owner', { exact: true }),
-    ).toBeVisible();
+    await providerPage.bringToFront();
+    await expect(providerPage.getByText(/^Approved$|^Đã duyệt$/)).toBeVisible({
+      timeout: 15_000,
+    });
+    const authorizationResponse = await providerPage.request.get(
+      `${apiUrl}/providers/me/authorization`,
+      {
+        headers: {
+          Authorization: `Bearer ${await token(providerPage, 'nexus.customer.access_token')}`,
+        },
+      },
+    );
+    expect(authorizationResponse.ok()).toBeTruthy();
+    const { data: authorization } = await authorizationResponse.json();
+    expect(authorization).toMatchObject({
+      providerStatus: 'ACTIVE',
+      verificationStatus: 'VERIFIED',
+      membershipStatus: 'ACTIVE',
+      roles: expect.arrayContaining([
+        expect.objectContaining({ code: 'OWNER' }),
+      ]),
+    });
     await providerPage.goto('/provider/authorization');
     await expect(
       providerPage.getByRole('heading', {

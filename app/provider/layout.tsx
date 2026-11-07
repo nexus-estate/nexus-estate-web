@@ -77,34 +77,6 @@ export default function ProviderLayout({
             match: 'exact',
             icon: 'home',
           },
-          ...(hasAnyPermission('listing:read', 'listing:create')
-            ? [
-                {
-                  label: t('nav.listings'),
-                  icon: 'tag' as const,
-                  href: permissions.has('listing:read')
-                    ? '/provider/listings'
-                    : '/provider/listings/new',
-                  match: 'prefix' as const,
-                  children: permissions.has('listing:read')
-                    ? [
-                        {
-                          label: t('listings.list'),
-                          href: '/provider/listings',
-                        },
-                        ...(permissions.has('listing:create')
-                          ? [
-                              {
-                                label: t('listings.new'),
-                                href: '/provider/listings/new',
-                              },
-                            ]
-                          : []),
-                      ]
-                    : undefined,
-                },
-              ]
-            : []),
           ...(hasAnyPermission('property:read', 'property:create')
             ? [
                 {

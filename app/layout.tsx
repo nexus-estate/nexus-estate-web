@@ -18,6 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       'Nexus Estate connects customers, providers, and administration teams through one platform runtime.',
     keywords: 'real estate, property, nexus estate',
+    // The app provides its own locale switcher; DOM translation breaks hydration.
+    other: { google: 'notranslate' },
   };
 }
 
@@ -30,7 +32,12 @@ export default async function RootLayout({
   const locale = normalizeLocale(localeCookie);
 
   return (
-    <html lang={locale} className="h-full bg-[var(--background)]">
+    <html
+      lang={locale}
+      translate="no"
+      data-scroll-behavior="smooth"
+      className="h-full bg-[var(--background)] notranslate"
+    >
       <body className="flex min-h-full flex-col bg-[var(--background)] font-sans text-[var(--text)] antialiased">
         <QueryProvider>
           <AppProviders locale={locale}>{children}</AppProviders>

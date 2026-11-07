@@ -77,7 +77,7 @@ function ListingIdentity({
 
   return canOpen ? (
     <Link
-      href={`/provider/listings/${listing.id}`}
+      href={`/provider/properties/${listing.estateId}?listing=${listing.id}`}
       className="provider-dashboard-listing-link"
     >
       {content}
@@ -90,7 +90,7 @@ function ListingIdentity({
 export default function ProviderPage() {
   const t = useTranslations('provider');
   const locale = useLocale();
-  const workspace = useProviderEntryState();
+  const workspace = useProviderEntryState(true, true);
   const [filter, setFilter] = useState<ListingFilter>('ALL');
   const [search, setSearch] = useState('');
   const isActive = workspace.state === 'ACTIVE';
@@ -175,6 +175,25 @@ export default function ProviderPage() {
         <p className="mt-2 text-[var(--text-muted)]">
           {t(`lifecycle.${lifecycleKey}`)}
         </p>
+        {workspace.state === 'PENDING' &&
+          (workspace.account.isError || workspace.authorization.isError) && (
+            <p role="alert" className="mt-3 text-sm text-red-700">
+              {t('reviewStatus.syncError')}
+            </p>
+          )}
+        {workspace.state === 'PENDING' &&
+          (workspace.account.isError || workspace.authorization.isError) && (
+            <button
+              type="button"
+              className="provider-button mt-3"
+              onClick={() => {
+                void workspace.account.refetch();
+                void workspace.authorization.refetch();
+              }}
+            >
+              {t('overview.retry')}
+            </button>
+          )}
         {workspace.state === 'ERROR' ? (
           <button
             type="button"
@@ -200,6 +219,18 @@ export default function ProviderPage() {
 
   return (
     <div className="provider-dashboard space-y-5 pb-8">
+      <section
+        role="status"
+        className="flex flex-wrap items-center justify-between gap-3 border-l-4 border-green-700 bg-green-50 px-5 py-4 text-green-900"
+      >
+        <strong>{t('reviewStatus.approved')}</strong>
+        <Link
+          href="/provider/properties"
+          className="provider-button provider-button-primary"
+        >
+          {t('reviewStatus.manage')}
+        </Link>
+      </section>
       <header className="provider-dashboard-hero">
         <Image
           src="/images/hero-villa.webp"
@@ -222,7 +253,7 @@ export default function ProviderPage() {
           <div className="mt-5 flex flex-wrap gap-2">
             {canCreateListing && (
               <Link
-                href="/provider/listings/new"
+                href="/provider/properties"
                 className="provider-button provider-button-primary"
               >
                 <span aria-hidden="true" className="text-lg leading-none">
@@ -324,14 +355,14 @@ export default function ProviderPage() {
             </h2>
             <div className="flex items-center gap-3">
               <Link
-                href="/provider/listings"
+                href="/provider/properties"
                 className="text-sm font-semibold text-[#0a704e] hover:underline"
               >
                 {t('overview.viewAll')} <span aria-hidden="true">→</span>
               </Link>
               {canCreateListing && (
                 <Link
-                  href="/provider/listings/new"
+                  href="/provider/properties"
                   className="provider-button provider-button-primary hidden sm:inline-flex"
                 >
                   <span aria-hidden="true">+</span>
@@ -448,7 +479,7 @@ export default function ProviderPage() {
                           className="provider-dashboard-action-cell"
                         >
                           <Link
-                            href={`/provider/listings/${listing.id}`}
+                            href={`/provider/properties/${listing.estateId}?listing=${listing.id}`}
                             className="provider-dashboard-view"
                             aria-label={`${t('listingDetail.view')}: ${listing.estate.title}`}
                             title={t('listingDetail.view')}
@@ -466,7 +497,7 @@ export default function ProviderPage() {
           {sorted.length > 8 && (
             <div className="border-t border-[#e6ece8] px-5 py-3 text-right">
               <Link
-                href="/provider/listings"
+                href="/provider/properties"
                 className="text-sm font-semibold text-[#0a704e] hover:underline"
               >
                 {t('overview.viewAll')} →

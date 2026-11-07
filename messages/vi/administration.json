@@ -17,9 +17,15 @@
     "signOut": "Đăng xuất"
   },
   "providerReview": {
-    "title": "Yêu cầu Provider",
+    "title": "Duyệt hồ sơ provider",
+    "unconfirmed": "Máy chủ chưa xác nhận hồ sơ đã được duyệt. Hãy kiểm tra lại trạng thái.",
+    "serverDecision": "Hồ sơ {name} hiện có trạng thái: {status}.",
+    "noLongerPending": "Hồ sơ {name} không còn trong hàng chờ. API chưa cung cấp kết quả xử lý cuối cùng.",
+    "selectionGone": "Hồ sơ đang chọn không còn trong hàng chờ. Hãy chọn hồ sơ tiếp theo.",
     "description": "Xem xét và phê duyệt các yêu cầu đăng ký Provider đang chờ.",
-    "approve": "Phê duyệt",
+    "approve": "Duyệt hồ sơ",
+    "reject": "Từ chối",
+    "rejectUnavailable": "API hiện chưa hỗ trợ từ chối hồ sơ hoặc nhập lý do.",
     "loading": "Đang tải yêu cầu…",
     "empty": "Không có yêu cầu đang chờ.",
     "emptyDescription": "Các yêu cầu đăng ký Provider mới sẽ xuất hiện tại đây.",
@@ -40,6 +46,7 @@
     "review": "Thao tác",
     "viewDetails": "Chi tiết",
     "approvedToast": "Đã phê duyệt yêu cầu Provider.",
+    "approvedToastNamed": "Đã phê duyệt hồ sơ {name}.",
     "error": "Không thể tải yêu cầu Provider.",
     "detailTitle": "Yêu cầu Provider",
     "detailDescription": "Xem xét yêu cầu truy cập Supply Platform của Customer.",
@@ -64,7 +71,12 @@
     "confirm": "Phê duyệt yêu cầu Provider? Thao tác này bật năng lực Provider nhưng giữ nguyên xác thực Customer.",
     "approveDialogTitle": "Phê duyệt {name}?",
     "cancel": "Hủy",
-    "approving": "Đang phê duyệt…"
+    "approving": "Đang phê duyệt…",
+    "documents": "Tài liệu đã nộp",
+    "documentsUnavailable": "API hiện chưa trả về tài liệu hồ sơ.",
+    "processedAll": "Đã xử lý hết hồ sơ chờ duyệt",
+    "processedAllDescription": "Hàng đợi sẽ tự cập nhật khi có hồ sơ mới.",
+    "selectRequest": "Chọn một hồ sơ trong hàng đợi để xem chi tiết."
   },
   "overview": {
     "title": "Administration",

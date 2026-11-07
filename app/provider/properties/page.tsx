@@ -1,38 +1,112 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { CollectionToolbar } from '@/components/portal/collection-toolbar';
+import { MarketplaceIcon } from '@/components/customer/marketplace-icon';
 import { PageHeader } from '@/components/portal/page-header';
-import { StatusBadge } from '@/components/ui/StatusBadge';
+import { PropertyCard } from '@/components/provider/property/property-card';
+import { Modal } from '@/components/ui/Modal';
 import { useProviderAuthorization } from '@/features/provider/context/provider-context.hooks';
+import { useProviderContext } from '@/features/provider/context/provider-context.provider';
+import { providerKeys } from '@/features/provider/query-keys';
+import { publicListings } from '@/features/provider/supply/property-visibility';
 import {
   useActivateProviderProperty,
   useArchiveProviderProperty,
   useProviderProperties,
+  useProviderListings,
   useRestoreProviderProperty,
 } from '@/features/provider/supply/provider-supply.queries';
 import { ApiError } from '@/lib/api/core/error';
 import type { Estate } from '@/lib/api/estate/estate.types';
 
-function formatPrice(value: number, locale: string) {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: 'VND',
-    maximumFractionDigits: 0,
-  }).format(value);
+import './properties.css';
+
+const PAGE_SIZE = 8;
+const STATUSES = ['public', 'private'] as const;
+const TYPES = [
+  'APARTMENT',
+  'HOUSE',
+  'VILLA',
+  'TOWNHOUSE',
+  'LAND',
+  'OFFICE',
+  'SHOPHOUSE',
+  'WAREHOUSE',
+  'COMMERCIAL',
+  'HOTEL',
+  'RESORT',
+  'FARM',
+  'OTHER',
+] as const;
+
+function InventorySkeleton() {
+  const t = useTranslations('provider');
+  return (
+    <div role="status" aria-label={t('loading')} className="inventory-list">
+      {[1, 2, 3].map((id) => (
+        <div
+          key={id}
+          className="inventory-card inventory-skeleton"
+          aria-hidden="true"
+        >
+          <div className="skeleton inventory-thumbnail" />
+          <div>
+            <div className="skeleton" />
+            <div className="skeleton" />
+            <div className="skeleton" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function ProviderPropertiesPage() {
+  const { providerId } = useProviderContext();
+  return <ProviderInventory key={providerId ?? 'implicit'} />;
+}
+
+function ProviderInventory() {
   const locale = useLocale();
   const t = useTranslations('provider');
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const search = useSearchParams();
+  const query = search.get('q') ?? '';
+  const statusFilter =
+    STATUSES.find((status) => status === search.get('status')) ?? '';
+  const typeFilter = TYPES.find((type) => type === search.get('type')) ?? '';
+  const pageParam = Number(search.get('page'));
+  const requestedPage =
+    Number.isSafeInteger(pageParam) && pageParam > 0 ? pageParam : 1;
+  const [archiveTarget, setArchiveTarget] = useState<Estate | null>(null);
+  const updateFilters = (values: Record<string, string>, replace = false) => {
+    const params = new URLSearchParams(search.toString());
+    params.delete('page');
+    Object.entries(values).forEach(([key, value]) =>
+      value ? params.set(key, value) : params.delete(key),
+    );
+    window.history[replace ? 'replaceState' : 'pushState'](
+      null,
+      '',
+      `?${params.toString()}`,
+    );
+  };
   const workspace = useProviderAuthorization();
+  const queryClient = useQueryClient();
+  const { providerId } = useProviderContext();
   const properties = useProviderProperties(
     workspace.hasProviderPermission('property:read'),
   );
+  const listings = useProviderListings(
+    workspace.hasProviderPermission('listing:read'),
+  );
+  const visibilityReady =
+    workspace.hasProviderPermission('listing:read') &&
+    listings.isSuccess &&
+    !listings.isError;
   const activateProperty = useActivateProviderProperty();
   const archiveProperty = useArchiveProviderProperty();
   const restoreProperty = useRestoreProviderProperty();
@@ -61,7 +135,10 @@ export default function ProviderPropertiesPage() {
   ) => {
     setLifecycleError(null);
     const options = {
-      onSuccess: () => setLifecycleError(null),
+      onSuccess: () => {
+        setLifecycleError(null);
+        setArchiveTarget(null);
+      },
       onError: (error: unknown) => setLifecycleError(error),
     };
     if (action === 'activate') activateProperty.mutate(propertyId, options);
@@ -88,176 +165,282 @@ export default function ProviderPropertiesPage() {
 
   const filtered = (properties.data ?? []).filter(
     (item) =>
-      (!statusFilter || item.status === statusFilter) &&
+      (!statusFilter ||
+        !visibilityReady ||
+        publicListings(item, listings.data ?? []).length > 0 ===
+          (statusFilter === 'public')) &&
+      (!typeFilter || item.type === typeFilter) &&
       item.title
         .toLocaleLowerCase(locale)
         .includes(query.trim().toLocaleLowerCase(locale)),
   );
 
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const page = Math.min(requestedPage, pageCount);
+  const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const hasFilters = Boolean(query || statusFilter || typeFilter);
+  const createLink = canCreate ? (
+    <Link
+      href="/provider/properties/new"
+      className="provider-button provider-button-primary"
+    >
+      <span aria-hidden="true">＋</span>
+      {t('properties.create')}
+    </Link>
+  ) : null;
+  const refresh = () => {
+    void properties.refetch();
+    if (workspace.hasProviderPermission('listing:read'))
+      void listings.refetch();
+    void queryClient.invalidateQueries({
+      queryKey: [...providerKeys.scope(providerId), 'estate-media'],
+    });
+  };
+
   return (
-    <>
+    <section className="property-inventory">
       <PageHeader
         title={t('properties.title')}
         description={t('properties.description')}
-        actions={
-          <Link
-            href="/provider/properties/new"
-            aria-disabled={!canCreate}
-            tabIndex={canCreate ? undefined : -1}
-            className={`provider-button provider-button-primary ${
-              canCreate ? 'hover:opacity-90' : 'pointer-events-none opacity-50'
-            }`}
-          >
-            {t('properties.new')}
-          </Link>
-        }
+        actions={createLink}
       />
       {canRead && (
-        <CollectionToolbar
-          query={query}
-          onQuery={setQuery}
-          status={statusFilter}
-          onStatus={setStatusFilter}
-          statuses={['DRAFT', 'ACTIVE', 'ARCHIVED'].map((value) => ({
-            value,
-            label: t(`properties.status.${value}`),
-          }))}
-          onRefresh={() => void properties.refetch()}
-          refreshing={properties.isFetching}
-        />
+        <>
+          <div
+            className="inventory-tabs"
+            role="group"
+            aria-label={t('controls.status')}
+          >
+            {['', ...(visibilityReady ? STATUSES : [])].map((status) => (
+              <button
+                key={status}
+                aria-pressed={statusFilter === status}
+                onClick={() => updateFilters({ status })}
+              >
+                {status
+                  ? t(`unified.${status}`)
+                  : t('properties.inventory.all')}
+              </button>
+            ))}
+          </div>
+          <div className="inventory-toolbar">
+            <label className="inventory-search">
+              <MarketplaceIcon name="search" />
+              <span className="sr-only">
+                {t('properties.inventory.search')}
+              </span>
+              <input
+                type="search"
+                placeholder={t('properties.inventory.search')}
+                value={query}
+                onChange={(event) =>
+                  updateFilters({ q: event.target.value }, true)
+                }
+              />
+            </label>
+            <label className="inventory-type">
+              <span className="sr-only">{t('properties.fields.type')}</span>
+              <select
+                value={typeFilter}
+                onChange={(event) =>
+                  updateFilters({ type: event.target.value })
+                }
+              >
+                <option value="">{t('properties.inventory.allTypes')}</option>
+                {TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {t(`properties.types.${type}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              className="inventory-refresh"
+              aria-label={t('controls.refresh')}
+              title={t('controls.refresh')}
+              disabled={properties.isFetching}
+              onClick={refresh}
+            >
+              <span aria-hidden="true">↻</span>
+            </button>
+          </div>
+        </>
       )}
       {workspace.state === 'LOADING' ? (
-        <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
+        <InventorySkeleton />
       ) : blockedByLifecycle ? (
-        <p className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]">
+        <p className="inventory-state">
           {t(`lifecycle.${workspace.state.toLowerCase()}`)}
         </p>
       ) : !canRead ? (
-        <p
-          role="alert"
-          className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-muted)]"
-        >
+        <p role="alert" className="inventory-state">
           {t('permissionDenied')}
         </p>
       ) : properties.isLoading ? (
-        <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
+        <InventorySkeleton />
       ) : properties.isError ? (
-        <p role="alert" className="text-sm text-[var(--danger)]">
-          {properties.error instanceof ApiError &&
-          properties.error.status === 403
-            ? t('permissionDenied')
-            : t('properties.loadFailed')}
-        </p>
-      ) : filtered.length === 0 ? (
-        <div className="border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center text-sm text-[var(--text-muted)]">
-          {query || statusFilter
-            ? t('controls.noResults')
-            : t('properties.empty')}
+        <div className="inventory-state" role="alert">
+          <p>
+            {properties.error instanceof ApiError &&
+            properties.error.status === 403
+              ? t('permissionDenied')
+              : t('properties.loadFailed')}
+          </p>
+          <button
+            className="provider-button provider-button-secondary"
+            onClick={refresh}
+          >
+            {t('properties.inventory.retry')}
+          </button>
         </div>
       ) : (
-        <ul className="divide-y divide-[var(--border-muted)] border border-[var(--border)] bg-[var(--surface)]">
-          {filtered.map((estate: Estate) => (
-            <li
-              key={estate.id}
-              className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
-            >
-              {(() => {
-                const pendingAction = pendingActionFor(estate.id);
-                return (
-                  <>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <div className="truncate text-sm font-medium">
-                          {estate.title}
-                        </div>
-                        <StatusBadge
-                          status={estate.status}
-                          label={t(`properties.status.${estate.status}`)}
-                          size="sm"
-                        />
-                      </div>
-                      <div className="mt-0.5 text-xs text-[var(--text-muted)]">
-                        {formatPrice(estate.price, locale)} ·{' '}
-                        {estate.province.name}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {canUpdate && estate.status !== 'ARCHIVED' && (
-                        <Link
-                          className="app-button app-button-secondary"
-                          href={`/provider/media?estateId=${estate.id}`}
-                        >
-                          {t('properties.media')}
-                        </Link>
-                      )}
-                      {workspace.hasProviderPermission('listing:create') &&
-                        estate.status === 'ACTIVE' && (
-                          <Link
-                            className="app-button app-button-primary"
-                            href={`/provider/listings/new?estateId=${estate.id}`}
-                          >
-                            {t('properties.createListing')}
-                          </Link>
-                        )}
-                      {canUpdate && estate.status !== 'ARCHIVED' && (
-                        <Link
-                          href={`/provider/properties/${estate.id}/edit`}
-                          className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold transition-colors hover:bg-[var(--surface-hover)]"
-                        >
-                          {t('properties.edit')}
-                        </Link>
-                      )}
-                      {estate.status === 'DRAFT' && canUpdate && (
-                        <button
-                          type="button"
-                          disabled={pendingAction !== null}
-                          onClick={() => runLifecycle('activate', estate.id)}
-                          className="rounded-lg border border-[var(--primary)] px-3 py-2 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary-soft)] disabled:opacity-50"
-                        >
-                          {pendingAction === 'activate'
-                            ? t('properties.activating')
-                            : t('properties.activate')}
-                        </button>
-                      )}
-                      {(estate.status === 'DRAFT' ||
-                        estate.status === 'ACTIVE') &&
-                        canArchive && (
-                          <button
-                            type="button"
-                            disabled={pendingAction !== null}
-                            onClick={() => runLifecycle('archive', estate.id)}
-                            className="rounded-lg border border-[var(--danger)] px-3 py-2 text-xs font-semibold text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)] disabled:opacity-50"
-                          >
-                            {pendingAction === 'archive'
-                              ? t('properties.archiving')
-                              : t('properties.archive')}
-                          </button>
-                        )}
-                      {estate.status === 'ARCHIVED' && canUpdate && (
-                        <button
-                          type="button"
-                          disabled={pendingAction !== null}
-                          onClick={() => runLifecycle('restore', estate.id)}
-                          className="rounded-lg border border-[var(--primary)] px-3 py-2 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary-soft)] disabled:opacity-50"
-                        >
-                          {pendingAction === 'restore'
-                            ? t('properties.restoring')
-                            : t('properties.restore')}
-                        </button>
-                      )}
-                    </div>
-                  </>
-                );
-              })()}
-            </li>
-          ))}
-        </ul>
+        <>
+          <p className="inventory-count" role="status">
+            {t('properties.inventory.count', { count: filtered.length })}
+          </p>
+          {listings.isError &&
+            workspace.hasProviderPermission('listing:read') && (
+              <div role="alert" className="inventory-eligibility-error">
+                <p>{t('unified.visibilityError')}</p>
+                <button onClick={() => void listings.refetch()}>
+                  {t('properties.inventory.retry')}
+                </button>
+              </div>
+            )}
+          {filtered.length === 0 ? (
+            <div className="inventory-state">
+              <MarketplaceIcon name="building" />
+              <h2>
+                {t(
+                  hasFilters
+                    ? 'controls.noResults'
+                    : 'properties.inventory.emptyTitle',
+                )}
+              </h2>
+              <p>
+                {t(
+                  hasFilters
+                    ? 'properties.inventory.tryFilters'
+                    : 'properties.empty',
+                )}
+              </p>
+              {hasFilters ? (
+                <button
+                  className="provider-button provider-button-secondary"
+                  onClick={() => updateFilters({ q: '', status: '', type: '' })}
+                >
+                  {t('properties.inventory.clear')}
+                </button>
+              ) : (
+                createLink
+              )}
+            </div>
+          ) : (
+            <>
+              <ul className="inventory-list">
+                {visible.map((estate) => (
+                  <PropertyCard
+                    key={estate.id}
+                    estate={estate}
+                    visibility={
+                      visibilityReady
+                        ? publicListings(estate, listings.data ?? []).length > 0
+                          ? 'public'
+                          : 'private'
+                        : 'unknown'
+                    }
+                    canUpdate={canUpdate}
+                    canArchive={canArchive}
+                    pending={pendingActionFor(estate.id)}
+                    onAction={(action, selected) => {
+                      if (action === 'archive') {
+                        setLifecycleError(null);
+                        setArchiveTarget(selected);
+                      } else runLifecycle(action, selected.id);
+                    }}
+                  />
+                ))}
+              </ul>
+              <div className="inventory-footer">
+                <p>
+                  {t('properties.inventory.showing', {
+                    from: (page - 1) * PAGE_SIZE + 1,
+                    to: Math.min(page * PAGE_SIZE, filtered.length),
+                    total: filtered.length,
+                  })}
+                </p>
+                {pageCount > 1 && (
+                  <nav aria-label={t('properties.inventory.pagination')}>
+                    <button
+                      disabled={page === 1}
+                      onClick={() => updateFilters({ page: String(page - 1) })}
+                    >
+                      {t('properties.inventory.previous')}
+                    </button>
+                    <span>
+                      {page} / {pageCount}
+                    </span>
+                    <button
+                      disabled={page === pageCount}
+                      onClick={() => updateFilters({ page: String(page + 1) })}
+                    >
+                      {t('properties.inventory.next')}
+                    </button>
+                  </nav>
+                )}
+              </div>
+            </>
+          )}
+        </>
       )}
-      {lifecycleError && (
-        <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
+      {lifecycleError != null && !archiveTarget && (
+        <p role="alert" className="inventory-error">
           {lifecycleErrorMessage}
         </p>
       )}
-    </>
+      <Modal
+        isOpen={archiveTarget !== null}
+        onClose={() => {
+          if (!archiveProperty.isPending) setArchiveTarget(null);
+        }}
+        title={t('properties.inventory.archiveTitle')}
+        footer={
+          <>
+            <button
+              className="provider-button provider-button-secondary"
+              disabled={archiveProperty.isPending}
+              onClick={() => setArchiveTarget(null)}
+            >
+              {t('properties.cancel')}
+            </button>
+            <button
+              className="provider-button provider-button-primary"
+              disabled={archiveProperty.isPending || !canArchive}
+              onClick={() => {
+                if (archiveTarget && canArchive)
+                  runLifecycle('archive', archiveTarget.id);
+              }}
+            >
+              {t(
+                archiveProperty.isPending
+                  ? 'properties.archiving'
+                  : 'properties.archive',
+              )}
+            </button>
+          </>
+        }
+      >
+        <p className="break-words">
+          {t('properties.inventory.archiveConfirm', {
+            title: archiveTarget?.title ?? '',
+          })}
+        </p>
+        {lifecycleError != null && (
+          <p role="alert" className="mt-3 text-[var(--danger)]">
+            {lifecycleErrorMessage}
+          </p>
+        )}
+      </Modal>
+    </section>
   );
 }

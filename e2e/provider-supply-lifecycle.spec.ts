@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext } from '@playwright/test';
 
 const apiUrl =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:50001/api/v1';
-const providerBaseURL = `http://localhost:${process.env.E2E_PROVIDER_PORT ?? '3001'}`;
+const providerBaseURL = `http://localhost:${process.env.E2E_PROVIDER_PORT ?? '3003'}`;
 const adminEmail = 'superadmin@nexus-estate.local';
 const adminPassword = 'NexusEstate#SuperAdmin2026!';
 
@@ -75,20 +75,20 @@ test('runs the Provider Property to Listing lifecycle in the browser', async ({
     await page.goto('/provider/properties/new');
     await page.locator('#estate-title').fill(propertyTitle);
     await page.locator('#estate-price').fill('3500000000');
-    await page.locator('#estate-address').fill('1 Supply Street');
+    await page.locator('#estate-addressLine').fill('1 Supply Street');
     await page.locator('#estate-province').selectOption({ index: 1 });
     await expect(page.locator('#estate-ward option').nth(1)).toBeAttached();
     await page.locator('#estate-ward').selectOption({ index: 1 });
     await page
       .locator('form')
-      .getByRole('button', { name: /Create Property|Tạo bất động sản/ })
+      .getByRole('button', { name: /Add property|Thêm bất động sản/ })
       .click();
     await expect(page).toHaveURL(/\/provider\/properties$/);
     await expect(page.getByText(propertyTitle, { exact: true })).toBeVisible();
 
     const propertyRow = page.locator('li').filter({ hasText: propertyTitle });
     await expect(
-      propertyRow.getByText(/Draft|Bản nháp/, { exact: true }),
+      propertyRow.getByText(/Not public|Chưa công khai/, { exact: true }),
     ).toBeVisible();
 
     await page.goto('/provider/listings/new');
@@ -101,78 +101,110 @@ test('runs the Provider Property to Listing lifecycle in the browser', async ({
       .locator('form')
       .getByRole('button', { name: /Create draft|Tạo bản nháp/ })
       .click();
-    await expect(page).toHaveURL(/\/provider\/listings$/);
+    await expect(page).toHaveURL(/\/provider\/properties$/);
 
-    const listingRow = page.locator('li').filter({ hasText: propertyTitle });
+    const headers = {
+      Authorization: `Bearer ${customerToken}`,
+      'X-Provider-Id': providerId,
+    };
+    const drafts = await data<
+      { id: string; estateId: string; status: string }[]
+    >(await request.get(`${apiUrl}/listings/mine`, { headers }));
+    expect(drafts).toHaveLength(1);
+    expect(drafts[0].status).toBe('DRAFT');
+    const listingId = drafts[0].id;
+    const estateId = drafts[0].estateId;
+    await propertyRow.getByRole('link', { name: /^Manage$|^Quản lý$/ }).click();
     await expect(
-      listingRow.getByText(/Draft|Bản nháp/, { exact: true }),
+      page.getByRole('heading', { name: propertyTitle, level: 1, exact: true }),
     ).toBeVisible();
-    await listingRow.getByRole('button', { name: /Publish|Xuất bản/ }).click();
+    // A draft profile cannot be published until it has been activated.
     await expect(
-      page.getByText(
-        /Property must be active|phải ở trạng thái đang hoạt động/,
+      page.getByRole('button', { name: /^Publish$|^Đăng công khai$/ }),
+    ).toHaveCount(0);
+    await page.getByRole('button', { name: /Activate|Kích hoạt/ }).click();
+    await page
+      .getByRole('button', { name: /^Publish$|^Đăng công khai$/ })
+      .click();
+    await expect(
+      page.getByRole('link', {
+        name: /View on Marketplace|Xem trên Marketplace/,
+      }),
+    ).toBeVisible();
+    const published = await data<{ id: string; status: string }>(
+      await request.get(`${apiUrl}/listings/${listingId}`),
+    );
+    expect(published).toMatchObject({ id: listingId, status: 'PUBLISHED' });
+    expect(
+      await data<unknown[]>(
+        await request.get(`${apiUrl}/listings/mine`, { headers }),
       ),
-    ).toBeVisible();
-
-    await page.goto('/provider/properties');
-    const activePropertyRow = page
-      .locator('li')
-      .filter({ hasText: propertyTitle });
-    await activePropertyRow
-      .getByRole('button', { name: /Activate|Kích hoạt/ })
-      .click();
-    await expect(
-      activePropertyRow.getByText(/Active|Đang hoạt động/, { exact: true }),
-    ).toBeVisible();
-
-    await page.goto('/provider/listings');
-    const publishedListingRow = page
-      .locator('li')
-      .filter({ hasText: propertyTitle });
-    await publishedListingRow
-      .getByRole('button', { name: /Publish|Xuất bản/ })
-      .click();
-    await expect(
-      publishedListingRow.getByText(/Published|Đã xuất bản/, { exact: true }),
-    ).toBeVisible();
+    ).toHaveLength(1);
 
     await page.goto('/provider/properties');
     const blockedArchiveRow = page
       .locator('li')
       .filter({ hasText: propertyTitle });
+    await blockedArchiveRow.locator('summary').click();
     await blockedArchiveRow
       .getByRole('button', { name: /Archive|Lưu trữ/ })
+      .click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /Archive|Lưu trữ/, exact: true })
       .click();
     await expect(
       page.getByText(/cannot be archived while|Không thể lưu trữ bất động sản/),
     ).toBeVisible();
 
-    await page.goto('/provider/listings');
-    await publishedListingRow
-      .getByRole('button', { name: /Archive|Lưu trữ/ })
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /Cancel|Hủy/ })
+      .click();
+    await blockedArchiveRow
+      .getByRole('link', { name: /^Manage$|^Quản lý$/ })
+      .click();
+    await page
+      .getByRole('button', { name: /Stop publishing|Ngừng công khai/ })
+      .click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /Stop publishing|Ngừng công khai/ })
       .click();
     await expect(
-      publishedListingRow.getByText(/Archived|Đã lưu trữ/, { exact: true }),
+      page.getByText(/This listing is archived|Tin đã ngừng công khai/),
     ).toBeVisible();
+    expect(
+      (await request.get(`${apiUrl}/listings/${listingId}`)).status(),
+    ).toBe(404);
 
     await page.goto('/provider/properties');
     const propertyAfterListingArchive = page
       .locator('li')
       .filter({ hasText: propertyTitle });
+    await propertyAfterListingArchive.locator('summary').click();
     await propertyAfterListingArchive
       .getByRole('button', { name: /Archive|Lưu trữ/ })
       .click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /Archive|Lưu trữ/, exact: true })
+      .click();
+    const restore = propertyAfterListingArchive.getByRole('button', {
+      name: /Restore|Khôi phục/,
+    });
+    await expect(restore).toBeVisible();
+    await restore.click();
     await expect(
-      propertyAfterListingArchive.getByText(/Archived|Đã lưu trữ/, {
-        exact: true,
+      propertyAfterListingArchive.getByRole('button', {
+        name: /Activate|Kích hoạt/,
       }),
     ).toBeVisible();
-    await propertyAfterListingArchive
-      .getByRole('button', { name: /Restore|Khôi phục/ })
-      .click();
-    await expect(
-      propertyAfterListingArchive.getByText(/Draft|Bản nháp/, { exact: true }),
-    ).toBeVisible();
+    expect(
+      await data<{ status: string }>(
+        await request.get(`${apiUrl}/estates/${estateId}/mine`, { headers }),
+      ),
+    ).toMatchObject({ status: 'DRAFT' });
   } finally {
     await context.close();
   }

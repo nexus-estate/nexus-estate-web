@@ -88,3 +88,5 @@ export interface Ward {
   type: string;
   provinceId: string;
 }
+
+export type AdministrativeUnitType = 'ward' | 'commune' | 'special_zone';
