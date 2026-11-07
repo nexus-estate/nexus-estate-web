@@ -11,6 +11,9 @@ x-web-dev: &web-dev
   command: npm run dev -- --hostname 0.0.0.0 --port 3000
   extra_hosts:
     - 'host.docker.internal:host-gateway'
+  networks:
+    - default
+    - backend
   volumes:
     - .:/app
     # Container dependencies and build cache must not come from the host.
@@ -35,7 +38,7 @@ x-web-dev-environment: &web-dev-environment
   NODE_ENV: development
   NEXT_TELEMETRY_DISABLED: '1'
   DEV_ALLOWED_ORIGINS: ${DEV_ALLOWED_ORIGINS:-}
-  API_PROXY_TARGET: ${API_PROXY_TARGET:-http://host.docker.internal:3001/api/v1}
+  API_PROXY_TARGET: ${API_PROXY_TARGET:-http://nexus-api:3001/api/v1}
   NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
   NEXT_PUBLIC_MARKETPLACE_URL: ${NEXT_PUBLIC_MARKETPLACE_URL:-http://localhost:3000}
   NEXT_PUBLIC_PROVIDER_URL: ${NEXT_PUBLIC_PROVIDER_URL:-http://localhost:3003}
@@ -65,3 +68,8 @@ services:
     environment:
       <<: *web-dev-environment
       WEB_PLATFORM: admin
+
+networks:
+  backend:
+    external: true
+    name: ${API_DOCKER_NETWORK:-nexus-estate-api-gateway_nexus-network}

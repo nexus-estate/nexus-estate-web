@@ -56,7 +56,11 @@ browsers can test login, data fetching, and uploads through the HTTPS FE tunnel.
 Production continues to use the configured public API URL.
 
 For `npm run dev`, the proxy destination defaults to `NEXT_PUBLIC_API_URL`.
-For Docker Compose, it defaults to `http://host.docker.internal:3001/api/v1`.
+For Docker Compose, it defaults to `http://nexus-api:3001/api/v1` over the
+backend Docker network. Start the backend Compose stack first so that
+`nexus-estate-api-gateway_nexus-network` exists. Set `API_DOCKER_NETWORK` if
+the backend network has a different name. The backend host port is bound to
+loopback, so frontend containers cannot reach it through `host.docker.internal`.
 Set `API_PROXY_TARGET` to override the backend URL reachable from the FE server.
 Keep the full API prefix in this value. The backend must be running and, for
 Docker access through the host gateway, listening on an interface reachable

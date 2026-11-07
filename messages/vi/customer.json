@@ -13,7 +13,10 @@
     "navigation": "Điều hướng Marketplace",
     "openMenu": "Mở menu",
     "closeMenu": "Đóng menu",
-    "postEstate": "Đăng bất động sản"
+    "postEstate": "Đăng bất động sản",
+    "buy": "Mua",
+    "rent": "Thuê",
+    "providers": "Nhà cung cấp"
   },
   "home": {
     "eyebrow": "Sàn bất động sản Nexus",
@@ -70,7 +73,35 @@
       "resort": "Khu nghỉ dưỡng",
       "farm": "Nông trại",
       "other": "Khác"
-    }
+    },
+    "marketplaceDescription": "Mua, thuê và khám phá bất động sản. Tìm không gian phù hợp cho kế hoạch của bạn.",
+    "marketplaceSearchPlaceholder": "Nhập khu vực hoặc từ khóa…",
+    "viewAllShort": "Xem tất cả",
+    "exploreNeeds": "Khám phá theo nhu cầu",
+    "highlights": {
+      "0": "Tìm kiếm theo nhu cầu",
+      "1": "Hình ảnh bất động sản",
+      "2": "Khám phá theo khu vực",
+      "3": "Liên hệ người đăng"
+    },
+    "needs": {
+      "buy": "Mua nhà",
+      "rent": "Thuê nhà",
+      "apartment": "Căn hộ",
+      "type": "Theo loại hình",
+      "location": "Theo khu vực"
+    },
+    "promotedTitle": "Tin đăng nổi bật",
+    "promotedDescription": "Các bất động sản đang được đẩy mạnh hiển thị",
+    "promotionBadge": "Nổi bật",
+    "viewAllPromoted": "Xem tất cả tin nổi bật",
+    "collapsePromoted": "Thu gọn",
+    "previousPromoted": "Tin nổi bật trước",
+    "nextPromoted": "Tin nổi bật tiếp theo",
+    "promotedEmpty": "Hiện chưa có tin đăng nổi bật.",
+    "promotedUnavailable": "Chưa thể tải tin đăng nổi bật. Vui lòng thử lại.",
+    "latestEstates": "Bất động sản mới nhất",
+    "latestEstatesDescription": "Khám phá những bất động sản mới được đăng"
   },
   "properties": {
     "title": "Khám phá bất động sản",
@@ -102,7 +133,13 @@
     "bathrooms": "{value} phòng tắm",
     "location": "{city}{district, select, undefined {} other {, {district}}}",
     "noImage": "Chưa có hình ảnh",
-    "loadingImage": "Đang tải hình ảnh…"
+    "loadingImage": "Đang tải hình ảnh…",
+    "sort": "Sắp xếp",
+    "sortNewest": "Mới nhất",
+    "sortPriceAsc": "Giá tăng dần",
+    "sortPriceDesc": "Giá giảm dần",
+    "activeFilters": "Bộ lọc đang áp dụng",
+    "removeFilter": "Bỏ bộ lọc: {label}"
   },
   "propertyDetail": {
     "contactUnavailable": "Thông tin liên hệ sẽ có khi chủ sở hữu xuất bản tin đăng cho bất động sản này.",
@@ -140,7 +177,13 @@
     "contactPoster": "Liên hệ người đăng",
     "enquiryHelp": "Để lại thông tin để được tư vấn về bất động sản này.",
     "contactPendingTitle": "Chưa có thông tin liên hệ",
-    "contactPendingDescription": "Người đăng chưa công bố thông tin liên hệ cho bất động sản này."
+    "contactPendingDescription": "Người đăng chưa công bố thông tin liên hệ cho bất động sản này.",
+    "typeLabel": "Loại bất động sản",
+    "overview": "Tổng quan",
+    "overviewTitle": "Thông tin tổng quan",
+    "location": "Vị trí",
+    "sections": "Thông tin bất động sản",
+    "viewMap": "Xem trên bản đồ"
   },
   "listing": {
     "back": "Quay lại Dashboard",
@@ -161,6 +204,7 @@
     "descriptionPlaceholder": "Mô tả chi tiết về bất động sản…",
     "address": "Địa chỉ",
     "city": "Thành phố",
+    "ward": "Phường/Xã",
     "district": "Quận/Huyện",
     "addressDetail": "Địa chỉ cụ thể",
     "cityPlaceholder": "Hồ Chí Minh",

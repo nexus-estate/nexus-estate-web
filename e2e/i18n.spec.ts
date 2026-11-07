@@ -9,6 +9,15 @@ test('locale preference is persisted and document language follows it', async ({
     ]);
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('lang', 'vi');
+  await expect(page.locator('html')).toHaveAttribute('translate', 'no');
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-scroll-behavior',
+    'smooth',
+  );
+  await expect(page.locator('meta[name="google"]')).toHaveAttribute(
+    'content',
+    'notranslate',
+  );
   await expect(page.getByText('English').first()).toBeVisible();
 });
 

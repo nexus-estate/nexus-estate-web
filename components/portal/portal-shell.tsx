@@ -11,6 +11,7 @@ export function PortalShell({
   children,
   context,
   identity,
+  topbarContext,
   footer,
   appearance = 'default',
 }: {
@@ -19,6 +20,7 @@ export function PortalShell({
   children: ReactNode;
   context?: ReactNode;
   identity?: ReactNode;
+  topbarContext?: ReactNode;
   footer?: ReactNode;
   appearance?: 'default' | 'administration';
 }) {
@@ -40,7 +42,7 @@ export function PortalShell({
       <div className="min-w-0 lg:pl-[var(--portal-sidebar-width)]">
         <PortalTopbar
           onMenu={() => setOpen(true)}
-          context={context}
+          context={topbarContext ?? context}
           appearance={appearance}
         />
         <main className="mx-auto w-full max-w-[var(--content-max)] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-9">

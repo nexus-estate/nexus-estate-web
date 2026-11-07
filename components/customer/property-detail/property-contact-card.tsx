@@ -39,15 +39,12 @@ export function PropertyContactCard({
     }
   };
   return (
-    <aside
-      aria-label={t('contactNow')}
-      className="min-w-0 lg:col-start-2 lg:row-start-1 lg:row-span-2"
-    >
-      <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-xs)] sm:p-6 lg:sticky lg:top-[88px]">
+    <aside aria-label={t('contactNow')} className="mp-contact">
+      <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-xs)] sm:p-6">
         <p className="text-xs font-medium text-[var(--text-muted)]">
           {t('priceLabel')}
         </p>
-        <p className="mt-2 break-words text-[30px] font-semibold leading-tight tracking-[-.035em] text-[var(--brand-strong)]">
+        <p className="mt-2 break-words text-[32px] font-semibold leading-tight tracking-[-.035em] text-[var(--brand)]">
           {price}
         </p>
         <p className="mt-3 flex items-center gap-2 text-sm font-medium text-[var(--brand)]">

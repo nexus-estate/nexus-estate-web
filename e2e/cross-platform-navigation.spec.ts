@@ -79,9 +79,7 @@ test('Marketplace Provider links target the Provider runtime', async ({
   try {
     await page.goto('/');
     await expect(
-      page
-        .getByRole('link', { name: /Provider portal|Cổng Provider/i })
-        .first(),
+      page.getByRole('link', { name: /^Providers$|^Nhà cung cấp$/i }).first(),
     ).toHaveAttribute('href', `${providerUrl}/provider`);
     await expect(
       page.getByRole('link', { name: /Become a Provider|Trở thành Provider/i }),
@@ -90,7 +88,7 @@ test('Marketplace Provider links target the Provider runtime', async ({
     await mockCustomerSession(page);
     await page.goto('/dashboard');
     await expect(
-      page.getByRole('link', {
+      page.getByRole('main').getByRole('link', {
         name: /Become a Provider|Trở thành Provider/i,
       }),
     ).toHaveAttribute('href', `${providerUrl}/provider/onboarding`);

@@ -14,6 +14,7 @@ export function PropertyGallery({
   const media = useEstateMedia(estateId);
   return (
     <EstateGallery
+      marketplace
       estateId={estateId}
       title={title}
       media={media.data}

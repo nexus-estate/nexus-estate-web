@@ -267,3 +267,28 @@ test('uses the finalized estate marketplace wire contract', async () => {
     message: 'Please call me',
   });
 });
+
+it('filters administrative units from the supported wards endpoint', async () => {
+  jest.restoreAllMocks();
+  const { publicApiClient } = await import('./client');
+  const { locationApi } = await import('./estate/estate.api');
+  const units = ['ward', 'commune', 'special_zone'].map((type) => ({
+    id: `${type}-id`,
+    provinceId: 'province-id',
+    code: '001',
+    name: type,
+    type,
+  }));
+  const get = jest.spyOn(publicApiClient, 'get').mockResolvedValue(units);
+  try {
+    for (const type of ['ward', 'commune', 'special_zone'] as const) {
+      expect(await locationApi.units('province-id', type)).toEqual(
+        units.filter((unit) => unit.type === type),
+      );
+    }
+    expect(get).toHaveBeenCalledTimes(3);
+    expect(get).toHaveBeenCalledWith('/locations/provinces/province-id/wards');
+  } finally {
+    get.mockRestore();
+  }
+});

@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import { EstateGallery } from '@/components/shared/estate-gallery';
 import { getEstateImages } from '@/lib/api/media/estate-images';
 import { mediaApi, type EstateMedia } from '@/lib/api/media/media.api';
 import { PropertyGallery } from './property-gallery';
@@ -65,12 +66,12 @@ test.each([1, 2, 5, 8, 12])(
     jest.mocked(mediaApi.listPublic).mockResolvedValue(images(count));
     showGallery();
     const buttons = await screen.findAllByRole('button', { name: /^open / });
-    expect(buttons).toHaveLength(Math.min(count, 4));
+    expect(buttons).toHaveLength(Math.min(count, 5));
     expect(screen.getAllByRole('img')[0]).toHaveAttribute(
       'src',
       'http://localhost/estates/estate-1/image-0',
     );
-    const start = Math.min(count, 4);
+    const start = Math.min(count, 5);
     fireEvent.click(buttons[start - 1]);
     const dialog = screen.getByRole('dialog');
     expect(within(dialog).getByText(`${start} / ${count}`)).toBeInTheDocument();
@@ -112,6 +113,40 @@ test('a failed image keeps its gallery slot and viewer navigation', async () => 
   fireEvent.error(image);
   expect(screen.getByText('imageError')).toBeInTheDocument();
   fireEvent.click(screen.getAllByRole('button', { name: /^open / })[0]);
-  fireEvent.click(screen.getByRole('button', { name: 'next' }));
+  fireEvent.click(
+    within(screen.getByRole('dialog')).getByRole('button', { name: 'next' }),
+  );
   expect(screen.getByRole('dialog')).toHaveTextContent('2 / 2');
+});
+
+test('preview arrows wrap and open the selected image in the viewer', async () => {
+  jest.mocked(mediaApi.listPublic).mockResolvedValue(images(6));
+  showGallery();
+  await screen.findAllByRole('img');
+  fireEvent.click(screen.getByRole('button', { name: 'previous' }));
+  const selected = screen.getByRole('button', { name: 'open {"number":6}' });
+  expect(within(selected).getByRole('img')).toHaveAttribute(
+    'src',
+    expect.stringContaining('/estates/estate-1/image-5'),
+  );
+  fireEvent.click(selected);
+  expect(screen.getByRole('dialog')).toHaveTextContent('6 / 6');
+  fireEvent.click(
+    within(screen.getByRole('dialog')).getByRole('button', { name: 'close' }),
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'next' }));
+  expect(screen.getAllByRole('img')[0]).toHaveAttribute(
+    'src',
+    expect.stringContaining('/estates/estate-1/image-0'),
+  );
+});
+
+test('the default shared gallery retains the four-preview portal layout', () => {
+  render(
+    <EstateGallery estateId="estate-1" title="Property" media={images(6)} />,
+  );
+  expect(screen.getAllByRole('button', { name: /^open / })).toHaveLength(4);
+  expect(
+    screen.queryByRole('button', { name: 'next' }),
+  ).not.toBeInTheDocument();
 });

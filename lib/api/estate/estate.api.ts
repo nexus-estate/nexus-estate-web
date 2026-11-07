@@ -1,5 +1,6 @@
 import { publicApiClient, providerApiClient } from '../client';
 import type {
+  AdministrativeUnitType,
   CreateEstateRequest,
   Estate,
   Province,
@@ -27,6 +28,11 @@ export const estateApi = {
 };
 
 export const locationApi = {
+  // The API serves every administrative unit through the wards endpoint.
+  units: async (provinceId: string, type: AdministrativeUnitType) => {
+    const units = await locationApi.wards(provinceId);
+    return units.filter((unit) => unit.type === type);
+  },
   provinces: () => publicApiClient.get<Province[]>('/locations/provinces'),
   wards: (provinceId: string) =>
     publicApiClient.get<Ward[]>(`/locations/provinces/${provinceId}/wards`),
